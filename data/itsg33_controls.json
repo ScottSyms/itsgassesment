@@ -1,0 +1,2422 @@
+[
+  {
+    "id": "AC-1",
+    "family": "AC",
+    "name": "AC-1 Access Control Policy and Procedures",
+    "description": "AC-1 Access Control Policy and Procedures",
+    "profile": 1,
+    "questions": [
+      "A. What are the key components of the access control policy and associated procedures developed, documented, and disseminated by the organization to address purpose, scope, roles, responsibilities, management commitment, coordination among organizational entities, and compliance?\nB. How does the organization ensure the regular review and updating of the access control policy and access control procedures, as per the organization-defined frequency?"
+    ]
+  },
+  {
+    "id": "AC-2",
+    "family": "AC",
+    "name": "AC-2 Account Management",
+    "description": "AC-2 Account Management",
+    "profile": 1,
+    "questions": [
+      "A. What criteria does the organization use to identify and select the specific types of information system accounts that are necessary to support its missions and business functions?\nB. What is the process followed by the organization to assign account managers for information system accounts?\nC. What factors does the organization consider when establishing the conditions for group and role membership within its information system accounts?\nD. How does the organization determine and specify the authorized users of the information system, group and role membership, and access authorizations (privileges) for each account, while also considering any other required attributes?\nE. Who are the organization-defined personnel or roles responsible for providing approvals for requests to create information system accounts within the organization?\nF. What are the organization-defined procedures or conditions that govern the creation, enabling, modification, disabling, and removal of information system accounts within the organization?\nG. How does the organization monitor the use of information system accounts within its systems?\nH. What is the process followed by the organization to notify account managers when accounts are no longer required, when users are terminated or transferred, and when there are changes in individual information system usage or need-to-know?\nI. How does the organization determine and authorize access to the information system based on factors such as a valid access authorization, intended system usage, and any other required attributes specified by the organization or associated missions/business functions?\nJ. How does the organization conduct reviews of accounts to ensure compliance with the organization-defined account management requirements, and what is the frequency at which these reviews are performed?\nK. What is the process established by the organization for reissuing shared/group account credentials, specifically when individuals are removed from the group?"
+    ]
+  },
+  {
+    "id": "AC-3",
+    "family": "AC",
+    "name": "AC-3 Access Enforcement",
+    "description": "AC-3 Access Enforcement",
+    "profile": 1,
+    "questions": [
+      "A. How does the information system ensure the enforcement of approved authorizations for logical access to information and system resources, while adhering to the relevant access control policies?"
+    ]
+  },
+  {
+    "id": "AC-4",
+    "family": "AC",
+    "name": "AC-4 Information Flow Enforcement",
+    "description": "AC-4 Information Flow Enforcement",
+    "profile": 1,
+    "questions": [
+      "A. What mechanisms does the information system utilize to enforce approved authorizations for controlling the flow of information within the system and between interconnected systems, as specified by the organization-defined information flow control policies?"
+    ]
+  },
+  {
+    "id": "AC-5",
+    "family": "AC",
+    "name": "AC-5 Separation of Duties",
+    "description": "AC-5 Separation of Duties",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization separate the organization-defined duties of individuals, document the separation of these duties, and define information system access authorizations to effectively support the principle of separation of duties within the organization?"
+    ]
+  },
+  {
+    "id": "AC-6",
+    "family": "AC",
+    "name": "AC-6 Least Privilege",
+    "description": "AC-6 Least Privilege",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization implement the principle of least privilege to ensure that users (or processes acting on behalf of users) are granted only the necessary authorized accesses required to fulfill their assigned tasks in alignment with organizational missions and business functions?"
+    ]
+  },
+  {
+    "id": "AC-7",
+    "family": "AC",
+    "name": "AC-7 Unsuccessful Login Attempts",
+    "description": "AC-7 Unsuccessful Login Attempts",
+    "profile": 1,
+    "questions": [
+      "A. What is the organization-defined limit for the maximum number of consecutive invalid logon attempts allowed by a user within the organization-defined time period, and how does the information system enforce this limit?\nB. What are the options available for the information system to handle the situation when the maximum number of unsuccessful login attempts is exceeded? Does the system automatically lock the account or node for an organization-defined time period, lock the account or node until released by an administrator, or implement a delay algorithm for the next logon prompt according to an organization-defined delay algorithm?"
+    ]
+  },
+  {
+    "id": "AC-8",
+    "family": "AC",
+    "name": "AC-8 System Use Notification",
+    "description": "AC-8 System Use Notification",
+    "profile": 1,
+    "questions": [
+      "A. What is the content of the organization-defined system use notification message or banner that is displayed to users before granting access to the information system, ensuring that it includes privacy and security notices in accordance with the TBS Policy on Acceptable Network and Device Use (Reference 5)?\nB. How does the information system ensure that the notification message or banner, containing the usage conditions, remains on the screen until users acknowledge and explicitly take actions to log on to or access the information system further?\nC. Under what conditions does the information system display system use information, before granting further access on publicly accessible systems? Additionally, how does the system handle references, if any, to monitoring, recording, or auditing, taking into account privacy accommodations for such systems that typically prohibit these activities? Furthermore, how is the description of authorized uses of the system included in the information system for public accessibility?"
+    ]
+  },
+  {
+    "id": "AC-9",
+    "family": "AC",
+    "name": "AC-9 Previous Logon (Access) Notification",
+    "description": "AC-9 Previous Logon (Access) Notification",
+    "profile": 1,
+    "questions": [
+      "A. How does the information system notify the user of the date and time of their last successful logon (access) to the system upon a current successful logon (access)?"
+    ]
+  },
+  {
+    "id": "AC-10",
+    "family": "AC",
+    "name": "AC-10 Concurrent Session Control",
+    "description": "AC-10 Concurrent Session Control",
+    "profile": 1,
+    "questions": [
+      "A. What is the organization-defined account and/or account type for which the information system restricts the number of concurrent sessions, and what is the organization-defined maximum number of concurrent sessions allowed for each of these accounts or account types?"
+    ]
+  },
+  {
+    "id": "AC-11",
+    "family": "AC",
+    "name": "AC-11 Session Lock",
+    "description": "AC-11 Session Lock",
+    "profile": 1,
+    "questions": [
+      "A. After an organization-defined time period of inactivity or upon user request, how does the information system prevent further access to the system by initiating a session lock?\nB. What process does the information system follow to retain the session lock, and how does it ensure that the user can re-establish access by following the established identification and authentication procedures?"
+    ]
+  },
+  {
+    "id": "AC-12",
+    "family": "AC",
+    "name": "AC-12 Session Termination",
+    "description": "AC-12 Session Termination",
+    "profile": 1,
+    "questions": [
+      "A. Under what organization-defined conditions or trigger events does the information system automatically terminate a user session?"
+    ]
+  },
+  {
+    "id": "AC-13",
+    "family": "AC",
+    "name": "AC-13 Supervision and Review \u2014 Access Control",
+    "description": "AC-13 Supervision and Review \u2014 Access Control",
+    "profile": 1,
+    "questions": [
+      "WITHDRAWN"
+    ]
+  },
+  {
+    "id": "AC-14",
+    "family": "AC",
+    "name": "AC-14 Permitted Actions Without Identification or Authentication",
+    "description": "AC-14 Permitted Actions Without Identification or Authentication",
+    "profile": 1,
+    "questions": [
+      "A. What user actions, as defined by the organization, are identified as permissible to be performed on the information system without requiring prior identification or authentication, while aligning with the organizational missions and business functions?\nB. How does the organization document and provide supporting rationale in the security plan for the information system regarding the user actions that do not require identification or authentication?"
+    ]
+  },
+  {
+    "id": "AC-15",
+    "family": "AC",
+    "name": "AC-15 Automated Marking",
+    "description": "AC-15 Automated Marking",
+    "profile": 1,
+    "questions": [
+      "WITHDRAWN"
+    ]
+  },
+  {
+    "id": "AC-16",
+    "family": "AC",
+    "name": "AC-16 Security Attributes",
+    "description": "AC-16 Security Attributes",
+    "profile": 1,
+    "questions": [
+      "A. What methods or mechanisms does the organization employ to associate specific types of security attributes, as defined by the organization, with information that is being stored, processed, or transmitted? Additionally, what are the organization-defined values for these security attributes?\nB. How does the organization verify that the associations between security attributes and the corresponding information are properly made and maintained to ensure the ongoing integrity of these associations?\nC. What are the organization-defined security attributes that the organization establishes as permitted for the designated information systems?\nD. How does the organization determine the organization-defined values or ranges that are permitted for each of the established security attributes?"
+    ]
+  },
+  {
+    "id": "AC-17",
+    "family": "AC",
+    "name": "AC-17 Remote Access",
+    "description": "AC-17 Remote Access",
+    "profile": 1,
+    "questions": [
+      "A. What process does the organization follow to establish and document the usage restrictions, configuration/connection requirements, and implementation guidance for each type of remote access that is permitted within the organization?\nB. What is the process followed by the organization to authorize remote access to the information system before permitting any connections?\nAA. How does the organization ensure that all employees working off site comply with the minimum requirements specified in the TBS Operational Security Standard on Physical Security (Reference 6), regarding the safeguarding of information?"
+    ]
+  },
+  {
+    "id": "AC-18",
+    "family": "AC",
+    "name": "AC-18 Wireless Access",
+    "description": "AC-18 Wireless Access",
+    "profile": 1,
+    "questions": [
+      "A. What processes does the organization follow to establish usage restrictions, configuration/connection requirements, and implementation guidance specifically for wireless access within the organization?\nB. What procedures does the organization have in place to authorize wireless access to the information system before permitting any wireless connections to the system?"
+    ]
+  },
+  {
+    "id": "AC-19",
+    "family": "AC",
+    "name": "AC-19 Access Control for Mobile Devices",
+    "description": "AC-19 Access Control for Mobile Devices",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization establish usage restrictions, configuration requirements, connection requirements, and implementation guidance specifically for organization-controlled mobile devices?\nB. What is the policy regarding the authorization of mobile device connections to organizational information systems within the organization?"
+    ]
+  },
+  {
+    "id": "AC-20",
+    "family": "AC",
+    "name": "AC-20 Use of External Information Systems",
+    "description": "AC-20 Use of External Information Systems",
+    "profile": 1,
+    "questions": [
+      "A. What are the terms and conditions established by the organization to enable authorized individuals to access the information system from external information systems, while maintaining consistency with trust relationships established with other organizations owning, operating, and/or maintaining those external systems?\nB. What terms and conditions does the organization establish, in alignment with trust relationships with other organizations, to permit authorized individuals to process, store, or transmit organization-controlled information using external information systems?"
+    ]
+  },
+  {
+    "id": "AC-21",
+    "family": "AC",
+    "name": "AC-21 User-Based Collaboration and Information Sharing",
+    "description": "AC-21 User-Based Collaboration and Information Sharing",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization enable authorized users to determine if access authorizations assigned to the sharing partner align with the access restrictions on the information, specifically in [Assignment: organization-defined information sharing circumstances where user discretion is required]?\nB. What automated mechanisms or manual processes does the organization employ to assist users in making decisions related to information sharing and collaboration?"
+    ]
+  },
+  {
+    "id": "AC-22",
+    "family": "AC",
+    "name": "AC-22 Publicly Accessible Content",
+    "description": "AC-22 Publicly Accessible Content",
+    "profile": 1,
+    "questions": [
+      "A. Who does the organization designate as authorized individuals to post information onto a publicly accessible information system?\nB. How does the organization train authorized individuals to ensure that publicly accessible information does not contain confidentially sensitive information?\nC. How does the organization conduct a review of the proposed content of information before posting it onto the publicly accessible information system to ensure that confidentially sensitive information is not included?\nD. How does the organization review the content on the publicly accessible information system for confidentially sensitive information, and at what frequency does this review take place? Additionally, what actions does the organization take to remove any identified confidentially sensitive information from the system?"
+    ]
+  },
+  {
+    "id": "AC-23",
+    "family": "AC",
+    "name": "AC-23 Data Mining Protection",
+    "description": "AC-23 Data Mining Protection",
+    "profile": 1,
+    "questions": [
+      "A. What data mining prevention and detection techniques does the organization employ for the organization-defined data storage objects to effectively detect and protect against data mining?"
+    ]
+  },
+  {
+    "id": "AC-24",
+    "family": "AC",
+    "name": "AC-24 Access Control Decisions",
+    "description": "AC-24 Access Control Decisions",
+    "profile": 1,
+    "questions": [
+      "A. What procedures does the organization establish to ensure that the organization-defined access control decisions are applied to each access request before access enforcement takes place?"
+    ]
+  },
+  {
+    "id": "AC-25",
+    "family": "AC",
+    "name": "AC-25 Reference Monitor",
+    "description": "AC-25 Reference Monitor",
+    "profile": 1,
+    "questions": [
+      "A. How does the information system implement a tamperproof reference monitor for the organization-defined access control policies, ensuring that it is always invoked, small enough for analysis and testing, and its completeness can be assured?"
+    ]
+  },
+  {
+    "id": "AT-1",
+    "family": "AT",
+    "name": "AT-1 Security Awareness and Training Policy and Procedures",
+    "description": "AT-1 Security Awareness and Training Policy and Procedures",
+    "profile": 1,
+    "questions": [
+      "A. What are the key components of the security awareness and training policy, including its purpose, scope, roles, responsibilities, management commitment, coordination among organizational entities, and compliance, as well as the procedures necessary for its implementation and the associated security awareness and training controls?\nB. How often does the organization review and update its security awareness and training policy, as well as its security awareness and training procedures?"
+    ]
+  },
+  {
+    "id": "AT-2",
+    "family": "AT",
+    "name": "AT-2 Security Awareness",
+    "description": "AT-2 Security Awareness",
+    "profile": 1,
+    "questions": [
+      "A. What is the frequency at which the organization provides basic security awareness training to information system users, including managers, senior executives, and contractors, after their initial training and when required by information system changes?"
+    ]
+  },
+  {
+    "id": "AT-3",
+    "family": "AT",
+    "name": "AT-3 Role Based Security Training",
+    "description": "AT-3 Role Based Security Training",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization ensure that personnel with assigned security roles and responsibilities receive role-based security training before authorizing access to the information system or performing assigned duties, as well as when required by information system changes, and at a frequency determined by the organization thereafter?"
+    ]
+  },
+  {
+    "id": "AT-4",
+    "family": "AT",
+    "name": "AT-4 Security Training Records",
+    "description": "AT-4 Security Training Records",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization document and monitor individual information system security training activities, including basic security awareness training and specific information system security training? \n\nB. What is the organization-defined time period for retaining individual training records?"
+    ]
+  },
+  {
+    "id": "AT-5",
+    "family": "AT",
+    "name": "AT-5 Contacts with Security Groups and Associations",
+    "description": "AT-5 Contacts with Security Groups and Associations",
+    "profile": 1,
+    "questions": [
+      "WITHDRAWN"
+    ]
+  },
+  {
+    "id": "AU-1",
+    "family": "AU",
+    "name": "AU-1 Audit and Accountability Policy and Procedures",
+    "description": "AU-1 Audit and Accountability Policy and Procedures",
+    "profile": 1,
+    "questions": [
+      "A. What are the key components of the audit and accountability policy, including purpose, scope, roles, responsibilities, management commitment, coordination among organizational entities, and compliance, developed by the organization? Additionally, what procedures are in place to support the implementation of the audit and accountability policy and associated controls?\n\nB. How often does the organization review and update its audit and accountability policy? Similarly, how frequently are the audit and accountability procedures reviewed and updated by the organization?"
+    ]
+  },
+  {
+    "id": "AU-2",
+    "family": "AU",
+    "name": "AU-2 Auditable Events",
+    "description": "AU-2 Auditable Events",
+    "profile": 1,
+    "questions": [
+      "A. Which specific events does the organization determine as auditable for the information system?\n\nB. How does the organization coordinate the security audit function with other organizational entities that require audit-related information in order to enhance mutual support and guide the selection of auditable events?\n\nC. What is the rationale provided by the organization for considering the selected auditable events as adequate to support after-the-fact investigations of security incidents?\n\nD. Which specific events has the organization determined to be audited within the information system? Additionally, what is the frequency or situation that requires auditing for each of the identified events?"
+    ]
+  },
+  {
+    "id": "AU-3",
+    "family": "AU",
+    "name": "AU-3 Content of Audit Records",
+    "description": "AU-3 Content of Audit Records",
+    "profile": 1,
+    "questions": [
+      "A. What are the key components included in the audit records generated by the information system? Specifically, what information is captured to establish the type of event, the timing and location of the event, the source of the event, the outcome of the event, and the identity of any individuals or subjects associated with the event?"
+    ]
+  },
+  {
+    "id": "AU-4",
+    "family": "AU",
+    "name": "AU-4 Audit Storage Capacity",
+    "description": "AU-4 Audit Storage Capacity",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization allocate storage capacity for audit records in accordance with its defined audit record storage requirements?"
+    ]
+  },
+  {
+    "id": "AU-5",
+    "family": "AU",
+    "name": "AU-5 Response to Audit Processing Failures",
+    "description": "AU-5 Response to Audit Processing Failures",
+    "profile": 1,
+    "questions": [
+      "A. Who are the designated personnel or roles within the organization that receive alerts in the event of an audit processing failure in the information system?\nB. What specific additional actions does the information system take, as defined by the organization, in response to certain events? For example, what actions are taken when the information system needs to be shut down, when the oldest audit records need to be overwritten, or when the generation of audit records needs to be stopped?"
+    ]
+  },
+  {
+    "id": "AU-6",
+    "family": "AU",
+    "name": "AU-6 Audit Review, Analysis, and Reporting",
+    "description": "AU-6 Audit Review, Analysis, and Reporting",
+    "profile": 1,
+    "questions": [
+      "A. How frequently does the organization review and analyze the audit records of the information system? Additionally, what specific indications of inappropriate or unusual activity does the organization look for during the review and analysis process?\nB. To whom does the organization report its findings regarding the review and analysis of information system audit records?"
+    ]
+  },
+  {
+    "id": "AU-7",
+    "family": "AU",
+    "name": "AU-7 Audit Reduction and Report Generation",
+    "description": "AU-7 Audit Reduction and Report Generation",
+    "profile": 1,
+    "questions": [
+      "A. How does the audit reduction and report generation capability of the information system support the organization's on-demand audit review, analysis, and reporting requirements? Additionally, how does this capability assist in conducting after-the-fact investigations of security incidents?\nB. How does the audit reduction and report generation capability of the information system ensure that the original content and time ordering of audit records are preserved without any alterations?"
+    ]
+  },
+  {
+    "id": "AU-8",
+    "family": "AU",
+    "name": "AU-8 Time Stamps",
+    "description": "AU-8 Time Stamps",
+    "profile": 1,
+    "questions": [
+      "A. What method does the information system employ to generate time stamps for audit records, and what is the source of these time stamps?\nB. How does the information system ensure that the time stamps recorded for audit records can be mapped to Coordinated Universal Time (UTC) or Greenwich Mean Time (GMT)? Additionally, what is the organization-defined granularity of time measurement that the system adheres to for these time stamps?"
+    ]
+  },
+  {
+    "id": "AU-9",
+    "family": "AU",
+    "name": "AU-9 Protection of Audit Information",
+    "description": "AU-9 Protection of Audit Information",
+    "profile": 1,
+    "questions": [
+      "A. How does the information system safeguard audit information and audit tools to prevent unauthorized access, modification, and deletion?"
+    ]
+  },
+  {
+    "id": "AU-10",
+    "family": "AU",
+    "name": "AU-10 Non-Repudiation",
+    "description": "AU-10 Non-Repudiation",
+    "profile": 1,
+    "questions": [
+      "A. How does the information system ensure protection against individuals or processes falsely denying having performed specific actions, as defined by the organization, which are covered by the concept of non-repudiation?"
+    ]
+  },
+  {
+    "id": "AU-11",
+    "family": "AU",
+    "name": "AU-11 Audit Record Retention",
+    "description": "AU-11 Audit Record Retention",
+    "profile": 1,
+    "questions": [
+      "A. For how long does the organization retain audit records, as determined by its records retention policy, in order to fulfill the following purposes: providing support for after-the-fact investigations of security incidents and meeting regulatory and organizational information retention requirements?"
+    ]
+  },
+  {
+    "id": "AU-12",
+    "family": "AU",
+    "name": "AU-12 Audit Generation",
+    "description": "AU-12 Audit Generation",
+    "profile": 1,
+    "questions": [
+      "A. Which specific information system components, as defined by the organization, are equipped with the capability to generate audit records for the auditable events outlined in AU-2 a.?\nB. Who are the designated personnel or roles within the organization that have the authority to select which auditable events are to be audited by specific components of the information system?\nC. What specific events, as defined in AU-2 d., does the information system generate audit records for? Additionally, what is the content of these audit records, as defined in AU-3?"
+    ]
+  },
+  {
+    "id": "AU-13",
+    "family": "AU",
+    "name": "AU-13 Monitoring for Information Disclosure",
+    "description": "AU-13 Monitoring for Information Disclosure",
+    "profile": 1,
+    "questions": [
+      "A. Which open source information and/or information sites, as defined by the organization, does the organization monitor for evidence of unauthorized disclosure of organizational information? Additionally, how frequently does the organization conduct this monitoring activity?"
+    ]
+  },
+  {
+    "id": "AU-14",
+    "family": "AU",
+    "name": "AU-14 Session Audit",
+    "description": "AU-14 Session Audit",
+    "profile": 1,
+    "questions": [
+      "A. How does the information system enable authorized users to utilize the capability of selecting a user session to either capture/record or view/hear?"
+    ]
+  },
+  {
+    "id": "AU-15",
+    "family": "AU",
+    "name": "AU-15 Alternate Audit Capability",
+    "description": "AU-15 Alternate Audit Capability",
+    "profile": 1,
+    "questions": [
+      "A. What is the organization-defined alternate audit functionality that the organization provides in the event of a failure in the primary audit capability?"
+    ]
+  },
+  {
+    "id": "AU-16",
+    "family": "AU",
+    "name": "AU-16 Cross-Organizational Auditing",
+    "description": "AU-16 Cross-Organizational Auditing",
+    "profile": 1,
+    "questions": [
+      "A. What specific methods, as defined by the organization, does the organization employ for coordinating the transmission of audit information among external organizations when the audit information crosses organizational boundaries?"
+    ]
+  },
+  {
+    "id": "CA-1",
+    "family": "CA",
+    "name": "CA-1 Security Assessment and Authorization Policies and Procedures",
+    "description": "CA-1 Security Assessment and Authorization Policies and Procedures",
+    "profile": 1,
+    "questions": [
+      "A. What are the key components of the security assessment and authorization policy developed by the organization, including its purpose, scope, roles, responsibilities, management commitment, coordination among organizational entities, and compliance? Additionally, what procedures are in place to support the implementation of the security assessment and authorization policy and associated controls?\nB. How often does the organization review and update its security assessment and authorization policy? Similarly, what is the frequency at which the security assessment and authorization procedures are reviewed and updated by the organization?"
+    ]
+  },
+  {
+    "id": "CA-2",
+    "family": "CA",
+    "name": "CA-2 Security Assessments",
+    "description": "CA-2 Security Assessments",
+    "profile": 1,
+    "questions": [
+      "A. What are the key components described in the organization's security assessment plan, specifically addressing the scope of the assessment? This includes the security controls and control enhancements that are being assessed, the assessment procedures used to evaluate the effectiveness of these security controls, and details about the assessment environment, assessment team, and the roles and responsibilities involved in the assessment process.\nB. How frequently does the organization conduct assessments of the security controls in the information system and its operational environment to evaluate the extent to which these controls are implemented correctly, functioning as intended, and achieving the desired outcome in terms of meeting established security requirements?\nC. What does the organization include in the security assessment report that documents the outcomes and findings of the security assessment conducted?\nD. To whom does the organization provide the results of the security control assessment, as determined by the organization?"
+    ]
+  },
+  {
+    "id": "CA-3",
+    "family": "CA",
+    "name": "CA-3 Information System Connections",
+    "description": "CA-3 Information System Connections",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization authorize connections from the information system to other information systems, specifically through the utilization of Interconnection Security Agreements?\nB. What specific details does the organization document for each interconnection established, including information about the interface characteristics, security requirements, and the nature of the information being communicated?\nC. How often does the organization review and update the Interconnection Security Agreements, as determined by the organization?"
+    ]
+  },
+  {
+    "id": "CA-4",
+    "family": "CA",
+    "name": "CA-4 Security Certification",
+    "description": "CA-4 Security Certification",
+    "profile": 1,
+    "questions": [
+      "WITHDRAWN"
+    ]
+  },
+  {
+    "id": "CA-5",
+    "family": "CA",
+    "name": "CA-5 Plan of Action and Milestones",
+    "description": "CA-5 Plan of Action and Milestones",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization develop a plan of action and milestones for the information system to address identified weaknesses or deficiencies in the security controls, as well as to mitigate or eliminate known vulnerabilities?\nB. How does the organization update its plan of action and milestones, and at what frequency, based on the findings from security controls assessments, security impact analyses, and continuous monitoring activities?"
+    ]
+  },
+  {
+    "id": "CA-6",
+    "family": "CA",
+    "name": "CA-6 Security Authorization",
+    "description": "CA-6 Security Authorization",
+    "profile": 1,
+    "questions": [
+      "A. Who is responsible for serving as the authorizing official for the information system within the organization, and what level of seniority or managerial position do they hold?\nB. What steps does the organization take to ensure that the authorizing official grants authorization for the information system to begin processing before it starts operations?\nC. How frequently does the organization update the security authorization for its systems?"
+    ]
+  },
+  {
+    "id": "CA-7",
+    "family": "CA",
+    "name": "CA-7 Continuous Monitoring",
+    "description": "CA-7 Continuous Monitoring",
+    "profile": 1,
+    "questions": [
+      "A. What metrics does the organization establish and monitor as part of its continuous monitoring program, which is developed as part of the overall continuous monitoring strategy?\nB. How does the organization determine the frequencies for monitoring and assessments in its continuous monitoring program, which is developed as part of the continuous monitoring strategy?\nC. How does the organization incorporate ongoing security control assessments into its continuous monitoring program, ensuring alignment with the overall continuous monitoring strategy?\nD. How does the organization conduct ongoing security status monitoring of the organization-defined metrics as part of its continuous monitoring program, ensuring adherence to the overall continuous monitoring strategy?\nE. How does the organization perform correlation and analysis of security-related information generated by assessments and monitoring as part of its continuous monitoring program, which is developed in accordance with the continuous monitoring strategy?\nF. What response actions does the organization undertake to address the results of the analysis of security-related information as part of its continuous monitoring program, which is developed based on the continuous monitoring strategy?\nG. To whom and at what frequency does the organization report the security status of the organization and the information system as part of its continuous monitoring program, which is developed based on the continuous monitoring strategy?"
+    ]
+  },
+  {
+    "id": "CA-8",
+    "family": "CA",
+    "name": "CA-8 Penetration Testing",
+    "description": "CA-8 Penetration Testing",
+    "profile": 1,
+    "questions": [
+      "A. How frequently does the organization conduct penetration testing, and on which specific information systems or system components does the organization perform these tests?"
+    ]
+  },
+  {
+    "id": "CA-9",
+    "family": "CA",
+    "name": "CA-9 Internal System Connections",
+    "description": "CA-9 Internal System Connections",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization authorize internal connections of information system components or classes of components to the overall information system?\nB. How does the organization document the interface characteristics, security requirements, and the nature of the information communicated for each internal connection within the information system?"
+    ]
+  },
+  {
+    "id": "CM-1",
+    "family": "CM",
+    "name": "CM-1 Configuration Management Policy and Procedures",
+    "description": "CM-1 Configuration Management Policy and Procedures",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization develop, document, and disseminate the configuration management policy to the designated personnel or roles within the organization, ensuring that it covers purpose, scope, roles, responsibilities, management commitment, coordination among entities, and compliance? Additionally, how does the organization establish procedures to facilitate the implementation of the configuration management policy and associated configuration management controls?\nB. How frequently does the organization review and update the current configuration management policy and configuration management procedures, respectively, to ensure their relevance and effectiveness?"
+    ]
+  },
+  {
+    "id": "CM-2",
+    "family": "CM",
+    "name": "CM-2 Baseline Configuration",
+    "description": "CM-2 Baseline Configuration",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization develop, document, and maintain a current baseline configuration of the information system while ensuring it is kept under configuration control?"
+    ]
+  },
+  {
+    "id": "CM-3",
+    "family": "CM",
+    "name": "CM-3 Configuration Change Control",
+    "description": "CM-3 Configuration Change Control",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization determine the specific types of changes to the information system that should be subject to configuration control?\nB. How does the organization review proposed configuration-controlled changes to the information system and make decisions to approve or disapprove such changes, ensuring that security impact analyses are explicitly considered in the decision-making process?\nC. How does the organization document configuration change decisions related to the information system, ensuring that these decisions are properly recorded and documented?\nD. How does the organization ensure the implementation of approved configuration-controlled changes to the information system, ensuring that the changes are properly executed and integrated into the system?\nE. For how long does the organization retain records of configuration-controlled changes to the information system, as defined by the organization, and what methods or mechanisms does the organization use to ensure proper record retention?\nF. How does the organization conduct audits and reviews of activities related to configuration-controlled changes to the information system, ensuring that these activities are thoroughly assessed and reviewed for compliance and effectiveness?\nG. Through what mechanism does the organization coordinate and provide oversight for configuration change control activities, and what configuration change control element, such as a committee or board, is involved in this process? Additionally, how frequently does this configuration change control element convene, or what specific configuration change conditions trigger its involvement?"
+    ]
+  },
+  {
+    "id": "CM-4",
+    "family": "CM",
+    "name": "CM-4 Security Impact Analysis",
+    "description": "CM-4 Security Impact Analysis",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization analyze changes to the information system to assess potential security impacts before implementing the changes, ensuring that comprehensive security considerations are taken into account in the analysis process?"
+    ]
+  },
+  {
+    "id": "CM-5",
+    "family": "CM",
+    "name": "CM-5 Access Restrictions for Change",
+    "description": "CM-5 Access Restrictions for Change",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization define, document, approve, and enforce the physical and logical access restrictions associated with changes to the information system, ensuring that only authorized individuals or entities are granted access during the change process?"
+    ]
+  },
+  {
+    "id": "CM-6",
+    "family": "CM",
+    "name": "CM-6 Configuration Settings",
+    "description": "CM-6 Configuration Settings",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization establish and document configuration settings for information technology products used in the information system by utilizing specified security configuration checklists that adhere to the most restrictive mode, while still maintaining operational requirements?\nB. How does the organization proceed with the implementation of the established configuration settings for information technology products employed within the information system, ensuring that the settings are applied correctly and effectively?\nC. How does the organization identify, document, and obtain approval for any deviations from the established configuration settings for specific information system components, as determined by the organization, taking into consideration the operational requirements set forth by the organization?\nD. How does the organization ensure effective monitoring and control over changes made to the configuration settings, in accordance with organizational policies and procedures, thereby maintaining the desired level of configuration consistency and control?"
+    ]
+  },
+  {
+    "id": "CM-7",
+    "family": "CM",
+    "name": "CM-7 Least Functionality",
+    "description": "CM-7 Least Functionality",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization configure the information system to limit its capabilities to only essential functions, ensuring that any unnecessary or potentially insecure features are disabled or removed?\nB. Which specific functions, ports, protocols, and services does the organization prohibit or restrict from use within the information system, as defined by the organization?"
+    ]
+  },
+  {
+    "id": "CM-8",
+    "family": "CM",
+    "name": "CM-8 Information System Component Inventory",
+    "description": "CM-8 Information System Component Inventory",
+    "profile": 1,
+    "questions": [
+      "A. What steps does the organization take to develop and document an inventory of information system components that accurately reflects the current information system?\nB. How does the organization ensure that the developed and documented inventory of information system components includes all components within the authorization boundary of the information system?\nC. How does the organization determine the appropriate level of granularity for developing and documenting an inventory of information system components, ensuring it is sufficient for effective tracking and reporting purposes?\nD. What criteria does the organization use to determine the specific information that needs to be included in the developed and documented inventory of information system components, in order to achieve effective accountability for these components?\nE. How does the organization determine the frequency at which the information system component inventory should be reviewed and updated, as specified in the assignment, to ensure its accuracy and relevance?"
+    ]
+  },
+  {
+    "id": "CM-9",
+    "family": "CM",
+    "name": "CM-9 Configuration Management Plan",
+    "description": "CM-9 Configuration Management Plan",
+    "profile": 1,
+    "questions": [
+      "A. What key elements does the organization include in its configuration management plan for the information system to effectively address roles, responsibilities, and configuration management processes and procedures?\nB. How does the organization establish a process within the configuration management plan to effectively identify configuration items throughout the system development life cycle and manage their configuration in the information system?\nC. How does the organization define the configuration items for the information system and ensure that they are placed under configuration management as outlined in the developed and documented configuration management plan?\nD. What measures does the organization take to protect the configuration management plan for the information system from unauthorized disclosure and modification, as part of the developed, documented, and implemented configuration management plan?"
+    ]
+  },
+  {
+    "id": "CM-10",
+    "family": "CM",
+    "name": "CM-10 Software Usage Restrictions",
+    "description": "CM-10 Software Usage Restrictions",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization ensure that the use of software and associated documentation aligns with contract agreements and complies with copyright laws?\nB. How does the organization track the usage of software and associated documentation protected by quantity licenses in order to effectively control copying and distribution, ensuring compliance with licensing agreements?\nC. How does the organization control and document the use of peer-to-peer file sharing technology to prevent its unauthorized use for the distribution, display, performance, or reproduction of copyrighted work, ensuring compliance with copyright laws?"
+    ]
+  },
+  {
+    "id": "CM-11",
+    "family": "CM",
+    "name": "CM-11 User Installed Software",
+    "description": "CM-11 User Installed Software",
+    "profile": 1,
+    "questions": [
+      "A. What specific policies does the organization establish to govern the installation of software by users, as assigned by the organization?\nB. How does the organization enforce software installation policies, utilizing the methods specified by the organization, to ensure compliance with the established policies?\nC. How does the organization monitor policy compliance, and at what frequency, as determined by the organization, to ensure adherence to the established policies?"
+    ]
+  },
+  {
+    "id": "CP-1",
+    "family": "CP",
+    "name": "CP-1 Contingency Planning Policy and Procedures",
+    "description": "CP-1 Contingency Planning Policy and Procedures",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization develop, document, and disseminate its contingency planning policy, which encompasses purpose, scope, roles, responsibilities, management commitment, coordination among organizational entities, and compliance, to the designated personnel or roles as assigned by the organization? Additionally, what procedures are implemented to facilitate the effective implementation of the contingency planning policy and associated contingency planning controls?\nB. How does the organization determine the frequency at which the current contingency planning policy and contingency planning procedures should be reviewed and updated, as specified by the organization, to ensure their continued effectiveness and alignment with organizational needs and requirements?\nC. How does the organization develop an audit cycle for the contingency plan program, which serves as the foundation for regular reporting to TBS (The Treasury Board of Canada Secretariat)?"
+    ]
+  },
+  {
+    "id": "CP-2",
+    "family": "CP",
+    "name": "CP-2 Contingency Plan",
+    "description": "CP-2 Contingency Plan",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization develop a comprehensive contingency plan for the information system that covers the identification of essential missions and business functions, associated contingency requirements, recovery objectives, restoration priorities, metrics, contingency roles and responsibilities, assigned personnel with contact information, maintaining essential functions during disruptions, and ensuring eventual full restoration without compromise to originally planned security safeguards? Additionally, who are the designated personnel or roles responsible for reviewing and approving the contingency plan?\nB. Which key contingency personnel, identified by name and/or role, and organizational elements does the organization distribute copies of the contingency plan to, as determined by the organization?\nC. How does the organization ensure effective coordination between its contingency planning activities and incident handling activities to enhance overall preparedness and response capabilities in the face of potential incidents or disruptions?\nD. At the organization-defined frequency, how does the organization conduct the review process for the contingency plan of the information system, ensuring its continued relevance, effectiveness, and alignment with evolving threats and organizational requirements?\nE. How does the organization identify and address changes to the organization, information system, or environment of operation, as well as any problems encountered during contingency plan implementation, execution, or testing, in order to update and revise the contingency plan accordingly?\nF. How does the organization effectively communicate any changes made to the contingency plan to the designated key contingency personnel, identified by name and/or role, as well as the relevant organizational elements specified by the organization?\nG. What measures does the organization implement to ensure the protection of the contingency plan from unauthorized disclosure and modification, safeguarding its confidentiality and integrity against potential threats or unauthorized access?"
+    ]
+  },
+  {
+    "id": "CP-3",
+    "family": "CP",
+    "name": "CP-3 Contingency Training",
+    "description": "CP-3 Contingency Training",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization ensure that information system users receive contingency training within the organization-defined time period of assuming a contingency role or responsibility, aligning with their assigned roles and responsibilities related to the contingency plan?\nB. How does the organization determine when contingency training needs to be provided to information system users, in alignment with their assigned roles and responsibilities, based on information system changes that occur within the organization?\nC. How does the organization determine the frequency at which contingency training should be provided to information system users, in accordance with their assigned roles and responsibilities, as assigned by the organization?"
+    ]
+  },
+  {
+    "id": "CP-4",
+    "family": "CP",
+    "name": "CP-4 Contingency Plan Testing and Exercises",
+    "description": "CP-4 Contingency Plan Testing and Exercises",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization determine the frequency for testing the contingency plan of the information system, as specified by the organization? Additionally, what types of tests, as defined by the organization, are conducted to assess the effectiveness of the plan and the organizational readiness to execute it?\nB. How does the organization review and evaluate the results of the contingency plan tests to assess their effectiveness and identify any areas that may require improvement or adjustments within the plan?\nC. What steps does the organization take to initiate corrective actions when necessary, based on the findings and outcomes identified during the review of contingency plan tests?"
+    ]
+  },
+  {
+    "id": "CP-5",
+    "family": "CP",
+    "name": "CP-5 Contingency Plan Update",
+    "description": "CP-5 Contingency Plan Update",
+    "profile": 1,
+    "questions": [
+      "WITHDRAWN"
+    ]
+  },
+  {
+    "id": "CP-6",
+    "family": "CP",
+    "name": "CP-6 Alternate Storage Site",
+    "description": "CP-6 Alternate Storage Site",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization establish an alternate storage site for information system backup information, and what agreements are necessary to enable the appropriate storage and retrieval of this backup data as required for effective contingency planning?\nB. How does the organization ensure that the alternate storage site maintains information security safeguards that are equivalent to those implemented at the primary site to protect the stored data and ensure its integrity and confidentiality?"
+    ]
+  },
+  {
+    "id": "CP-7",
+    "family": "CP",
+    "name": "CP-7 Alternate Processing Site",
+    "description": "CP-7 Alternate Processing Site",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization establish an alternate processing site, including the necessary agreements, to enable the transfer and resumption of organization-defined information system operations for essential missions/business functions within an organization-defined time period that aligns with recovery time objectives and recovery point objectives, in situations when the primary processing capabilities become unavailable?\nB. How does the organization ensure the availability of necessary equipment and supplies at the alternate processing site, or establish contracts, that support timely transfer and resumption of operations within the organization-defined time period for transfer/resumption, to enable seamless continuity of essential functions?\nC. How does the organization ensure that the alternate processing site maintains information security safeguards that are equivalent to those implemented at the primary site, to ensure the integrity, confidentiality, and availability of information during operations at the alternate site?"
+    ]
+  },
+  {
+    "id": "CP-8",
+    "family": "CP",
+    "name": "CP-8 Telecommunications Services",
+    "description": "CP-8 Telecommunications Services",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization establish alternate telecommunications services, in accordance with necessary agreements, to enable the resumption of organization-defined information system operations for essential missions and business functions within an organization-defined set time period, in situations where the primary telecommunications capabilities are unavailable at both the primary and alternate processing or storage sites?"
+    ]
+  },
+  {
+    "id": "CP-9",
+    "family": "CP",
+    "name": "CP-9 Information System Backup",
+    "description": "CP-9 Information System Backup",
+    "profile": 1,
+    "questions": [
+      "A. What is the frequency at which the organization conducts backups of user-level information in their information system, and how is this frequency determined based on recovery time and recovery point objectives?\nB. What is the frequency at which the organization conducts backups of system-level information in their information system, and how is this frequency determined based on recovery time and recovery point objectives?\nC. How frequently does the organization conduct backups of information system documentation, including security-related documentation, and how is this frequency determined based on recovery time and recovery point objectives?\nD. How does the organization ensure the protection of confidentiality, integrity, and availability of backup information at storage locations?\nAA. How does the organization determine the retention periods for essential business information and archived backups?"
+    ]
+  },
+  {
+    "id": "CP-10",
+    "family": "CP",
+    "name": "CP-10 Information System Recovery and Reconstitution",
+    "description": "CP-10 Information System Recovery and Reconstitution",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization ensure the recovery and reconstitution of the information system to a known state after a disruption, compromise, or failure?"
+    ]
+  },
+  {
+    "id": "CP-11",
+    "family": "CP",
+    "name": "CP-11 Alternate Communications Protocols",
+    "description": "CP-11 Alternate Communications Protocols",
+    "profile": 1,
+    "questions": [
+      "A. What alternative communications protocols does the information system employ to support the continuity of operations, as defined by the organization?"
+    ]
+  },
+  {
+    "id": "CP-12",
+    "family": "CP",
+    "name": "CP-12 Safe Mode",
+    "description": "CP-12 Safe Mode",
+    "profile": 1,
+    "questions": [
+      "A. Under what conditions does the information system enter a safe mode of operation, and what are the specific restrictions imposed on the system during this safe mode, as defined by the organization?"
+    ]
+  },
+  {
+    "id": "CP-13",
+    "family": "CP",
+    "name": "CP-13 Alternative Security Mechanisms",
+    "description": "CP-13 Alternative Security Mechanisms",
+    "profile": 1,
+    "questions": [
+      "A. What alternative or supplemental security mechanisms does the organization employ to fulfill specific security functions when the primary means of implementing those functions becomes unavailable or compromised, as defined by the organization?"
+    ]
+  },
+  {
+    "id": "IA-1",
+    "family": "IA",
+    "name": "IA-1 Identification and Authentication Policy and Procedures",
+    "description": "IA-1 Identification and Authentication Policy and Procedures",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization develop, document, and disseminate the identification and authentication policy, along with its implementation procedures, to the defined personnel or roles? What are the elements addressed by this policy?\nB. At what frequency does the organization review and update their identification and authentication policy, as well as the associated procedures?"
+    ]
+  },
+  {
+    "id": "IA-2",
+    "family": "IA",
+    "name": "IA-2 Identification and Authentication (Organizational Users)",
+    "description": "IA-2 Identification and Authentication (Organizational Users)",
+    "profile": 1,
+    "questions": [
+      "A. How does the information system uniquely identify and authenticate organizational users or processes that are acting on behalf of these users?"
+    ]
+  },
+  {
+    "id": "IA-3",
+    "family": "IA",
+    "name": "IA-3 Device Identification and Authentication",
+    "description": "IA-3 Device Identification and Authentication",
+    "profile": 1,
+    "questions": [
+      "A. How does the information system uniquely identify and authenticate specific and/or types of organization-defined devices prior to establishing a local, remote, or network connection?"
+    ]
+  },
+  {
+    "id": "IA-4",
+    "family": "IA",
+    "name": "IA-4 Identifier Management",
+    "description": "IA-4 Identifier Management",
+    "profile": 1,
+    "questions": [
+      "A. Who are the specified personnel or roles authorized by the organization to assign an identifier to an individual, group, role, or device within the information system?\nB. How does the organization select identifiers that appropriately identify an individual, group, role, or device within the information system?\nC. What is the process the organization follows to assign identifiers to the intended individual, group, role, or device within the information system?\nD. For what defined time period does the organization prevent the reuse of identifiers within the information system?\nE. What is the defined timeframe of inactivity set by the organization after which an identifier within the information system will be disabled?"
+    ]
+  },
+  {
+    "id": "IA-5",
+    "family": "IA",
+    "name": "IA-5 Authenticator Management",
+    "description": "IA-5 Authenticator Management",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization verify the identity of the individual, group, role, or device that is receiving the authenticator as part of the initial authenticator distribution process?\nB. How does the organization establish initial authenticator content for the authenticators that it defines within its information system?\nC. How does the organization ensure that the authenticators within the information system possess sufficient strength of mechanism for their intended use?\nD. What administrative procedures has the organization established and implemented for initial authenticator distribution, handling of lost/compromised or damaged authenticators, and for revoking authenticators within the information system?\nE. How does the organization change the default content of authenticators prior to the installation of the information system?\nF. What are the minimum and maximum lifetime restrictions and reuse conditions that the organization establishes for authenticators within the information system?\nG. What is the organization-defined time period for changing or refreshing different types of authenticators within the information system?\nH. How does the organization protect the content of authenticators within the information system from unauthorized disclosure and modification?\nI. What specific security safeguards does the organization require individuals to take, and devices to implement, in order to protect authenticators within the information system?\nJ. How does the organization manage the process of changing authenticators for group or role accounts whenever there are changes to the membership of those accounts within the information system?"
+    ]
+  },
+  {
+    "id": "IA-6",
+    "family": "IA",
+    "name": "IA-6 Authenticator Feedback",
+    "description": "IA-6 Authenticator Feedback",
+    "profile": 1,
+    "questions": [
+      "A. How does the information system enhance security during the authentication process by obscuring feedback of authentication information to prevent possible exploitation or use by unauthorized individuals?"
+    ]
+  },
+  {
+    "id": "IA-7",
+    "family": "IA",
+    "name": "IA-7 Cryptographic Module Authentication",
+    "description": "IA-7 Cryptographic Module Authentication",
+    "profile": 1,
+    "questions": [
+      "A. How does the information system ensure that the mechanisms for authentication to a cryptographic module comply with the requirements specified by the Government of Canada legislation, as well as the policies, directives, and standards established by the Treasury Board Secretariat?"
+    ]
+  },
+  {
+    "id": "IA-8",
+    "family": "IA",
+    "name": "IA-8 Identification and Authentication (Non-Organizational Users)",
+    "description": "IA-8 Identification and Authentication (Non-Organizational Users)",
+    "profile": 1,
+    "questions": [
+      "A. How does the information system accurately identify and authenticate non-organizational users, or processes that are acting on their behalf?"
+    ]
+  },
+  {
+    "id": "IA-9",
+    "family": "IA",
+    "name": "IA-9 Service Identification and Authentication",
+    "description": "IA-9 Service Identification and Authentication",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization identify and authenticate the specified information system services using the defined security safeguards?"
+    ]
+  },
+  {
+    "id": "IA-10",
+    "family": "IA",
+    "name": "IA-10 Adaptive Identification and Authentication",
+    "description": "IA-10 Adaptive Identification and Authentication",
+    "profile": 1,
+    "questions": [
+      "A. What supplementary authentication techniques or mechanisms does the organization require individuals to use when accessing the information system under specific circumstances or situations?"
+    ]
+  },
+  {
+    "id": "IA-11",
+    "family": "IA",
+    "name": "IA-11 Re-Authentication",
+    "description": "IA-11 Re-Authentication",
+    "profile": 1,
+    "questions": [
+      "A. What are the specific circumstances or situations defined by the organization that necessitate users and devices to re-authenticate?"
+    ]
+  },
+  {
+    "id": "IR-1",
+    "family": "IR",
+    "name": "IR-1 Incident Response Policy and Procedures",
+    "description": "IR-1 Incident Response Policy and Procedures",
+    "profile": 1,
+    "questions": [
+      "A. To which personnel or roles does the organization develop, document, and disseminate the incident response policy that covers purpose, scope, roles, responsibilities, management commitment, coordination among organizational entities, and compliance, and what procedures are in place to facilitate the implementation of this incident response policy and associated controls?\nB. At what frequency does the organization review and update its incident response policy and the incident response procedures?\nAA. How do the organization's incident response policy and procedures ensure the integration of increased levels of readiness in response to emergency and elevated IT threat situations, in alignment with the TBS Operational Security Standard - Readiness Levels for Federal Government Facilities [Reference 12] and the TBS Operational Security Standard - Management of Information Technology Security [Reference 7]?"
+    ]
+  },
+  {
+    "id": "IR-2",
+    "family": "IR",
+    "name": "IR-2 Incident Response Training",
+    "description": "IR-2 Incident Response Training",
+    "profile": 1,
+    "questions": [
+      "A. Within what time period does the organization provide incident response training to information system users after they assume a new incident response role or responsibility, in accordance with their assigned roles and responsibilities?\nB. How does the organization ensure that incident response training is provided to information system users in accordance with their roles and responsibilities when there are changes to the information system?\nC. What is the defined frequency at which your organization provides incident response training to information system users, ensuring it aligns with their assigned roles and responsibilities?"
+    ]
+  },
+  {
+    "id": "IR-3",
+    "family": "IR",
+    "name": "IR-3 Incident Response Testing and Exercises",
+    "description": "IR-3 Incident Response Testing and Exercises",
+    "profile": 1,
+    "questions": [
+      "A. What frequency does your organization follow for testing the incident response capability of the information system, and what specific tests do you use to evaluate its effectiveness? Additionally, could you explain how you document these results?"
+    ]
+  },
+  {
+    "id": "IR-4",
+    "family": "IR",
+    "name": "IR-4 Incident Handling",
+    "description": "IR-4 Incident Handling",
+    "profile": 1,
+    "questions": [
+      "A. How has the organization implemented an incident handling capability that addresses the stages of preparation, detection and analysis, containment, eradication, and recovery for security incidents?\nB. How does the organization coordinate its incident handling activities with its contingency planning activities?\nC. How does the organization integrate the lessons learned from ongoing incident handling activities into its incident response procedures, training, and testing/exercises, and how are these changes subsequently implemented?"
+    ]
+  },
+  {
+    "id": "IR-5",
+    "family": "IR",
+    "name": "IR-5 Incident Monitoring",
+    "description": "IR-5 Incident Monitoring",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization track and document security incidents that occur within the information system?"
+    ]
+  },
+  {
+    "id": "IR-6",
+    "family": "IR",
+    "name": "IR-6 Incident Reporting",
+    "description": "IR-6 Incident Reporting",
+    "profile": 1,
+    "questions": [
+      "A. What is the time period within which personnel must report suspected security incidents to the organizational incident response capability, as defined by the organization?\nB. To which authorities does the organization report security incident information, as specified in the organizational guidelines?"
+    ]
+  },
+  {
+    "id": "IR-7",
+    "family": "IR",
+    "name": "IR-7 Incident Response Assistance",
+    "description": "IR-7 Incident Response Assistance",
+    "profile": 1,
+    "questions": [
+      "A. What type of incident response support resources does the organization offer to assist users of the information system in handling and reporting security incidents, and how are these resources integrated into the overall incident response capability?"
+    ]
+  },
+  {
+    "id": "IR-8",
+    "family": "IR",
+    "name": "IR-8 Incident Response Plan",
+    "description": "IR-8 Incident Response Plan",
+    "profile": 1,
+    "questions": [
+      "A. Has your organization developed an incident response plan that acts as a roadmap for your incident response capability, details its structure and organization, explains how it integrates with the overall organizational structure, meets your specific organizational needs, defines reportable incidents and metrics for capability measurement, specifies the required resources and management support, and has been reviewed and approved by designated personnel or roles?\nB. To which incident response personnel, identified by name and/or role, and organizational elements has the organization distributed copies of the incident response plan?\nC. At what frequency does your organization conduct reviews of the incident response plan, as defined by organization-specific guidelines?\nD. How does your organization ensure that the incident response plan is updated to reflect system or organizational changes, and to address problems that were encountered during its implementation, execution, or testing?\nE. How does your organization communicate changes to the incident response plan to the specified incident response personnel, whether identified by name and/or by role, and to the relevant organizational elements?\nF. What measures has your organization put in place to safeguard the incident response plan against unauthorized disclosure and modification?"
+    ]
+  },
+  {
+    "id": "IR-9",
+    "family": "IR",
+    "name": "IR-9 Information Spillage Response",
+    "description": "IR-9 Information Spillage Response",
+    "profile": 1,
+    "questions": [
+      "A. How does your organization identify the specific information involved when responding to information spills that result in contamination of the information system?\nB. Which personnel or roles are alerted in the event of an information spill, and what alternative communication method, not associated with the spill, is used to notify them?\nC. How does your organization proceed to isolate the contaminated information system or system component when responding to information spills?\nD. What processes does your organization employ to eradicate spilled information from the contaminated information system or component?\nE. How does your organization identify other information systems or components that may have been contaminated as a result of an information spill?\nF. What additional actions, as defined by your organization, are taken in response to an information spill?"
+    ]
+  },
+  {
+    "id": "IR-10",
+    "family": "IR",
+    "name": "IR-10 Integrated Information Security Analysis Team",
+    "description": "IR-10 Integrated Information Security Analysis Team",
+    "profile": 1,
+    "questions": [
+      "A. How has the organization structured an integrated team that includes forensic/malicious code analysts, tool developers, and real-time operations personnel to support its cybersecurity operations?"
+    ]
+  },
+  {
+    "id": "MA-1",
+    "family": "MA",
+    "name": "MA-1 System Maintenance Policy and Procedures",
+    "description": "MA-1 System Maintenance Policy and Procedures",
+    "profile": 1,
+    "questions": [
+      "A. Which personnel or roles are designated to receive the system maintenance policy and procedures that your organization has developed, documented, and disseminated, and what do these documents include in terms of purpose, scope, roles, responsibilities, management commitment, coordination among organizational entities, and compliance?\nB. At what defined frequency does your organization review and update its system maintenance policy and the accompanying procedures?"
+    ]
+  },
+  {
+    "id": "MA-2",
+    "family": "MA",
+    "name": "MA-2 Controlled Maintenance",
+    "description": "MA-2 Controlled Maintenance",
+    "profile": 1,
+    "questions": [
+      "A. How does your organization schedule, perform, document, and review maintenance and repair records for information system components to ensure they align with manufacturer or vendor specifications and organizational requirements?\nB. What is the process by which your organization approves and monitors all maintenance activities, including those performed both on site and remotely, as well as for equipment that is serviced on site or removed to an off-site location?\nC. Which personnel or roles within your organization are required to explicitly approve the removal of the information system or its components from organizational facilities for off-site maintenance or repairs?\nD. What procedures does your organization follow to sanitize equipment, ensuring all information is removed from associated media, before it is removed from organizational facilities for off-site maintenance or repairs?\nE. After maintenance or repair actions are completed, how does your organization check potentially impacted security controls to ensure they are still functioning correctly?\nF. What specific maintenance-related information does your organization include in its maintenance records, as defined by the organization?"
+    ]
+  },
+  {
+    "id": "MA-3",
+    "family": "MA",
+    "name": "MA-3 Maintenance Tools",
+    "description": "MA-3 Maintenance Tools",
+    "profile": 1,
+    "questions": [
+      "A. What is the process your organization uses to approve, control, and monitor the tools used for information system maintenance?"
+    ]
+  },
+  {
+    "id": "MA-4",
+    "family": "MA",
+    "name": "MA-4 Non-Local Maintenance",
+    "description": "MA-4 Non-Local Maintenance",
+    "profile": 1,
+    "questions": [
+      "A. How does your organization approve and monitor nonlocal maintenance and diagnostic activities for the information system?\nB. Under what conditions does your organization permit the use of non-local maintenance and diagnostic tools, and how is this usage consistent with organizational policy and documented in the information system\u2019s security plan?\nC. What types of strong authenticators does your organization employ when establishing nonlocal maintenance and diagnostic sessions?\nD. How does your organization maintain records for nonlocal maintenance and diagnostic activities?"
+    ]
+  },
+  {
+    "id": "MA-5",
+    "family": "MA",
+    "name": "MA-5 Maintenance Personnel",
+    "description": "MA-5 Maintenance Personnel",
+    "profile": 1,
+    "questions": [
+      "A. What is the established process for authorizing maintenance personnel, and how does your organization maintain a list of authorized maintenance organizations or personnel?\nB. How does your organization ensure that non-escorted personnel who perform maintenance on the information system possess the necessary access authorizations?\nC. How does your organization designate and ensure that personnel with the required access authorizations and technical competencies are available to supervise the maintenance activities of those individuals who lack the necessary access authorizations?"
+    ]
+  },
+  {
+    "id": "MA-6",
+    "family": "MA",
+    "name": "MA-6 Timely Maintenance",
+    "description": "MA-6 Timely Maintenance",
+    "profile": 1,
+    "questions": [
+      "A. For which specific information system components does your organization obtain maintenance support and/or spare parts, and within what defined time period following a failure?"
+    ]
+  },
+  {
+    "id": "MP-1",
+    "family": "MP",
+    "name": "MP-1 Media Protection Policy and Procedures",
+    "description": "MP-1 Media Protection Policy and Procedures",
+    "profile": 1,
+    "questions": [
+      "A. Based on the given information, which group of individuals or roles has the organization decided to distribute its media protection policy and associated procedures to, and how does this policy define its purpose, scope, roles, responsibilities, commitment from management, coordination between different organizational entities, and compliance?\nB. How frequently does the organization review and update its media protection policy and media protection procedures, as defined by the organization's own specified intervals?"
+    ]
+  },
+  {
+    "id": "MP-2",
+    "family": "MP",
+    "name": "MP-2 Media Access",
+    "description": "MP-2 Media Access",
+    "profile": 1,
+    "questions": [
+      "A. What types of digital and/or non-digital media does the organization restrict access to, and which specific personnel or roles are granted access to these media types?"
+    ]
+  },
+  {
+    "id": "MP-3",
+    "family": "MP",
+    "name": "MP-3 Media Marking",
+    "description": "MP-3 Media Marking",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization mark information system media to indicate the distribution limitations, handling caveats, and any applicable security markings of the information contained within?\nB. What types of information system media has the organization exempted from marking requirements, provided that the media remain within certain organization-defined controlled areas?"
+    ]
+  },
+  {
+    "id": "MP-4",
+    "family": "MP",
+    "name": "MP-4 Media Storage",
+    "description": "MP-4 Media Storage",
+    "profile": 1,
+    "questions": [
+      "A. Which types of digital and/or non-digital media does the organization physically control and securely store within the organization-defined controlled areas, and how does it ensure compliance with the guidance specified in the RCMP G1-001, Security Equipment Guide?\nB. What methods, equipment, and procedures does the organization employ to protect information system media until such media are destroyed or sanitized following approved guidelines?"
+    ]
+  },
+  {
+    "id": "MP-5",
+    "family": "MP",
+    "name": "MP-5 Media Transport",
+    "description": "MP-5 Media Transport",
+    "profile": 1,
+    "questions": [
+      "A. What types of information system media does the organization protect and control during transport outside of controlled areas, and which security safeguards are employed in compliance with the TBS Operational Security Standard on Physical Security and the RCMP G1-009, Transport and Transmittal of Protected and Classified Information?\nB. How does the organization maintain accountability for information system media during their transport outside of controlled areas?\nC. What procedures does the organization follow to document the activities related to the transport of information system media?\nD. Which personnel are authorized to carry out the activities associated with the transport of information system media, and how does the organization restrict these activities to those authorized individuals?"
+    ]
+  },
+  {
+    "id": "MP-6",
+    "family": "MP",
+    "name": "MP-6 Media Sanitization",
+    "description": "MP-6 Media Sanitization",
+    "profile": 1,
+    "questions": [
+      "A. What information system media types does the organization sanitize prior to disposal, release out of organizational control, or release for reuse, and which sanitization techniques and procedures are defined by the organization to be used in accordance with applicable GC and organizational standards and policies?\nB. How does the organization ensure that the sanitization mechanisms employed are of sufficient strength and integrity to match the security category or classification of the information contained on the media to be sanitized?"
+    ]
+  },
+  {
+    "id": "MP-7",
+    "family": "MP",
+    "name": "MP-7 Media Use",
+    "description": "MP-7 Media Use",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization either restrict or prohibit the use of certain types of information system media on specified information systems or system components, and what security safeguards are defined by the organization to enforce this?"
+    ]
+  },
+  {
+    "id": "MP-8",
+    "family": "MP",
+    "name": "MP-8 Media Downgrading",
+    "description": "MP-8 Media Downgrading",
+    "profile": 1,
+    "questions": [
+      "A. What is the organization-defined process for downgrading information system media, and what are the specified mechanisms used to ensure the strength and integrity required for the media after downgrading?\nB. How does the organization ensure that its media downgrading process is appropriately aligned with the security category and/or classification level of the information to be downgraded and the access authorizations of the potential recipients of that downgraded information?\nC. How does the organization identify specific information system media requiring downgrading?\nD. How does the organization carry out the downgrading of identified information system media using the established process?"
+    ]
+  },
+  {
+    "id": "PE-1",
+    "family": "PE",
+    "name": "PE-1 Physical and Environmental Protection Policy and Procedures",
+    "description": "PE-1 Physical and Environmental Protection Policy and Procedures",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization develop, document, and disseminate its physical and environmental protection policy and the accompanying procedures to the designated personnel or roles, and what does this policy include in terms of purpose, scope, roles, responsibilities, management commitment, coordination, and compliance?\nB. How frequently does the organization review and update its physical and environmental protection policy and procedures, and what is the process for doing so?"
+    ]
+  },
+  {
+    "id": "PE-2",
+    "family": "PE",
+    "name": "PE-2 Physical Access Authorizations",
+    "description": "PE-2 Physical Access Authorizations",
+    "profile": 1,
+    "questions": [
+      "A. What is the organization's process for developing, approving, and maintaining a list of individuals with authorized access to the facility housing the information system?\nB. How does the organization issue and manage authorization credentials for access to its facilities?\nC. At what frequency does the organization review the list detailing authorized facility access by individuals?\nD. What is the organization's procedure for removing individuals from the facility access list when their access is no longer required?"
+    ]
+  },
+  {
+    "id": "PE-3",
+    "family": "PE",
+    "name": "PE-3 Physical Access Control",
+    "description": "PE-3 Physical Access Control",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization enforce physical access authorizations at the specified entry/exit points of the facility, and what methods are employed to verify individual access authorizations and control ingress/egress?\nB. What procedures are in place to maintain physical access audit logs for designated entry/exit points at the facility, and how are these logs reviewed or utilized?\nC. What security safeguards does the organization provide to manage access to publicly accessible areas within the facility, and how are these areas differentiated from restricted ones?\nD. Under what circumstances are visitors escorted and their activities monitored within the organization's facility, and what protocols are followed during this process?\nE. How does the organization secure keys, combinations, and other physical access devices to prevent unauthorized access?\nF. What is the process for inventorying physical access devices, and at what frequency is this inventory carried out to ensure the integrity of access controls?\nG. At what frequency are combinations and keys changed by the organization, and what are the protocols for doing so when keys are lost, combinations are compromised, or associated personnel undergo changes such as transfers or terminations?"
+    ]
+  },
+  {
+    "id": "PE-4",
+    "family": "PE",
+    "name": "PE-4 Access Control for Transmission Medium",
+    "description": "PE-4 Access Control for Transmission Medium",
+    "profile": 1,
+    "questions": [
+      "A. What methods does the organization use to control physical access to its information system distribution and transmission lines within organizational facilities, and which security safeguards are implemented for this purpose?"
+    ]
+  },
+  {
+    "id": "PE-5",
+    "family": "PE",
+    "name": "PE-5 Access Control for Output Devices",
+    "description": "PE-5 Access Control for Output Devices",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization control physical access to information system output devices to ensure unauthorized individuals cannot obtain the output?"
+    ]
+  },
+  {
+    "id": "PE-6",
+    "family": "PE",
+    "name": "PE-6 Monitoring Physical Access",
+    "description": "PE-6 Monitoring Physical Access",
+    "profile": 1,
+    "questions": [
+      "A. What mechanisms and procedures are in place for monitoring physical access to the facility housing the information system, and how does the organization detect and respond to physical security incidents?\nB. How frequently does the organization review physical access logs, and under what specific events or indications of potential events does it initiate an immediate review of these logs?\nC. How does the organization coordinate the findings from physical access log reviews and investigations with its incident response team or capability?"
+    ]
+  },
+  {
+    "id": "PE-7",
+    "family": "PE",
+    "name": "PE-7 Visitor Control",
+    "description": "PE-7 Visitor Control",
+    "profile": 1,
+    "questions": [
+      "WITHDRAWN"
+    ]
+  },
+  {
+    "id": "PE-8",
+    "family": "PE",
+    "name": "PE-8 Access Records",
+    "description": "PE-8 Access Records",
+    "profile": 1,
+    "questions": [
+      "A. What is the defined time period for which the organization maintains visitor access records to the facility housing the information system?\nB. At what frequency does the organization review the visitor access records?"
+    ]
+  },
+  {
+    "id": "PE-9",
+    "family": "PE",
+    "name": "PE-9 Power Equipment and Power Cabling",
+    "description": "PE-9 Power Equipment and Power Cabling",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization ensure the protection of power equipment and power cabling for the information system against damage and destruction?"
+    ]
+  },
+  {
+    "id": "PE-10",
+    "family": "PE",
+    "name": "PE-10 Emergency Shutoff",
+    "description": "PE-10 Emergency Shutoff",
+    "profile": 1,
+    "questions": [
+      "A. What measures has the organization implemented to allow for the shutting off of power to the information system or individual system components in the event of an emergency?\nB. Where are the emergency shutoff switches or devices located as defined by the organization, and how does this location facilitate safe and easy access for personnel?\nC. How does the organization prevent unauthorized activation of the emergency power shutoff capability?"
+    ]
+  },
+  {
+    "id": "PE-11",
+    "family": "PE",
+    "name": "PE-11 Emergency Power",
+    "description": "PE-11 Emergency Power",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization utilize its short-term uninterruptible power supply to maintain operations during a loss of the primary power source?"
+    ]
+  },
+  {
+    "id": "PE-12",
+    "family": "PE",
+    "name": "PE-12 Emergency Lighting",
+    "description": "PE-12 Emergency Lighting",
+    "profile": 1,
+    "questions": [
+      "A. What measures does the organization have in place to ensure the illumination of emergency exits and evacuation routes within the facility during a power outage or disruption?"
+    ]
+  },
+  {
+    "id": "PE-13",
+    "family": "PE",
+    "name": "PE-13 Fire Protection",
+    "description": "PE-13 Fire Protection",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization ensure the continuous operation of fire suppression and detection devices/systems for the information system in the event that the primary energy source fails?"
+    ]
+  },
+  {
+    "id": "PE-14",
+    "family": "PE",
+    "name": "PE-14 Temperature and Humidity Controls",
+    "description": "PE-14 Temperature and Humidity Controls",
+    "profile": 1,
+    "questions": [
+      "A. What are the organization-defined acceptable temperature and humidity levels for the facility housing the information system, and how are these levels maintained?\nB. How often does the organization monitor the temperature and humidity levels within the facility, and what tools or systems are used for this monitoring?"
+    ]
+  },
+  {
+    "id": "PE-15",
+    "family": "PE",
+    "name": "PE-15 Water Damage Protection",
+    "description": "PE-15 Water Damage Protection",
+    "profile": 1,
+    "questions": [
+      "A. What strategies and procedures has the organization implemented to safeguard the information system against potential damage due to water leakage?"
+    ]
+  },
+  {
+    "id": "PE-16",
+    "family": "PE",
+    "name": "PE-16 Delivery and Removal",
+    "description": "PE-16 Delivery and Removal",
+    "profile": 1,
+    "questions": [
+      "A. What types of information system components does the organization authorize, monitor, and control for entry and exit, and how are records of these items maintained?"
+    ]
+  },
+  {
+    "id": "PE-17",
+    "family": "PE",
+    "name": "PE-17 Alternate Work Site",
+    "description": "PE-17 Alternate Work Site",
+    "profile": 1,
+    "questions": [
+      "A. Which specific security controls does the organization employ at alternate work sites?\nB. How does the organization assess, as feasible, the effectiveness of the security controls at alternate work sites?\nC. What means does the organization provide for employees to communicate with information security personnel in the event of security incidents or problems?"
+    ]
+  },
+  {
+    "id": "PE-18",
+    "family": "PE",
+    "name": "PE-18 Location of Information System Components",
+    "description": "PE-18 Location of Information System Components",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization position information system components within the facility to mitigate the risks of physical and environmental hazards and reduce the chances of unauthorized access?"
+    ]
+  },
+  {
+    "id": "PE-19",
+    "family": "PE",
+    "name": "PE-19 Information Leakage",
+    "description": "PE-19 Information Leakage",
+    "profile": 1,
+    "questions": [
+      "A. What measures has the organization implemented to guard against information leakage from electromagnetic signal emanations of the information system?"
+    ]
+  },
+  {
+    "id": "PE-20",
+    "family": "PE",
+    "name": "PE-20 Asset Monitoring and Tracking",
+    "description": "PE-20 Asset Monitoring and Tracking",
+    "profile": 1,
+    "questions": [
+      "A. What asset location technologies does the organization employ to track and monitor the location and movement of its defined assets within controlled areas?\nB. How does the organization ensure that the use of asset location technologies complies with applicable Government of Canada (GC) legislation and Treasury Board Secretariat (TBS) policies, directives, and standards?"
+    ]
+  },
+  {
+    "id": "PL-1",
+    "family": "PL",
+    "name": "PL-1 Security Planning Policy and Procedures",
+    "description": "PL-1 Security Planning Policy and Procedures",
+    "profile": 1,
+    "questions": [
+      "A. Which personnel or roles have been assigned by the organization to receive the security planning policy and procedures documentation that includes details on purpose, scope, roles, responsibilities, management commitment, coordination among organizational entities, and compliance?\nB. How frequently does the organization review and update its security planning policy and security planning procedures, as defined by their respective organization-defined frequencies?"
+    ]
+  },
+  {
+    "id": "PL-2",
+    "family": "PL",
+    "name": "PL-2 System Security Plan",
+    "description": "PL-2 System Security Plan",
+    "profile": 1,
+    "questions": [
+      "A. What key elements does the organization include in the security plan for its information system to ensure it aligns with the enterprise architecture, defines the authorization boundary, operational context, security categorization, operational environment, security requirements, relevant overlays, and security controls, and also receives the necessary approval from the authorizing official or designated representative before implementation?\nB. Which specific personnel or roles within the organization are assigned to receive copies of the security plan and to be informed about subsequent changes to the plan?\nC. At what intervals does the organization perform reviews of the information system's security plan, as determined by their defined frequency?\nD. How does the organization update the security plan to reflect changes in the information system or operating environment, or to correct issues identified during the implementation of the plan or during security control assessments?\nE. What measures does the organization employ to safeguard the security plan against unauthorized disclosure and modification?"
+    ]
+  },
+  {
+    "id": "PL-3",
+    "family": "PL",
+    "name": "PL-3 System Security Plan Update",
+    "description": "PL-3 System Security Plan Update",
+    "profile": 1,
+    "questions": [
+      "WITHDRAWN"
+    ]
+  },
+  {
+    "id": "PL-4",
+    "family": "PL",
+    "name": "PL-4 Rules of Behaviour",
+    "description": "PL-4 Rules of Behaviour",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization establish and provide access to the rules that outline individual responsibilities and expected behavior for information and information system usage?\nB. What process does the organization have in place to obtain signed acknowledgments from individuals to confirm they have read, understood, and agreed to the rules of behavior prior to granting access to the information and the information system?\nC. At what defined frequency does the organization review and update the rules of behavior?\nD. What is the organization's policy for requiring individuals, who have previously signed the rules of behavior, to read and re-sign in the event of revisions or updates to the rules?"
+    ]
+  },
+  {
+    "id": "PL-5",
+    "family": "PL",
+    "name": "PL-5 Privacy Impact Assessment",
+    "description": "PL-5 Privacy Impact Assessment",
+    "profile": 1,
+    "questions": [
+      "WITHDRAWN"
+    ]
+  },
+  {
+    "id": "PL-6",
+    "family": "PL",
+    "name": "PL-6 Security-Related Activity Planning",
+    "description": "PL-6 Security-Related Activity Planning",
+    "profile": 1,
+    "questions": [
+      "WITHDRAWN"
+    ]
+  },
+  {
+    "id": "PL-7",
+    "family": "PL",
+    "name": "PL-7 Security Concepts of Operation",
+    "description": "PL-7 Security Concepts of Operation",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization articulate its intended operation of the information system from an information security standpoint within its security Concept of Operations (CONOPS)?\nB. At what organization-defined intervals does the organization review and update the security Concept of Operations (CONOPS)?"
+    ]
+  },
+  {
+    "id": "PL-8",
+    "family": "PL",
+    "name": "PL-8 Information Security Architecture",
+    "description": "PL-8 Information Security Architecture",
+    "profile": 1,
+    "questions": [
+      "A. What approach does the organization take to develop an information security architecture for the information system, and how does it address the protection of confidentiality, integrity, and availability?\nB. How often does the organization review and update the information security architecture to ensure it stays aligned with any changes in the enterprise architecture?\nC. How does the organization ensure that changes to the information security architecture are incorporated into the security plan, the security Concept of Operations (CONOPS), and organizational procurements or acquisitions?"
+    ]
+  },
+  {
+    "id": "PL-9",
+    "family": "PL",
+    "name": "PL-9 Central Management",
+    "description": "PL-9 Central Management",
+    "profile": 1,
+    "questions": [
+      "A. Which security controls and related processes are centrally managed by the organization, as specified by their organizational definitions?"
+    ]
+  },
+  {
+    "id": "PS-1",
+    "family": "PS",
+    "name": "PS-1 Personnel Security Policy and Procedures",
+    "description": "PS-1 Personnel Security Policy and Procedures",
+    "profile": 1,
+    "questions": [
+      "A. Based on the provided information, which specific personnel or roles are designated to receive the personnel security policy and associated implementation procedures, as defined by the organization?\nB. What is the organization-defined frequency for reviewing and updating the personnel security policy and the personnel security procedures?"
+    ]
+  },
+  {
+    "id": "PS-2",
+    "family": "PS",
+    "name": "PS-2 Position Categorization",
+    "description": "PS-2 Position Categorization",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization categorize positions based on the potential injury individuals could cause through malicious acts associated with their position's privileges?\nB. How does the organization select the appropriate screening level, such as Enhanced Reliability Check (ERC), I, II, or III, for individuals filling categorized positions?\nC. At what organization-defined frequency does the organization review and revise the categorizations of positions?"
+    ]
+  },
+  {
+    "id": "PS-3",
+    "family": "PS",
+    "name": "PS-3 Personnel Screening",
+    "description": "PS-3 Personnel Screening",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization ensure that individuals are screened in accordance with the TBS Standard on Security Screening prior to authorizing access to the information system?\nB. What are the organization-defined conditions that require rescreening of individuals, and what is the frequency of such rescreening when it is indicated?"
+    ]
+  },
+  {
+    "id": "PS-4",
+    "family": "PS",
+    "name": "PS-4 Personnel Termination",
+    "description": "PS-4 Personnel Termination",
+    "profile": 1,
+    "questions": [
+      "A. What is the organization-defined time period within which an individual's information system access must be disabled after their employment termination?\nB. How does the organization ensure that all authenticators and credentials associated with an individual are terminated or revoked upon the individual's employment termination?\nC. What are the organization-defined information security topics that are discussed during exit interviews conducted upon an individual's employment termination?\nD. What is the procedure for retrieving all security-related organizational information system-related property upon an individual's employment termination?\nE. How does the organization retain access to the organizational information and information systems formerly controlled by the terminated individual?\nF. Who are the organization-defined personnel or roles that need to be notified upon an individual's employment termination, and within what organization-defined time period must this notification occur?"
+    ]
+  },
+  {
+    "id": "PS-5",
+    "family": "PS",
+    "name": "PS-5 Personnel Transfer",
+    "description": "PS-5 Personnel Transfer",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization review and confirm the ongoing operational need for current access authorizations when individuals are reassigned or transferred within the organization?\nB. What are the organization-defined actions to be initiated when an individual is transferred or reassigned, and what is the organization-defined time period for these actions to occur following the TBS Standard on Security Screening?\nC. How does the organization modify access authorization to align with the changes in operational need that occur due to an individual's reassignment or transfer?\nD. Which personnel or roles are to be notified by the organization when an individual is reassigned or transferred, and within what organization-defined time period must this notification take place?"
+    ]
+  },
+  {
+    "id": "PS-6",
+    "family": "PS",
+    "name": "PS-6 Access Agreements",
+    "description": "PS-6 Access Agreements",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization develop and document access agreements for organizational information systems?\nB. At what organization-defined frequency does the organization review and update the access agreements?\nC. How does the organization ensure that individuals who require access to information and information systems sign and, when necessary, re-sign access agreements?"
+    ]
+  },
+  {
+    "id": "PS-7",
+    "family": "PS",
+    "name": "PS-7 Third-Party Personnel Security",
+    "description": "PS-7 Third-Party Personnel Security",
+    "profile": 1,
+    "questions": [
+      "A. What personnel security control requirements, including security roles and responsibilities, does the organization establish for third-party providers?\nB. How does the organization require third-party providers to adhere to the personnel security control policies and procedures established by the organization?\nC. How does the organization document personnel security requirements for third-party providers?\nD. Who are the organization-defined personnel or roles that third-party providers must notify of personnel transfers or terminations, and within what organization-defined time period must they provide this notification?\nE. What methods does the organization use to monitor third-party provider compliance with personnel security controls?\nAA. How does the organization ensure the security screening of private sector organizations and individuals with access to Protected and Classified information and assets in accordance with the TBS Standard on Security Screening?\nBB. How are government oversight and end-user roles and responsibilities defined explicitly by the organization in relation to services provided by third parties, in accordance with the TBS Security and Contracting Management Standard?"
+    ]
+  },
+  {
+    "id": "PS-8",
+    "family": "PS",
+    "name": "PS-8 Personnel Sanctions",
+    "description": "PS-8 Personnel Sanctions",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization employ a formal sanctions process for individuals who fail to comply with established information security policies and procedures?\nB. Who are the organization-defined personnel or roles that must be notified when a formal employee sanctions process is initiated, and within what organization-defined time period must they be notified, including the identification of the individual sanctioned and the reason for the sanction?"
+    ]
+  },
+  {
+    "id": "RA-1",
+    "family": "RA",
+    "name": "RA-1 Risk Assessment Policy and Procedures",
+    "description": "RA-1 Risk Assessment Policy and Procedures",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization develop, document, and disseminate its risk assessment policy and the procedures for implementing this policy and associated controls to organization-defined personnel or roles?\nB. At what organization-defined frequency does the organization review and update its risk assessment policy and procedures?"
+    ]
+  },
+  {
+    "id": "RA-2",
+    "family": "RA",
+    "name": "RA-2 Security Categorization",
+    "description": "RA-2 Security Categorization",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization categorize its information and the information system in accordance with applicable Government of Canada (GC) legislation and Treasury Board Secretariat (TBS) directives?\nB. In what manner does the organization document the results and supporting rationale of the security categorization in the information system's security plan?\nC. How does the organization ensure that the security categorization decision is reviewed and approved by the authorizing official or their designated representative?"
+    ]
+  },
+  {
+    "id": "RA-3",
+    "family": "RA",
+    "name": "RA-3 Risk Assessment",
+    "description": "RA-3 Risk Assessment",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization conduct a risk assessment to determine the likelihood and potential harm from unauthorized actions affecting the information system and the information processed, stored, or transmitted by it?\nB. In which document (security plan, risk assessment report, or an organization-defined document) does the organization record the results of the risk assessment?\nC. At what organization-defined frequency does the organization review the results of the risk assessment?\nD. To which organization-defined personnel or roles are the risk assessment results disseminated?\nE. At what organization-defined frequency does the organization update the risk assessment, and under what conditions, such as significant changes to the information system or its operating environment, does it prompt an update outside of the regular review cycle?"
+    ]
+  },
+  {
+    "id": "RA-4",
+    "family": "RA",
+    "name": "RA-4 Risk Assessment Update",
+    "description": "RA-4 Risk Assessment Update",
+    "profile": 1,
+    "questions": [
+      "WITHDRAWN"
+    ]
+  },
+  {
+    "id": "RA-5",
+    "family": "RA",
+    "name": "RA-5 Vulnerability Scanning",
+    "description": "RA-5 Vulnerability Scanning",
+    "profile": 1,
+    "questions": [
+      "A. How often and by what organization-defined process does the organization scan for vulnerabilities in the information system and hosted applications, and under what circumstances involving newly identified vulnerabilities does it initiate additional scans?\nB. What vulnerability scanning tools and techniques does the organization employ to ensure interoperability among tools and to automate parts of the vulnerability management process?\nC. How does the organization analyze the reports and results from vulnerability scans and security control assessments?\nD. Within what organization-defined response times does the organization remediate legitimate vulnerabilities, and how does it align these actions with an organizational assessment of risk?\nE. With which organization-defined personnel or roles does the organization share information gained from the vulnerability scanning process and security control assessments to prevent similar vulnerabilities in other systems?"
+    ]
+  },
+  {
+    "id": "RA-6",
+    "family": "RA",
+    "name": "RA-6 Technical Surveillance Countermeasures Survey",
+    "description": "RA-6 Technical Surveillance Countermeasures Survey",
+    "profile": 1,
+    "questions": [
+      "A. At what organization-defined locations does the organization conduct technical surveillance countermeasures surveys, and how often are these surveys performed or under what organization-defined events or indicators do they occur?"
+    ]
+  },
+  {
+    "id": "SA-1",
+    "family": "SA",
+    "name": "SA-1 System and Services Acquisition Policy and Procedures",
+    "description": "SA-1 System and Services Acquisition Policy and Procedures",
+    "profile": 1,
+    "questions": [
+      "A. What steps does the organization take to develop, document, and disseminate its system and services acquisition policy to the defined personnel or roles?\nB. How often does the organization review and update its current system and services acquisition policy and procedures?"
+    ]
+  },
+  {
+    "id": "SA-2",
+    "family": "SA",
+    "name": "SA-2 Allocation of Resources",
+    "description": "SA-2 Allocation of Resources",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization determine the information security control requirements for the information system or service during mission/business process planning?\nB. What process does the organization use to determine, document, and allocate resources needed to protect the information system or service in its capital planning and investment control process?\nC. How does the organization establish a discrete line item specifically for information security in its programming and budgeting documentation?"
+    ]
+  },
+  {
+    "id": "SA-3",
+    "family": "SA",
+    "name": "SA-3 System Development Lifecycle",
+    "description": "SA-3 System Development Lifecycle",
+    "profile": 1,
+    "questions": [
+      "A. What system development life cycle does the organization use to manage the information system, and how are information security considerations incorporated into it?\nB. How does the organization define and document information security roles and responsibilities throughout the system development life cycle?\nC. How are individuals with information security roles and responsibilities identified within the organization?\nD. How is the organizational information security risk management process integrated into the system development life cycle activities?"
+    ]
+  },
+  {
+    "id": "SA-4",
+    "family": "SA",
+    "name": "SA-4 Acquisition Process",
+    "description": "SA-4 Acquisition Process",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization ensure that the acquisition contract for an information system includes all necessary requirements and criteria as per GC legislation, TBS policies, and organizational needs?\nAA. What measures does the organization take to incorporate security-related documentation and requirements into system acquisition contracts as guided by risk assessment and the TBS Security and Contracting Management Standard?\nBB. In what way does the organization integrate development and evaluation-related requirements into information system acquisition contracts to align with risk assessments and applicable GC legislation, as well as TBS policies and standards?"
+    ]
+  },
+  {
+    "id": "SA-5",
+    "family": "SA",
+    "name": "SA-5 Information System Documentation",
+    "description": "SA-5 Information System Documentation",
+    "profile": 1,
+    "questions": [
+      "A. What kind of administrator documentation does the organization acquire to describe the secure configuration, installation, operation, and vulnerability management of its information systems or services?\nB. How does the organization procure user documentation detailing the use of security functions, methods for secure interaction, and user security responsibilities for its information systems, components, or services?\nC. How does the organization document its attempts to acquire documentation for information systems, components, or services, and what are the predetermined organizational actions when such documentation is unavailable?\nD. What strategies does the organization employ to protect its documentation in line with its risk management strategy?\nE. To which personnel or roles does the organization distribute its security and system documentation?"
+    ]
+  },
+  {
+    "id": "SA-6",
+    "family": "SA",
+    "name": "SA-6 Software Usage Restrictions",
+    "description": "SA-6 Software Usage Restrictions",
+    "profile": 1,
+    "questions": [
+      "WITHDRAWN"
+    ]
+  },
+  {
+    "id": "SA-7",
+    "family": "SA",
+    "name": "SA-7 User-Installed Software",
+    "description": "SA-7 User-Installed Software",
+    "profile": 1,
+    "questions": [
+      "WITHDRAWN"
+    ]
+  },
+  {
+    "id": "SA-8",
+    "family": "SA",
+    "name": "SA-8 Security Engineering Principles",
+    "description": "SA-8 Security Engineering Principles",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization integrate information system security engineering principles into the specification, design, development, implementation, and modification processes of the information system?"
+    ]
+  },
+  {
+    "id": "SA-9",
+    "family": "SA",
+    "name": "SA-9 External Information System Services",
+    "description": "SA-9 External Information System Services",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization ensure that external information system service providers comply with its security control requirements and implement the specific security controls as per the TBS Security and Contracting Management Standard?\nB. In what manner does the organization define and document the oversight of the government and user roles and responsibilities concerning external information system services?\nC. What processes, methods, and techniques does the organization use to continuously monitor compliance with security controls by external service providers?"
+    ]
+  },
+  {
+    "id": "SA-10",
+    "family": "SA",
+    "name": "SA-10 Developer Configuration Management",
+    "description": "SA-10 Developer Configuration Management",
+    "profile": 1,
+    "questions": [
+      "A. At what stages (design, development, implementation, operation) does the organization require the developer to perform configuration management for the information system, component, or service?\nB. How does the organization mandate the developer to document, manage, and control the integrity of changes to specified configuration items under configuration management?\nC. What is the process the organization uses to ensure that the developer implements only organization-approved changes to the information system, system component, or service?\nD. In what way does the organization require the developer to document approved changes and assess potential security impacts that those changes may impose on the system, component, or service?\nE. How does the organization ensure that the developer tracks security flaws and their resolution within the system, component, or service and reports the findings to designated personnel?"
+    ]
+  },
+  {
+    "id": "SA-11",
+    "family": "SA",
+    "name": "SA-11 Developer Security Testing",
+    "description": "SA-11 Developer Security Testing",
+    "profile": 1,
+    "questions": [
+      "A. What are the organization's requirements for developers to create and implement a security assessment plan for the information system, system component, or service?\nB. Which types of testing or evaluation (unit, integration, system, regression) does the organization mandate the developer to conduct, and with what defined depth and coverage?\nC. How does the organization ensure that the developer provides evidence of executed security assessment plans and the outcomes of security testing or evaluation?\nD. What does the organization require from the developer in terms of implementing a verifiable process for flaw remediation in the information system, system component, or service?\nE. How is the developer expected to address and correct flaws discovered during security testing or evaluation, according to the organization's requirements?"
+    ]
+  },
+  {
+    "id": "SA-12",
+    "family": "SA",
+    "name": "SA-12 Supply Chain Protection",
+    "description": "SA-12 Supply Chain Protection",
+    "profile": 1,
+    "questions": [
+      "A. What security safeguards does the organization employ to protect the information system, system components, or information system services against supply chain threats within its broad defense-in-breadth information security strategy?"
+    ]
+  },
+  {
+    "id": "SA-13",
+    "family": "SA",
+    "name": "SA-13 Trustworthiness",
+    "description": "SA-13 Trustworthiness",
+    "profile": 1,
+    "questions": [
+      "N/A"
+    ]
+  },
+  {
+    "id": "SA-14",
+    "family": "SA",
+    "name": "SA-14 Criticality Analysis",
+    "description": "SA-14 Criticality Analysis",
+    "profile": 1,
+    "questions": [
+      "A. At what designated decision points in the system development life cycle does the organization perform criticality analysis to identify critical components and functions within specified information systems, components, or services?"
+    ]
+  },
+  {
+    "id": "SA-15",
+    "family": "SA",
+    "name": "SA-15 Development Process, Standards, and Tools",
+    "description": "SA-15 Development Process, Standards, and Tools",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization ensure that the developer follows a documented development process for the information system, component, or service that addresses security requirements, identifies and documents utilized standards and tools, and manages the integrity of changes to the development process and tools?\nB. At what frequency does the organization review the development process, standards, tools, and tool configurations to assess whether they meet the predefined security requirements?"
+    ]
+  },
+  {
+    "id": "SA-16",
+    "family": "SA",
+    "name": "SA-16 Developer Provided Training",
+    "description": "SA-16 Developer Provided Training",
+    "profile": 1,
+    "questions": [
+      "A. What specific training does the organization require developers to provide on the correct usage and operation of the implemented security functions, controls, and mechanisms for the information system, system component, or information system service?"
+    ]
+  },
+  {
+    "id": "SA-17",
+    "family": "SA",
+    "name": "SA-17 Developer Security Architecture and Design",
+    "description": "SA-17 Developer Security Architecture and Design",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization ensure that developers produce a design specification and security architecture for information systems, components, or services that align with and support the organization's security architecture within its enterprise architecture?\nB. What does the organization require from developers in terms of a design specification and security architecture that comprehensively and accurately describes the security functionality and the distribution of security controls across the system\u2019s physical and logical components?\nC. In what way does the organization require developers to detail a design specification and security architecture that clearly explains the interaction of security functions, mechanisms, and services to achieve the necessary security capabilities and a coherent approach to protection?"
+    ]
+  },
+  {
+    "id": "SA-18",
+    "family": "SA",
+    "name": "SA-18 Tamper Resistance and Detection",
+    "description": "SA-18 Tamper Resistance and Detection",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization implement a tamper protection program to safeguard the information system, system components, or information system services from unauthorized alterations or interference?"
+    ]
+  },
+  {
+    "id": "SA-19",
+    "family": "SA",
+    "name": "SA-19 Component Authenticity",
+    "description": "SA-19 Component Authenticity",
+    "profile": 1,
+    "questions": [
+      "A. How has the organization developed and implemented anti-counterfeit policy and procedures to detect and prevent counterfeit components from being integrated into the information system?\nB. To whom does the organization report the discovery of counterfeit information system components, including the source, external organizations, or specific personnel or roles?"
+    ]
+  },
+  {
+    "id": "SA-20",
+    "family": "SA",
+    "name": "SA-20 Customized Development of Critical Components",
+    "description": "SA-20 Customized Development of Critical Components",
+    "profile": 1,
+    "questions": [
+      "A. Which critical information system components has the organization determined need to be re-implemented or custom developed, as defined by organizational criteria?"
+    ]
+  },
+  {
+    "id": "SA-21",
+    "family": "SA",
+    "name": "SA-21 Developer Screening",
+    "description": "SA-21 Developer Screening",
+    "profile": 1,
+    "questions": [
+      "A. What access authorizations does the organization require for developers of a specified information system, system component, or information system service, as determined by their official government duties?\nB. What additional personnel screening criteria must the developers of a designated information system, system component, or information system service meet, according to the organization's definitions?"
+    ]
+  },
+  {
+    "id": "SA-22",
+    "family": "SA",
+    "name": "SA-22 Unsupported System Components",
+    "description": "SA-22 Unsupported System Components",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization handle the replacement of information system components when they are no longer supported by their developers, vendors, or manufacturers?\nB. What is the process for the organization to provide justification and obtain approval for the continued use of unsupported system components that are necessary to meet mission/business needs?"
+    ]
+  },
+  {
+    "id": "SC-1",
+    "family": "SC",
+    "name": "SC-1 System and Communications Protection Policy and Procedures",
+    "description": "SC-1 System and Communications Protection Policy and Procedures",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization develop, document, and disseminate its system and communications protection policy to the defined personnel or roles?\nB. What is the organization's method for reviewing and updating its current system and communications protection policy and the associated procedures?"
+    ]
+  },
+  {
+    "id": "SC-2",
+    "family": "SC",
+    "name": "SC-2 Application Partitioning",
+    "description": "SC-2 Application Partitioning",
+    "profile": 1,
+    "questions": [
+      "A. How does the information system ensure separation between user functionality, including user interface services, and information system management functionality?"
+    ]
+  },
+  {
+    "id": "SC-3",
+    "family": "SC",
+    "name": "SC-3 Security Function Isolation",
+    "description": "SC-3 Security Function Isolation",
+    "profile": 1,
+    "questions": [
+      "A. How does the information system isolate security functions from non-security functions?"
+    ]
+  },
+  {
+    "id": "SC-4",
+    "family": "SC",
+    "name": "SC-4 Information in Shared Resources",
+    "description": "SC-4 Information in Shared Resources",
+    "profile": 1,
+    "questions": [
+      "A. How does the information system prevent unauthorized and unintended information transfer via shared system resources?"
+    ]
+  },
+  {
+    "id": "SC-5",
+    "family": "SC",
+    "name": "SC-5 Denial of Service Protection",
+    "description": "SC-5 Denial of Service Protection",
+    "profile": 1,
+    "questions": [
+      "A. What measures does the information system implement to protect against or limit the effects of the specified types of denial of service attacks, and what are the organization-defined security safeguards it employs?"
+    ]
+  },
+  {
+    "id": "SC-6",
+    "family": "SC",
+    "name": "SC-6 Resource Availability",
+    "description": "SC-6 Resource Availability",
+    "profile": 1,
+    "questions": [
+      "A. How does the information system protect the availability of resources by allocating the organization-defined resources, and what methods (priority, quota, or other security safeguards) are used to manage this allocation?"
+    ]
+  },
+  {
+    "id": "SC-7",
+    "family": "SC",
+    "name": "SC-7 Boundary Protection",
+    "description": "SC-7 Boundary Protection",
+    "profile": 1,
+    "questions": [
+      "A. How does the information system monitor and control communications at both the external boundary and key internal boundaries?\nB. How does the information system implement sub-networks for publicly accessible system components, and are they physically or logically separated from internal organizational networks?\nC. What are the managed interfaces through which the information system connects to external networks or information systems, and how are they arranged according to the organizational security architecture?"
+    ]
+  },
+  {
+    "id": "SC-8",
+    "family": "SC",
+    "name": "SC-8 Transmission Confidentiality and Integrity",
+    "description": "SC-8 Transmission Confidentiality and Integrity",
+    "profile": 1,
+    "questions": [
+      "A. What measures are present in the information system to protect the confidentiality and/or integrity of transmitted information?"
+    ]
+  },
+  {
+    "id": "SC-9",
+    "family": "SC",
+    "name": "SC-9 Transmission Confidentiality",
+    "description": "SC-9 Transmission Confidentiality",
+    "profile": 1,
+    "questions": [
+      "WITHDRAWN"
+    ]
+  },
+  {
+    "id": "SC-10",
+    "family": "SC",
+    "name": "SC-10 Network Disconnect",
+    "description": "SC-10 Network Disconnect",
+    "profile": 1,
+    "questions": [
+      "A. How does the information system terminate the network connection associated with a communications session, either at the end of the session or following an organization-defined time period of inactivity?"
+    ]
+  },
+  {
+    "id": "SC-11",
+    "family": "SC",
+    "name": "SC-11 Trusted Path",
+    "description": "SC-11 Trusted Path",
+    "profile": 1,
+    "questions": [
+      "A. How does the information system establish a trusted communications path between the user and the organization-defined security functions, which include at a minimum, information system authentication and re-authentication?"
+    ]
+  },
+  {
+    "id": "SC-12",
+    "family": "SC",
+    "name": "SC-12 Cryptographic Key Establishment and Management",
+    "description": "SC-12 Cryptographic Key Establishment and Management",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization establish and manage cryptographic keys for the cryptography used within the information system, in compliance with the organization-defined requirements for key generation, distribution, storage, access, and destruction?"
+    ]
+  },
+  {
+    "id": "SC-13",
+    "family": "SC",
+    "name": "SC-13 Cryptographic Protection",
+    "description": "SC-13 Cryptographic Protection",
+    "profile": 1,
+    "questions": [
+      "A. How does the information system implement the organization-defined cryptographic uses and type of cryptography required for each use, in accordance with applicable Government of Canada (GC) legislation and Treasury Board Secretariat (TBS) policies, directives, and standards?"
+    ]
+  },
+  {
+    "id": "SC-14",
+    "family": "SC",
+    "name": "SC-14 Public Access Protections",
+    "description": "SC-14 Public Access Protections",
+    "profile": 1,
+    "questions": [
+      "WITHDRAWN"
+    ]
+  },
+  {
+    "id": "SC-15",
+    "family": "SC",
+    "name": "SC-15 Collaborative Computing Devices",
+    "description": "SC-15 Collaborative Computing Devices",
+    "profile": 1,
+    "questions": [
+      "A. What are the organization-defined exceptions to the prohibition of remote activation of collaborative computing devices by the information system?\nB. How does the information system provide an explicit indication of use to users who are physically present at the devices?"
+    ]
+  },
+  {
+    "id": "SC-16",
+    "family": "SC",
+    "name": "SC-16 Transmission of Security Attributes",
+    "description": "SC-16 Transmission of Security Attributes",
+    "profile": 1,
+    "questions": [
+      "A. What are the organization-defined security attributes that the information system associates with information exchanged between information systems and between system components?"
+    ]
+  },
+  {
+    "id": "SC-17",
+    "family": "SC",
+    "name": "SC-17 Public Key Infrastructure Certificates",
+    "description": "SC-17 Public Key Infrastructure Certificates",
+    "profile": 1,
+    "questions": [
+      "A. What is the organization-defined certificate policy under which the organization issues public key certificates, or from which approved service provider does the organization obtain public key certificates?"
+    ]
+  },
+  {
+    "id": "SC-18",
+    "family": "SC",
+    "name": "SC-18 Mobile Code",
+    "description": "SC-18 Mobile Code",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization define acceptable and unacceptable mobile code and mobile code technologies?\nB. What usage restrictions and implementation guidance does the organization establish for acceptable mobile code and mobile code technologies?\nC. How does the organization authorize, monitor, and control the use of mobile code within the information system?"
+    ]
+  },
+  {
+    "id": "SC-19",
+    "family": "SC",
+    "name": "SC-19 Voice Over Internet Protocol",
+    "description": "SC-19 Voice Over Internet Protocol",
+    "profile": 1,
+    "questions": [
+      "A. What usage restrictions and implementation guidance has the organization established for Voice over Internet Protocol (VoIP) technologies, considering the potential for damage to the information system if used maliciously?\nB. How does the organization authorize, monitor, and control the use of Voice over Internet Protocol (VoIP) within the information system?"
+    ]
+  },
+  {
+    "id": "SC-20",
+    "family": "SC",
+    "name": "SC-20 Secure Name/Address Resolution Service (Authoritative Source)",
+    "description": "SC-20 Secure Name/Address Resolution Service (Authoritative Source)",
+    "profile": 1,
+    "questions": [
+      "A. What additional data origin authentication and integrity verification artifacts does the information system provide along with the authoritative name resolution data it returns in response to external name/address resolution queries?\nB. How does the information system provide the means to indicate the security status of child zones, and enable verification of a chain of trust among parent and child domains, when it operates as part of a distributed, hierarchical namespace?"
+    ]
+  },
+  {
+    "id": "SC-21",
+    "family": "SC",
+    "name": "SC-21 Secure Name/Address Resolution Service (Recursive or Caching Resolver)",
+    "description": "SC-21 Secure Name/Address Resolution Service (Recursive or Caching Resolver)",
+    "profile": 1,
+    "questions": [
+      "A. How does the information system request and perform data origin authentication and data integrity verification on the name/address resolution responses received from authoritative sources?"
+    ]
+  },
+  {
+    "id": "SC-22",
+    "family": "SC",
+    "name": "SC-22 Architecture and Provisioning for Name/Address Resolution Service",
+    "description": "SC-22 Architecture and Provisioning for Name/Address Resolution Service",
+    "profile": 1,
+    "questions": [
+      "A. How do the information systems that provide name/address resolution service for the organization achieve fault-tolerance, and how is internal/external role separation implemented within these systems?"
+    ]
+  },
+  {
+    "id": "SC-23",
+    "family": "SC",
+    "name": "SC-23 Session Authenticity",
+    "description": "SC-23 Session Authenticity",
+    "profile": 1,
+    "questions": [
+      "A. How does the information system protect the authenticity of communications sessions?"
+    ]
+  },
+  {
+    "id": "SC-24",
+    "family": "SC",
+    "name": "SC-24 Fail in Known State",
+    "description": "SC-24 Fail in Known State",
+    "profile": 1,
+    "questions": [
+      "A. What is the organization-defined known-state to which the information system fails for the specified types of failures, and what organization-defined system state information is preserved in the event of failure?"
+    ]
+  },
+  {
+    "id": "SC-25",
+    "family": "SC",
+    "name": "SC-25 Thin Nodes",
+    "description": "SC-25 Thin Nodes",
+    "profile": 1,
+    "questions": [
+      "A. What are the organization-defined information system components that the organization employs with minimal functionality and information storage?"
+    ]
+  },
+  {
+    "id": "SC-26",
+    "family": "SC",
+    "name": "SC-26 Honeypots",
+    "description": "SC-26 Honeypots",
+    "profile": 1,
+    "questions": [
+      "A. What components are included in the information system that are specifically designed to be the target of malicious attacks for the purpose of detecting, deflecting, and analyzing such attacks?"
+    ]
+  },
+  {
+    "id": "SC-27",
+    "family": "SC",
+    "name": "SC-27 Platform-Independent Applications",
+    "description": "SC-27 Platform-Independent Applications",
+    "profile": 1,
+    "questions": [
+      "A. What are the organization-defined platform-independent applications included in the information system?"
+    ]
+  },
+  {
+    "id": "SC-28",
+    "family": "SC",
+    "name": "SC-28 Protection of Information at Rest",
+    "description": "SC-28 Protection of Information at Rest",
+    "profile": 1,
+    "questions": [
+      "A. How does the information system protect the selected aspects (confidentiality, integrity, or both) of the organization-defined information at rest?"
+    ]
+  },
+  {
+    "id": "SC-29",
+    "family": "SC",
+    "name": "SC-29 Heterogeneity",
+    "description": "SC-29 Heterogeneity",
+    "profile": 1,
+    "questions": [
+      "A. What diverse set of information technologies does the organization employ for the specified information system components in the implementation of the information system?"
+    ]
+  },
+  {
+    "id": "SC-30",
+    "family": "SC",
+    "name": "SC-30 Concealment and Misdirection",
+    "description": "SC-30 Concealment and Misdirection",
+    "profile": 1,
+    "questions": [
+      "A. What concealment and misdirection techniques defined by the organization are employed for the specified information systems, and at what defined time periods?"
+    ]
+  },
+  {
+    "id": "SC-31",
+    "family": "SC",
+    "name": "SC-31 Covert Channel Analysis",
+    "description": "SC-31 Covert Channel Analysis",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization perform a covert channel analysis to identify potential avenues for covert storage or timing channels within the information system communications?\nB. How does the organization estimate the maximum bandwidth of those identified covert channels?"
+    ]
+  },
+  {
+    "id": "SC-32",
+    "family": "SC",
+    "name": "SC-32 Information System Partitioning",
+    "description": "SC-32 Information System Partitioning",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization partition the information system into the defined information system components that reside in separate physical domains or environments, and what are the organization-defined circumstances that necessitate the physical separation of these components?"
+    ]
+  },
+  {
+    "id": "SC-33",
+    "family": "SC",
+    "name": "SC-33 Transmission Preparation Integrity",
+    "description": "SC-33 Transmission Preparation Integrity",
+    "profile": 1,
+    "questions": [
+      "WITHDRAWN"
+    ]
+  },
+  {
+    "id": "SC-34",
+    "family": "SC",
+    "name": "SC-34 Non-Modifiable Executable Programs",
+    "description": "SC-34 Non-Modifiable Executable Programs",
+    "profile": 1,
+    "questions": [
+      "A. At which organization-defined information system components does the information system load and execute the operating environment from hardware-enforced, read-only media?\nB. At which organization-defined information system components does the information system load and execute the organization-defined applications from hardware-enforced, read-only media?"
+    ]
+  },
+  {
+    "id": "SC-35",
+    "family": "SC",
+    "name": "SC-35 Honeyclients",
+    "description": "SC-35 Honeyclients",
+    "profile": 1,
+    "questions": [
+      "A. What components does the information system include that proactively seek to identify malicious websites and/or web-based malicious code?"
+    ]
+  },
+  {
+    "id": "SC-36",
+    "family": "SC",
+    "name": "SC-36 Distributed Processing and Storage",
+    "description": "SC-36 Distributed Processing and Storage",
+    "profile": 1,
+    "questions": [
+      "A. What are the organization-defined processing and storage resources that the organization distributes across multiple physical locations?"
+    ]
+  },
+  {
+    "id": "SC-37",
+    "family": "SC",
+    "name": "SC-37 Out-of-Band Channels",
+    "description": "SC-37 Out-of-Band Channels",
+    "profile": 1,
+    "questions": [
+      "A. What out-of-band channels defined by the organization are employed for the physical delivery or electronic transmission of the specified information, information system components, or devices to the defined individuals or information systems?"
+    ]
+  },
+  {
+    "id": "SC-38",
+    "family": "SC",
+    "name": "SC-38 Operations Security",
+    "description": "SC-38 Operations Security",
+    "profile": 1,
+    "questions": [
+      "A. What are the organization-defined operations security safeguards that the organization employs to protect key organizational information throughout the system development life cycle?"
+    ]
+  },
+  {
+    "id": "SC-39",
+    "family": "SC",
+    "name": "SC-39 Process Isolation",
+    "description": "SC-39 Process Isolation",
+    "profile": 1,
+    "questions": [
+      "A. How does the information system maintain a separate execution domain for each executing process?"
+    ]
+  },
+  {
+    "id": "SC-40",
+    "family": "SC",
+    "name": "SC-40 Wireless Link Protection",
+    "description": "SC-40 Wireless Link Protection",
+    "profile": 1,
+    "questions": [
+      "A. How does the information system protect external and internal organization-defined wireless links from the specified types of signal parameter attacks or references to sources for such attacks?"
+    ]
+  },
+  {
+    "id": "SC-41",
+    "family": "SC",
+    "name": "SC-41 Port and I/O Device Access",
+    "description": "SC-41 Port and I/O Device Access",
+    "profile": 1,
+    "questions": [
+      "A. Which connection ports or input/output devices does the organization physically disable or remove, and on what organization-defined information systems or components are these actions taken?"
+    ]
+  },
+  {
+    "id": "SC-42",
+    "family": "SC",
+    "name": "SC-42 Sensor Capability and Data",
+    "description": "SC-42 Sensor Capability and Data",
+    "profile": 1,
+    "questions": [
+      "A. What are the organization-defined exceptions to the rule prohibiting remote activation of environmental sensing capabilities within the information system?\nB. How does the information system provide an explicit indication of sensor use to the specified class of users?"
+    ]
+  },
+  {
+    "id": "SC-43",
+    "family": "SC",
+    "name": "SC-43 Usage Restrictions",
+    "description": "SC-43 Usage Restrictions",
+    "profile": 1,
+    "questions": [
+      "A. What usage restrictions and implementation guidance does the organization establish for the specified information system components, accounting for the potential damage they could cause to the information system if used maliciously?\nB. How does the organization authorize, monitor, and control the use of such components within the information system?"
+    ]
+  },
+  {
+    "id": "SC-44",
+    "family": "SC",
+    "name": "SC-44 Detonation Chambers",
+    "description": "SC-44 Detonation Chambers",
+    "profile": 1,
+    "questions": [
+      "A. Where does the organization employ a detonation chamber capability as per the organization-defined information system, system component, or location?"
+    ]
+  },
+  {
+    "id": "SC-100",
+    "family": "SC",
+    "name": "SC-100 Source Authentication",
+    "description": "SC-100 Source Authentication",
+    "profile": 1,
+    "questions": [
+      "A. How does the information system enable a message recipient to verify the claimed source identifier in a message?"
+    ]
+  },
+  {
+    "id": "SC-101",
+    "family": "SC",
+    "name": "SC-101 Unclassified Telecommunications Systems in Secure Facilities",
+    "description": "SC-101 Unclassified Telecommunications Systems in Secure Facilities",
+    "profile": 1,
+    "questions": [
+      "A. How are unclassified telecommunications systems in Secure Facilities designed to ensure they do not pass or transmit sensitive audio discussions when idle and to prevent external control or activation, in compliance with CNSSI 5002 and CNSSI 5006?\nB. What configurations must be implemented on unclassified telephone systems and services to prevent technical exploitation or penetration, and to incorporate necessary physical and software access controls?\nC. How must the organization apply specific requirements to unclassified telecommunications systems to ensure on-hook and off-hook vulnerabilities are identified and mitigated?\nD. What measures are taken to ensure electrical and physical isolation of all unclassified telecommunications systems and infrastructure from any classified information/telecommunications systems?\nE. Which security requirements and installation guidelines from CNSSI 5000 must be followed for VoIP systems installed in secure zones processing classified information?"
+    ]
+  },
+  {
+    "id": "SI-1",
+    "family": "SI",
+    "name": "SI-1 System and Information Integrity Policy and Procedures",
+    "description": "SI-1 System and Information Integrity Policy and Procedures",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization develop, document, and disseminate its system and information integrity policy to the defined personnel or roles?\nB. What is the organization's process for reviewing and updating its system and information integrity policy and procedures?"
+    ]
+  },
+  {
+    "id": "SI-2",
+    "family": "SI",
+    "name": "SI-2 Flaw Remediation",
+    "description": "SI-2 Flaw Remediation",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization identify, report, and correct information system flaws?\nB. What procedures does the organization follow to test software and firmware updates for effectiveness and potential side effects before installation?\nC. Within what time period does the organization install security-relevant software and firmware updates after their release?\nD. How is flaw remediation incorporated into the organizational configuration management process?"
+    ]
+  },
+  {
+    "id": "SI-3",
+    "family": "SI",
+    "name": "SI-3 Malicious Code Protection",
+    "description": "SI-3 Malicious Code Protection",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization employ malicious code protection mechanisms at information system entry and exit points?\nB. How often and according to which policies and procedures does the organization update its malicious code protection mechanisms?\nC. How does the organization configure malicious code protection mechanisms for periodic and real-time scanning, and what actions are taken upon detection of malicious code?\nD. How does the organization handle false positives during malicious code detection to mitigate the impact on system availability?"
+    ]
+  },
+  {
+    "id": "SI-4",
+    "family": "SI",
+    "name": "SI-4 Information System Monitoring",
+    "description": "SI-4 Information System Monitoring",
+    "profile": 1,
+    "questions": [
+      "A. What are the organization's monitoring objectives for detecting attacks and indicators of potential attacks, as well as unauthorized connections to the information system?\nB. What techniques and methods does the organization employ to identify unauthorized use of the information system?\nC. How does the organization strategically deploy monitoring devices within the information system to collect essential information and track specific transaction types?\nD. How does the organization protect the data obtained from intrusion-monitoring tools against unauthorized access, modification, and deletion?\nE. Under what conditions does the organization increase the level of monitoring of its information systems due to heightened risk indicators?\nF. What is the organization's process for obtaining legal opinions on information system monitoring activities to ensure compliance with GC legislation and TBS policies, directives, and standards?\nG. To whom and how frequently does the organization provide information system monitoring information, and what type of information is shared?"
+    ]
+  },
+  {
+    "id": "SI-5",
+    "family": "SI",
+    "name": "SI-5 Security Alerts, Advisories, and Directives",
+    "description": "SI-5 Security Alerts, Advisories, and Directives",
+    "profile": 1,
+    "questions": [
+      "A. Which external organizations does the organization receive ongoing security alerts, advisories, and directives from?\nB. How does the organization determine when it is necessary to generate its own internal security alerts, advisories, and directives?\nC. To whom (personnel, roles, elements within the organization, or external organizations) does the organization disseminate security alerts, advisories, and directives?\nD. How does the organization ensure the implementation of security directives within established time frames or communicate the degree of non-compliance to the issuing organization?"
+    ]
+  },
+  {
+    "id": "SI-6",
+    "family": "SI",
+    "name": "SI-6 Security Functional Verification",
+    "description": "SI-6 Security Functional Verification",
+    "profile": 1,
+    "questions": [
+      "A. Which security functions are verified for correct operation by the information system?\nB. When does the information system perform verification of security functions (e.g., during certain system transitional states, upon privileged user command, or at a defined frequency)?\nC. Who is notified by the information system in the event of failed security verification tests?\nD. What actions does the information system take (such as shutdown, restart, or other defined alternatives) when anomalies are discovered?"
+    ]
+  },
+  {
+    "id": "SI-7",
+    "family": "SI",
+    "name": "SI-7 Software, Firmware, and Information Integrity",
+    "description": "SI-7 Software, Firmware, and Information Integrity",
+    "profile": 1,
+    "questions": [
+      "A. What integrity verification tools does the organization employ to detect unauthorized changes to the specified software, firmware, and information?"
+    ]
+  },
+  {
+    "id": "SI-8",
+    "family": "SI",
+    "name": "SI-8 Spam Protection",
+    "description": "SI-8 Spam Protection",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization employ spam protection mechanisms at information system entry and exit points to address unsolicited messages?\nB. According to what policies and procedures does the organization update its spam protection mechanisms when new releases become available?"
+    ]
+  },
+  {
+    "id": "SI-9",
+    "family": "SI",
+    "name": "SI-9 Information Input Restrictions",
+    "description": "SI-9 Information Input Restrictions",
+    "profile": 1,
+    "questions": [
+      "WITHDRAWN"
+    ]
+  },
+  {
+    "id": "SI-10",
+    "family": "SI",
+    "name": "SI-10 Information Input Validation",
+    "description": "SI-10 Information Input Validation",
+    "profile": 1,
+    "questions": [
+      "A. What processes does the information system use to check the validity of the defined information inputs?"
+    ]
+  },
+  {
+    "id": "SI-11",
+    "family": "SI",
+    "name": "SI-11 Error Handling",
+    "description": "SI-11 Error Handling",
+    "profile": 1,
+    "questions": [
+      "A. How does the information system generate error messages that are informative for corrective actions without disclosing information exploitable by adversaries?\nB. To which personnel or roles does the information system reveal error messages?"
+    ]
+  },
+  {
+    "id": "SI-12",
+    "family": "SI",
+    "name": "SI-12 Information Output Handling and Retention",
+    "description": "SI-12 Information Output Handling and Retention",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization ensure that information handled and retained within the information system, as well as the information output from the system, complies with applicable GC legislation and TBS policies, directives, and standards?"
+    ]
+  },
+  {
+    "id": "SI-13",
+    "family": "SI",
+    "name": "SI-13 Predictable Failure Prevention",
+    "description": "SI-13 Predictable Failure Prevention",
+    "profile": 1,
+    "questions": [
+      "A. How does the organization determine the mean time to failure (MTTF) for the specified information system components in their respective operating environments?\nB. What are the organization's criteria for substituting information system components, including the exchange of active and standby components, based on defined MTTF?"
+    ]
+  },
+  {
+    "id": "SI-14",
+    "family": "SI",
+    "name": "SI-14 Non-Persistence",
+    "description": "SI-14 Non-Persistence",
+    "profile": 1,
+    "questions": [
+      "A. What non-persistent information system components and services does the organization implement that are initiated in a known state and terminated upon the end of use sessions or at a defined frequency?"
+    ]
+  },
+  {
+    "id": "SI-15",
+    "family": "SI",
+    "name": "SI-15 Information Output Filtering",
+    "description": "SI-15 Information Output Filtering",
+    "profile": 1,
+    "questions": [
+      "A. How does the information system validate that the output from the defined software programs and/or applications is consistent with the expected content?"
+    ]
+  },
+  {
+    "id": "SI-16",
+    "family": "SI",
+    "name": "SI-16 Memory Protection",
+    "description": "SI-16 Memory Protection",
+    "profile": 1,
+    "questions": [
+      "A. What security safeguards does the information system implement to protect its memory from unauthorized code execution?"
+    ]
+  },
+  {
+    "id": "SI-17",
+    "family": "SI",
+    "name": "SI-17 Fail-Safe Procedures",
+    "description": "SI-17 Fail-Safe Procedures",
+    "profile": 1,
+    "questions": [
+      "A. What fail-safe procedures does the information system implement in response to the defined failure conditions?"
+    ]
+  }
+]

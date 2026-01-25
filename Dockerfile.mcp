@@ -1,0 +1,32 @@
+# ITSG-33 Accreditation System - MCP Servers
+FROM python:3.11-slim
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv
+RUN pip install uv
+
+# Set working directory
+WORKDIR /app
+
+# Copy project files
+COPY pyproject.toml ./
+COPY src/ ./src/
+COPY data/ ./data/
+
+# Install dependencies
+RUN uv pip install --system -e .
+
+# Create directories
+RUN mkdir -p chroma_db
+
+# MCP server will be specified via command
+# Example: python -m src.mcp_servers.knowledge_base.server

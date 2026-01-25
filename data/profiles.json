@@ -1,0 +1,20 @@
+[
+  {
+    "number": 1,
+    "name": "Profile 1 - Low",
+    "description": "For systems with low sensitivity data and low impact",
+    "control_count": 242
+  },
+  {
+    "number": 2,
+    "name": "Profile 2 - Moderate",
+    "description": "For systems with moderate sensitivity data",
+    "control_count": 242
+  },
+  {
+    "number": 3,
+    "name": "Profile 3 - High",
+    "description": "For systems with high sensitivity data or critical operations",
+    "control_count": 242
+  }
+]

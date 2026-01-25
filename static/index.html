@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en" x-data="app()" x-init="init()">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITSG-33 Accreditation System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        [x-cloak] { display: none !important; }
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 20px -10px rgba(0,0,0,0.2);
+        }
+        .pulse-dot {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .markdown-content h1 { font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem; color: #1e3a5f; }
+        .markdown-content h2 { font-size: 1.25rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.75rem; color: #2d5a87; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.5rem; }
+        .markdown-content h3 { font-size: 1.1rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.5rem; color: #374151; }
+        .markdown-content p { margin-bottom: 0.75rem; line-height: 1.6; }
+        .markdown-content ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 0.75rem; }
+        .markdown-content li { margin-bottom: 0.25rem; }
+        .markdown-content table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        .markdown-content th, .markdown-content td { border: 1px solid #e5e7eb; padding: 0.5rem; text-align: left; }
+        .markdown-content th { background-color: #f3f4f6; font-weight: 600; }
+        .markdown-content .status-implemented { color: #059669; }
+        .markdown-content .status-partial { color: #d97706; }
+        .markdown-content .status-not-implemented { color: #dc2626; }
+        .markdown-content .severity-critical { background-color: #fee2e2; color: #991b1b; padding: 0.125rem 0.5rem; border-radius: 0.25rem; }
+        .markdown-content .severity-high { background-color: #fef3c7; color: #92400e; padding: 0.125rem 0.5rem; border-radius: 0.25rem; }
+        .markdown-content .severity-medium { background-color: #fef9c3; color: #854d0e; padding: 0.125rem 0.5rem; border-radius: 0.25rem; }
+        .markdown-content .severity-low { background-color: #dcfce7; color: #166534; padding: 0.125rem 0.5rem; border-radius: 0.25rem; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="gradient-bg text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <img src="/static/aip.png" alt="Logo" class="h-10 w-auto mr-3 rounded">
+                        <div>
+                            <span class="font-bold text-xl">ITSG-33 Accreditation</span>
+                            <span class="text-xs text-blue-200 block">Security Assessment Platform</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-blue-200">
+                        <i class="fas fa-circle text-green-400 text-xs mr-1 pulse-dot"></i>
+                        System Operational
+                    </span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Tabs -->
+        <div class="border-b border-gray-200 mb-8">
+            <nav class="-mb-px flex space-x-8">
+                <button @click="currentTab = 'dashboard'"
+                        :class="currentTab === 'dashboard' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                </button>
+                <button @click="currentTab = 'new'"
+                        :class="currentTab === 'new' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                    <i class="fas fa-plus-circle mr-2"></i>New Assessment
+                </button>
+                <button @click="currentTab = 'assessments'"
+                        :class="currentTab === 'assessments' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                    <i class="fas fa-list mr-2"></i>Assessments
+                </button>
+                <button @click="currentTab = 'controls'"
+                        :class="currentTab === 'controls' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                    <i class="fas fa-lock mr-2"></i>Control Families
+                </button>
+            </nav>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div x-show="currentTab === 'dashboard'" x-cloak>
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-md p-6 card-hover transition-all duration-300">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                            <i class="fas fa-clipboard-check text-2xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">Total Assessments</p>
+                            <p class="text-2xl font-bold text-gray-900" x-text="assessments.length">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-md p-6 card-hover transition-all duration-300">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-green-100 text-green-600">
+                            <i class="fas fa-check-circle text-2xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">Completed</p>
+                            <p class="text-2xl font-bold text-gray-900" x-text="assessments.filter(a => a.status === 'completed').length">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-md p-6 card-hover transition-all duration-300">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                            <i class="fas fa-spinner text-2xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">In Progress</p>
+                            <p class="text-2xl font-bold text-gray-900" x-text="assessments.filter(a => a.status === 'in_progress' || a.status === 'running').length">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-md p-6 card-hover transition-all duration-300">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                            <i class="fas fa-shield-alt text-2xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">Control Families</p>
+                            <p class="text-2xl font-bold text-gray-900">17</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Assessments -->
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-history mr-2 text-gray-400"></i>Recent Assessments
+                </h3>
+                <div x-show="assessments.length === 0" class="text-center py-8 text-gray-500">
+                    <i class="fas fa-inbox text-4xl mb-3"></i>
+                    <p>No assessments yet. Create your first assessment to get started.</p>
+                    <button @click="currentTab = 'new'" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Create Assessment
+                    </button>
+                </div>
+                <div x-show="assessments.length > 0" class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <template x-for="assessment in assessments.slice(0, 5)" :key="assessment.assessment_id">
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900" x-text="assessment.project_name"></div>
+                                        <div class="text-sm text-gray-500" x-text="assessment.assessment_id.slice(0, 8) + '...'"></div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" x-text="assessment.client_id"></td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span :class="getStatusClass(assessment.status)" class="px-2 py-1 text-xs font-medium rounded-full" x-text="assessment.status"></span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" x-text="formatDate(assessment.created_at)"></td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <button @click="viewAssessment(assessment.assessment_id)" class="text-blue-600 hover:text-blue-800 mr-3">
+                                            <i class="fas fa-eye"></i> View
+                                        </button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- New Assessment Tab -->
+        <div x-show="currentTab === 'new'" x-cloak>
+            <div class="bg-white rounded-xl shadow-md p-8 max-w-3xl mx-auto">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">
+                    <i class="fas fa-plus-circle mr-2 text-blue-600"></i>Create New Assessment
+                </h2>
+
+                <!-- Step Indicator -->
+                <div class="flex items-center mb-8">
+                    <div class="flex items-center">
+                        <div :class="step >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'" class="w-8 h-8 rounded-full flex items-center justify-center font-bold">1</div>
+                        <span class="ml-2 text-sm font-medium" :class="step >= 1 ? 'text-blue-600' : 'text-gray-500'">Details</span>
+                    </div>
+                    <div class="flex-1 h-1 mx-4" :class="step >= 2 ? 'bg-blue-600' : 'bg-gray-200'"></div>
+                    <div class="flex items-center">
+                        <div :class="step >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'" class="w-8 h-8 rounded-full flex items-center justify-center font-bold">2</div>
+                        <span class="ml-2 text-sm font-medium" :class="step >= 2 ? 'text-blue-600' : 'text-gray-500'">Documents</span>
+                    </div>
+                    <div class="flex-1 h-1 mx-4" :class="step >= 3 ? 'bg-blue-600' : 'bg-gray-200'"></div>
+                    <div class="flex items-center">
+                        <div :class="step >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'" class="w-8 h-8 rounded-full flex items-center justify-center font-bold">3</div>
+                        <span class="ml-2 text-sm font-medium" :class="step >= 3 ? 'text-blue-600' : 'text-gray-500'">Run</span>
+                    </div>
+                </div>
+
+                <!-- Step 1: Details -->
+                <div x-show="step === 1">
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Client ID *</label>
+                            <input type="text" x-model="newAssessment.client_id"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                   placeholder="e.g., DEPT_001">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Project Name *</label>
+                            <input type="text" x-model="newAssessment.project_name"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                   placeholder="e.g., Cloud Migration Project">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Concept of Operations (CONOPS)</label>
+                            <textarea x-model="newAssessment.conops" rows="5"
+                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                      placeholder="Describe the system purpose, data types processed, user base, and operational context..."></textarea>
+                        </div>
+                        <div class="flex justify-end">
+                            <button @click="createAssessment()"
+                                    :disabled="!newAssessment.client_id || !newAssessment.project_name"
+                                    :class="(!newAssessment.client_id || !newAssessment.project_name) ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'"
+                                    class="px-6 py-3 text-white rounded-lg font-medium transition-colors">
+                                <i class="fas fa-arrow-right mr-2"></i>Continue to Documents
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Documents -->
+                <div x-show="step === 2">
+                    <div class="space-y-6">
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <p class="text-sm text-blue-800">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                Upload security documentation including policies, procedures, architecture diagrams, and configuration evidence.
+                            </p>
+                        </div>
+
+                        <!-- Drop Zone -->
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors"
+                             @dragover.prevent="dragover = true"
+                             @dragleave.prevent="dragover = false"
+                             @drop.prevent="handleDrop($event)"
+                             :class="dragover ? 'border-blue-500 bg-blue-50' : ''">
+                            <input type="file" multiple @change="handleFiles($event)" class="hidden" id="fileInput" accept=".pdf,.docx,.doc,.txt,.png,.jpg,.jpeg">
+                            <label for="fileInput" class="cursor-pointer">
+                                <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                                <p class="text-gray-600">Drag and drop files here, or <span class="text-blue-600 font-medium">browse</span></p>
+                                <p class="text-sm text-gray-400 mt-2">Supports PDF, DOCX, TXT, PNG, JPG</p>
+                            </label>
+                        </div>
+
+                        <!-- File List -->
+                        <div x-show="uploadedFiles.length > 0" class="space-y-2">
+                            <h4 class="font-medium text-gray-700">Uploaded Files:</h4>
+                            <template x-for="(file, index) in uploadedFiles" :key="index">
+                                <div class="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-file text-gray-400 mr-3"></i>
+                                        <span class="text-sm text-gray-700" x-text="file.filename"></span>
+                                        <span x-show="file.parsed" class="ml-2 text-xs text-green-600">
+                                            <i class="fas fa-check-circle"></i> Parsed
+                                        </span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+
+                        <div class="flex justify-between">
+                            <button @click="step = 1" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors">
+                                <i class="fas fa-arrow-left mr-2"></i>Back
+                            </button>
+                            <button @click="step = 3" class="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-arrow-right mr-2"></i>Continue
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Run -->
+                <div x-show="step === 3">
+                    <div class="space-y-6">
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+                            <h4 class="font-semibold text-green-800 mb-2">
+                                <i class="fas fa-check-circle mr-2"></i>Ready to Run Assessment
+                            </h4>
+                            <div class="text-sm text-green-700 space-y-1">
+                                <p><strong>Assessment ID:</strong> <span x-text="currentAssessmentId"></span></p>
+                                <p><strong>Project:</strong> <span x-text="newAssessment.project_name"></span></p>
+                                <p><strong>Documents:</strong> <span x-text="uploadedFiles.length"></span> files uploaded</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <p class="text-sm text-yellow-800">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                The assessment will analyze your documents against all 17 ITSG-33 control families. This may take several minutes.
+                            </p>
+                        </div>
+
+                        <div class="flex justify-between">
+                            <button @click="step = 2" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors">
+                                <i class="fas fa-arrow-left mr-2"></i>Back
+                            </button>
+                            <button @click="runAssessment()"
+                                    :disabled="isRunning"
+                                    :class="isRunning ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'"
+                                    class="px-6 py-3 text-white rounded-lg font-medium transition-colors">
+                                <template x-if="!isRunning">
+                                    <span><i class="fas fa-play mr-2"></i>Run Assessment</span>
+                                </template>
+                                <template x-if="isRunning">
+                                    <span><i class="fas fa-spinner fa-spin mr-2"></i>Running...</span>
+                                </template>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assessments Tab -->
+        <div x-show="currentTab === 'assessments'" x-cloak>
+            <div class="bg-white rounded-xl shadow-md">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xl font-semibold text-gray-900">
+                            <i class="fas fa-list mr-2 text-gray-400"></i>All Assessments
+                        </h2>
+                        <button @click="loadAssessments()" class="px-4 py-2 text-sm text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-sync-alt mr-1"></i>Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <div x-show="assessments.length === 0" class="p-8 text-center text-gray-500">
+                    <i class="fas fa-folder-open text-4xl mb-3"></i>
+                    <p>No assessments found.</p>
+                </div>
+
+                <div x-show="assessments.length > 0" class="divide-y divide-gray-200">
+                    <template x-for="assessment in assessments" :key="assessment.assessment_id">
+                        <div class="p-6 hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center">
+                                        <h3 class="text-lg font-medium text-gray-900" x-text="assessment.project_name"></h3>
+                                        <span :class="getStatusClass(assessment.status)" class="ml-3 px-2 py-1 text-xs font-medium rounded-full" x-text="assessment.status"></span>
+                                    </div>
+                                    <div class="mt-1 text-sm text-gray-500">
+                                        <span><i class="fas fa-building mr-1"></i><span x-text="assessment.client_id"></span></span>
+                                        <span class="mx-2">|</span>
+                                        <span><i class="fas fa-calendar mr-1"></i><span x-text="formatDate(assessment.created_at)"></span></span>
+                                        <span class="mx-2">|</span>
+                                        <span class="text-xs text-gray-400" x-text="assessment.assessment_id"></span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <button @click="viewAssessment(assessment.assessment_id)"
+                                            class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors">
+                                        <i class="fas fa-eye mr-1"></i>View
+                                    </button>
+                                    <button x-show="assessment.status === 'created'"
+                                            @click="selectAssessmentForRun(assessment)"
+                                            class="px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors">
+                                        <i class="fas fa-play mr-1"></i>Run
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Families Tab -->
+        <div x-show="currentTab === 'controls'" x-cloak>
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-6">
+                    <i class="fas fa-lock mr-2 text-gray-400"></i>ITSG-33 Control Families
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <template x-for="family in controlFamilies" :key="family.code">
+                        <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-lg">
+                                    <span x-text="family.code"></span>
+                                </div>
+                                <div class="ml-4">
+                                    <h4 class="font-medium text-gray-900" x-text="family.name"></h4>
+                                    <p class="text-sm text-gray-500" x-text="family.code + ' Controls'"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Profiles -->
+            <div class="bg-white rounded-xl shadow-md p-6 mt-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-6">
+                    <i class="fas fa-layer-group mr-2 text-gray-400"></i>Security Profiles
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <template x-for="profile in profiles" :key="profile.number">
+                        <div class="border-2 rounded-lg p-6 text-center"
+                             :class="profile.number === 1 ? 'border-green-300 bg-green-50' : profile.number === 2 ? 'border-yellow-300 bg-yellow-50' : 'border-red-300 bg-red-50'">
+                            <div class="text-3xl font-bold mb-2"
+                                 :class="profile.number === 1 ? 'text-green-600' : profile.number === 2 ? 'text-yellow-600' : 'text-red-600'"
+                                 x-text="'Profile ' + profile.number"></div>
+                            <div class="font-medium text-gray-900" x-text="profile.name.split(' - ')[1]"></div>
+                            <p class="text-sm text-gray-600 mt-2" x-text="profile.description"></p>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assessment Detail Modal -->
+        <div x-show="showModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" @keydown.escape.window="showModal = false">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center">
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="showModal = false"></div>
+
+                <div class="relative bg-white rounded-xl shadow-xl max-w-5xl w-full mx-auto z-10 max-h-[90vh] overflow-hidden flex flex-col">
+                    <!-- Header -->
+                    <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
+                        <div class="flex items-center">
+                            <img src="/static/aip.png" alt="Logo" class="h-8 w-auto mr-3 rounded">
+                            <h3 class="text-xl font-semibold text-gray-900">
+                                Assessment Report
+                            </h3>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button @click="downloadMarkdown()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm">
+                                <i class="fas fa-file-download mr-2"></i>Save as Markdown
+                            </button>
+                            <button @click="showModal = false" class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+                                <i class="fas fa-times text-xl"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="p-6 overflow-y-auto flex-1">
+                        <template x-if="selectedAssessment">
+                            <div class="markdown-content" x-html="renderAssessmentReport()"></div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div x-show="toast.show" x-cloak
+             x-transition:enter="transform ease-out duration-300 transition"
+             x-transition:enter-start="translate-y-2 opacity-0"
+             x-transition:enter-end="translate-y-0 opacity-100"
+             x-transition:leave="transition ease-in duration-100"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed bottom-4 right-4 z-50">
+            <div :class="toast.type === 'success' ? 'bg-green-500' : toast.type === 'error' ? 'bg-red-500' : 'bg-blue-500'"
+                 class="text-white px-6 py-3 rounded-lg shadow-lg flex items-center">
+                <i :class="toast.type === 'success' ? 'fas fa-check-circle' : toast.type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-info-circle'" class="mr-2"></i>
+                <span x-text="toast.message"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-100 border-t border-gray-200 mt-12">
+        <div class="max-w-7xl mx-auto px-4 py-6 text-center text-sm text-gray-500">
+            <p>ITSG-33 Accreditation System &bull; Government of Canada IT Security Standard</p>
+        </div>
+    </footer>
+
+    <script>
+        function app() {
+            return {
+                currentTab: 'dashboard',
+                step: 1,
+                assessments: [],
+                controlFamilies: [],
+                profiles: [],
+                newAssessment: {
+                    client_id: '',
+                    project_name: '',
+                    conops: ''
+                },
+                currentAssessmentId: null,
+                uploadedFiles: [],
+                selectedAssessment: null,
+                assessmentResults: null,
+                showModal: false,
+                isRunning: false,
+                dragover: false,
+                toast: { show: false, message: '', type: 'info' },
+
+                async init() {
+                    await this.loadAssessments();
+                    await this.loadControlFamilies();
+                    await this.loadProfiles();
+                },
+
+                async loadAssessments() {
+                    try {
+                        const response = await fetch('/api/v1/assessments');
+                        const data = await response.json();
+                        this.assessments = data.assessments || [];
+                    } catch (error) {
+                        console.error('Failed to load assessments:', error);
+                    }
+                },
+
+                async loadControlFamilies() {
+                    try {
+                        const response = await fetch('/api/v1/controls/families');
+                        const data = await response.json();
+                        this.controlFamilies = data.families || [];
+                    } catch (error) {
+                        console.error('Failed to load control families:', error);
+                    }
+                },
+
+                async loadProfiles() {
+                    try {
+                        const response = await fetch('/api/v1/profiles');
+                        const data = await response.json();
+                        this.profiles = data.profiles || [];
+                    } catch (error) {
+                        console.error('Failed to load profiles:', error);
+                    }
+                },
+
+                async createAssessment() {
+                    try {
+                        const response = await fetch('/api/v1/assessment/create', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.newAssessment)
+                        });
+                        const data = await response.json();
+                        this.currentAssessmentId = data.assessment_id;
+                        this.step = 2;
+                        this.showToast('Assessment created successfully!', 'success');
+                        await this.loadAssessments();
+                    } catch (error) {
+                        this.showToast('Failed to create assessment', 'error');
+                    }
+                },
+
+                handleFiles(event) {
+                    this.uploadFiles(event.target.files);
+                },
+
+                handleDrop(event) {
+                    this.dragover = false;
+                    this.uploadFiles(event.dataTransfer.files);
+                },
+
+                async uploadFiles(files) {
+                    if (!this.currentAssessmentId) return;
+
+                    const formData = new FormData();
+                    for (const file of files) {
+                        formData.append('files', file);
+                    }
+
+                    try {
+                        const response = await fetch(`/api/v1/assessment/${this.currentAssessmentId}/upload`, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const data = await response.json();
+                        this.uploadedFiles = [...this.uploadedFiles, ...data.uploaded_files];
+                        this.showToast(`${data.successful} file(s) uploaded`, 'success');
+                    } catch (error) {
+                        this.showToast('Failed to upload files', 'error');
+                    }
+                },
+
+                async runAssessment() {
+                    if (!this.currentAssessmentId) return;
+                    this.isRunning = true;
+
+                    try {
+                        const response = await fetch(`/api/v1/assessment/${this.currentAssessmentId}/run`, {
+                            method: 'POST'
+                        });
+                        const data = await response.json();
+                        this.showToast('Assessment started! This may take a few minutes.', 'success');
+
+                        this.step = 1;
+                        this.newAssessment = { client_id: '', project_name: '', conops: '' };
+                        this.uploadedFiles = [];
+                        this.currentAssessmentId = null;
+                        this.currentTab = 'assessments';
+                        await this.loadAssessments();
+                    } catch (error) {
+                        this.showToast('Failed to run assessment', 'error');
+                    } finally {
+                        this.isRunning = false;
+                    }
+                },
+
+                async viewAssessment(assessmentId) {
+                    try {
+                        const response = await fetch(`/api/v1/assessment/${assessmentId}/status`);
+                        this.selectedAssessment = await response.json();
+
+                        if (this.selectedAssessment.status === 'completed') {
+                            try {
+                                const resultsResponse = await fetch(`/api/v1/assessment/${assessmentId}/results`);
+                                if (resultsResponse.ok) {
+                                    this.assessmentResults = await resultsResponse.json();
+                                }
+                            } catch (e) {
+                                this.assessmentResults = null;
+                            }
+                        } else {
+                            this.assessmentResults = null;
+                        }
+
+                        this.showModal = true;
+                    } catch (error) {
+                        this.showToast('Failed to load assessment details', 'error');
+                    }
+                },
+
+                selectAssessmentForRun(assessment) {
+                    this.currentAssessmentId = assessment.assessment_id;
+                    this.newAssessment.project_name = assessment.project_name;
+                    this.newAssessment.client_id = assessment.client_id;
+                    this.step = 2;
+                    this.currentTab = 'new';
+                },
+
+                renderAssessmentReport() {
+                    if (!this.selectedAssessment) return '';
+
+                    const a = this.selectedAssessment;
+                    const r = this.assessmentResults;
+                    const date = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' });
+
+                    let html = `
+                        <h1>ITSG-33 Security Assessment Report</h1>
+
+                        <h2>Executive Summary</h2>
+                        <table>
+                            <tr><th style="width:200px">Assessment ID</th><td><code>${a.assessment_id || 'N/A'}</code></td></tr>
+                            <tr><th>Project Name</th><td><strong>${this.getProjectName()}</strong></td></tr>
+                            <tr><th>Client</th><td>${this.getClientId()}</td></tr>
+                            <tr><th>Status</th><td><span class="${this.getStatusCssClass(a.status)}">${a.status || 'Unknown'}</span></td></tr>
+                            <tr><th>Report Date</th><td>${date}</td></tr>
+                            <tr><th>Documents Reviewed</th><td>${a.document_count || 0} documents, ${a.diagram_count || 0} diagrams</td></tr>
+                        </table>
+                    `;
+
+                    if (a.status === 'completed' && r) {
+                        html += this.renderCompletedResults(r);
+                    } else if (a.status === 'created') {
+                        html += `
+                            <h2>Assessment Status</h2>
+                            <p>This assessment has been created but not yet executed. Upload documents and run the assessment to generate results.</p>
+
+                            <h3>Next Steps</h3>
+                            <ul>
+                                <li>Upload relevant security documentation (policies, procedures, configurations)</li>
+                                <li>Include architecture diagrams and network documentation</li>
+                                <li>Run the assessment to analyze documents against ITSG-33 controls</li>
+                            </ul>
+                        `;
+                    } else if (a.status === 'in_progress' || a.status === 'running') {
+                        html += `
+                            <h2>Assessment In Progress</h2>
+                            <p>The assessment is currently running. Please check back shortly for results.</p>
+                            <p>The system is analyzing your documents against all 17 ITSG-33 control families.</p>
+                        `;
+                    }
+
+                    html += `
+                        <h2>About ITSG-33</h2>
+                        <p>ITSG-33 (IT Security Risk Management: A Lifecycle Approach) is the Government of Canada's framework for managing IT security risks. It defines security controls across 17 families:</p>
+                        <ul>
+                            <li><strong>AC</strong> - Access Control</li>
+                            <li><strong>AT</strong> - Awareness and Training</li>
+                            <li><strong>AU</strong> - Audit and Accountability</li>
+                            <li><strong>CA</strong> - Assessment, Authorization, and Monitoring</li>
+                            <li><strong>CM</strong> - Configuration Management</li>
+                            <li><strong>CP</strong> - Contingency Planning</li>
+                            <li><strong>IA</strong> - Identification and Authentication</li>
+                            <li><strong>IR</strong> - Incident Response</li>
+                            <li><strong>MA</strong> - Maintenance</li>
+                            <li><strong>MP</strong> - Media Protection</li>
+                            <li><strong>PE</strong> - Physical and Environmental Protection</li>
+                            <li><strong>PL</strong> - Planning</li>
+                            <li><strong>PS</strong> - Personnel Security</li>
+                            <li><strong>RA</strong> - Risk Assessment</li>
+                            <li><strong>SA</strong> - System and Services Acquisition</li>
+                            <li><strong>SC</strong> - System and Communications Protection</li>
+                            <li><strong>SI</strong> - System and Information Integrity</li>
+                        </ul>
+                    `;
+
+                    return html;
+                },
+
+                renderCompletedResults(r) {
+                    let html = '';
+
+                    if (r.phases) {
+                        // Control Mapping Results
+                        if (r.phases.control_mapping) {
+                            const cm = r.phases.control_mapping;
+                            html += `
+                                <h2>System Categorization</h2>
+                                <p>Based on the CONOPS and documentation provided, the system has been categorized as follows:</p>
+                                <table>
+                                    <tr><th style="width:200px">Security Profile</th><td><strong>Profile ${cm.profile || 2}</strong> (${cm.profile === 1 ? 'Low' : cm.profile === 3 ? 'High' : 'Moderate'} Impact)</td></tr>
+                                </table>
+                            `;
+
+                            if (cm.categorization) {
+                                html += `<h3>Categorization Details</h3><pre style="background:#f3f4f6;padding:1rem;border-radius:0.5rem;overflow-x:auto">${JSON.stringify(cm.categorization, null, 2)}</pre>`;
+                            }
+                        }
+
+                        // Evidence Assessment
+                        if (r.phases.evidence_assessment) {
+                            html += `
+                                <h2>Evidence Assessment</h2>
+                                <p>The following evidence was reviewed and mapped to applicable controls:</p>
+                            `;
+
+                            const ea = r.phases.evidence_assessment;
+                            if (typeof ea === 'object') {
+                                html += `<pre style="background:#f3f4f6;padding:1rem;border-radius:0.5rem;overflow-x:auto">${JSON.stringify(ea, null, 2)}</pre>`;
+                            }
+                        }
+
+                        // Gap Analysis
+                        if (r.phases.gap_analysis) {
+                            html += `
+                                <h2>Gap Analysis</h2>
+                                <p>The following gaps were identified during the assessment:</p>
+                            `;
+
+                            const ga = r.phases.gap_analysis;
+                            if (typeof ga === 'object') {
+                                html += `<pre style="background:#f3f4f6;padding:1rem;border-radius:0.5rem;overflow-x:auto">${JSON.stringify(ga, null, 2)}</pre>`;
+                            }
+                        }
+
+                        // Reports
+                        if (r.phases.reports) {
+                            html += `
+                                <h2>Recommendations</h2>
+                            `;
+
+                            const rep = r.phases.reports;
+                            if (rep.executive_summary) {
+                                html += `<h3>Executive Summary</h3><pre style="background:#f3f4f6;padding:1rem;border-radius:0.5rem;overflow-x:auto">${JSON.stringify(rep.executive_summary, null, 2)}</pre>`;
+                            }
+                        }
+                    }
+
+                    return html;
+                },
+
+                getProjectName() {
+                    if (this.selectedAssessment && this.selectedAssessment.project_name) {
+                        return this.selectedAssessment.project_name;
+                    }
+                    const match = this.assessments.find(a => a.assessment_id === this.selectedAssessment?.assessment_id);
+                    return match?.project_name || 'Unknown Project';
+                },
+
+                getClientId() {
+                    if (this.selectedAssessment && this.selectedAssessment.client_id) {
+                        return this.selectedAssessment.client_id;
+                    }
+                    const match = this.assessments.find(a => a.assessment_id === this.selectedAssessment?.assessment_id);
+                    return match?.client_id || 'Unknown Client';
+                },
+
+                getStatusCssClass(status) {
+                    const classes = {
+                        'created': 'background-color:#e5e7eb;color:#374151;padding:2px 8px;border-radius:4px',
+                        'in_progress': 'background-color:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:4px',
+                        'running': 'background-color:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:4px',
+                        'completed': 'background-color:#dcfce7;color:#166534;padding:2px 8px;border-radius:4px',
+                        'error': 'background-color:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:4px'
+                    };
+                    return `style="${classes[status] || ''}"`;
+                },
+
+                generateMarkdown() {
+                    if (!this.selectedAssessment) return '';
+
+                    const a = this.selectedAssessment;
+                    const r = this.assessmentResults;
+                    const date = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' });
+
+                    let md = `# ITSG-33 Security Assessment Report
+
+## Executive Summary
+
+| Field | Value |
+|-------|-------|
+| Assessment ID | \`${a.assessment_id || 'N/A'}\` |
+| Project Name | **${this.getProjectName()}** |
+| Client | ${this.getClientId()} |
+| Status | ${a.status || 'Unknown'} |
+| Report Date | ${date} |
+| Documents Reviewed | ${a.document_count || 0} documents, ${a.diagram_count || 0} diagrams |
+
+`;
+
+                    if (a.status === 'completed' && r) {
+                        if (r.phases) {
+                            if (r.phases.control_mapping) {
+                                const cm = r.phases.control_mapping;
+                                md += `## System Categorization
+
+Based on the CONOPS and documentation provided, the system has been categorized as follows:
+
+| Attribute | Value |
+|-----------|-------|
+| Security Profile | **Profile ${cm.profile || 2}** (${cm.profile === 1 ? 'Low' : cm.profile === 3 ? 'High' : 'Moderate'} Impact) |
+
+`;
+                                if (cm.categorization) {
+                                    md += `### Categorization Details
+
+\`\`\`json
+${JSON.stringify(cm.categorization, null, 2)}
+\`\`\`
+
+`;
+                                }
+                            }
+
+                            if (r.phases.evidence_assessment) {
+                                md += `## Evidence Assessment
+
+\`\`\`json
+${JSON.stringify(r.phases.evidence_assessment, null, 2)}
+\`\`\`
+
+`;
+                            }
+
+                            if (r.phases.gap_analysis) {
+                                md += `## Gap Analysis
+
+\`\`\`json
+${JSON.stringify(r.phases.gap_analysis, null, 2)}
+\`\`\`
+
+`;
+                            }
+
+                            if (r.phases.reports) {
+                                md += `## Recommendations
+
+\`\`\`json
+${JSON.stringify(r.phases.reports, null, 2)}
+\`\`\`
+
+`;
+                            }
+                        }
+                    } else if (a.status === 'created') {
+                        md += `## Assessment Status
+
+This assessment has been created but not yet executed. Upload documents and run the assessment to generate results.
+
+### Next Steps
+
+- Upload relevant security documentation (policies, procedures, configurations)
+- Include architecture diagrams and network documentation
+- Run the assessment to analyze documents against ITSG-33 controls
+
+`;
+                    }
+
+                    md += `## About ITSG-33
+
+ITSG-33 (IT Security Risk Management: A Lifecycle Approach) is the Government of Canada's framework for managing IT security risks. It defines security controls across 17 families:
+
+- **AC** - Access Control
+- **AT** - Awareness and Training
+- **AU** - Audit and Accountability
+- **CA** - Assessment, Authorization, and Monitoring
+- **CM** - Configuration Management
+- **CP** - Contingency Planning
+- **IA** - Identification and Authentication
+- **IR** - Incident Response
+- **MA** - Maintenance
+- **MP** - Media Protection
+- **PE** - Physical and Environmental Protection
+- **PL** - Planning
+- **PS** - Personnel Security
+- **RA** - Risk Assessment
+- **SA** - System and Services Acquisition
+- **SC** - System and Communications Protection
+- **SI** - System and Information Integrity
+
+---
+
+*Generated by ITSG-33 Accreditation System*
+`;
+
+                    return md;
+                },
+
+                downloadMarkdown() {
+                    const markdown = this.generateMarkdown();
+                    const blob = new Blob([markdown], { type: 'text/markdown' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    const projectName = this.getProjectName().replace(/[^a-zA-Z0-9]/g, '_');
+                    a.download = `ITSG33_Assessment_${projectName}_${new Date().toISOString().split('T')[0]}.md`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    this.showToast('Markdown report downloaded!', 'success');
+                },
+
+                getStatusClass(status) {
+                    const classes = {
+                        'created': 'bg-gray-100 text-gray-800',
+                        'in_progress': 'bg-blue-100 text-blue-800',
+                        'running': 'bg-blue-100 text-blue-800',
+                        'completed': 'bg-green-100 text-green-800',
+                        'error': 'bg-red-100 text-red-800'
+                    };
+                    return classes[status] || 'bg-gray-100 text-gray-800';
+                },
+
+                formatDate(dateString) {
+                    if (!dateString) return 'N/A';
+                    return new Date(dateString).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                    });
+                },
+
+                showToast(message, type = 'info') {
+                    this.toast = { show: true, message, type };
+                    setTimeout(() => { this.toast.show = false; }, 3000);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

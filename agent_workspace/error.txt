@@ -1,0 +1,495 @@
+Failed to load vertex credentials. Check to see if credentials containing partial/invalid information. Error: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 568, in get_access_token
+    _credentials, credential_project_id = self.load_auth(
+                                          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 126, in load_auth
+    creds, creds_project_id = self._credentials_from_default_auth(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 193, in _credentials_from_default_auth
+    return google_auth.default(scopes=scopes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/google/auth/_default.py", line 752, in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Failed to load vertex credentials. Check to see if credentials containing partial/invalid information. Error: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/main.py", line 3332, in completion
+    model_response = vertex_chat_completion.completion(  # type: ignore
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/gemini/vertex_and_google_ai_studio_gemini.py", line 2657, in completion
+    _auth_header, vertex_project = self._ensure_access_token(
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 306, in _ensure_access_token
+    return self.get_access_token(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 575, in get_access_token
+    raise e
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 568, in get_access_token
+    _credentials, credential_project_id = self.load_auth(
+                                          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 126, in load_auth
+    creds, creds_project_id = self._credentials_from_default_auth(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 193, in _credentials_from_default_auth
+    return google_auth.default(scopes=scopes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/google/auth/_default.py", line 752, in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/utils.py", line 1561, in wrapper
+    result = original_function(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/main.py", line 4229, in completion
+    raise exception_type(
+          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/litellm_core_utils/exception_mapping_utils.py", line 2378, in exception_type
+    raise e
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/litellm_core_utils/exception_mapping_utils.py", line 2354, in exception_type
+    raise APIConnectionError(
+litellm.exceptions.APIConnectionError: litellm.APIConnectionError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/main.py", line 3332, in completion
+    model_response = vertex_chat_completion.completion(  # type: ignore
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/gemini/vertex_and_google_ai_studio_gemini.py", line 2657, in completion
+    _auth_header, vertex_project = self._ensure_access_token(
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 306, in _ensure_access_token
+    return self.get_access_token(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 575, in get_access_token
+    raise e
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 568, in get_access_token
+    _credentials, credential_project_id = self.load_auth(
+                                          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 126, in load_auth
+    creds, creds_project_id = self._credentials_from_default_auth(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 193, in _credentials_from_default_auth
+    return google_auth.default(scopes=scopes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/google/auth/_default.py", line 752, in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 568, in get_access_token
+    _credentials, credential_project_id = self.load_auth(
+                                          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 126, in load_auth
+    creds, creds_project_id = self._credentials_from_default_auth(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 193, in _credentials_from_default_auth
+    return google_auth.default(scopes=scopes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/google/auth/_default.py", line 752, in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Failed to load vertex credentials. Check to see if credentials containing partial/invalid information. Error: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/main.py", line 3332, in completion
+    model_response = vertex_chat_completion.completion(  # type: ignore
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/gemini/vertex_and_google_ai_studio_gemini.py", line 2657, in completion
+    _auth_header, vertex_project = self._ensure_access_token(
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 306, in _ensure_access_token
+    return self.get_access_token(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 575, in get_access_token
+    raise e
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 568, in get_access_token
+    _credentials, credential_project_id = self.load_auth(
+                                          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 126, in load_auth
+    creds, creds_project_id = self._credentials_from_default_auth(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 193, in _credentials_from_default_auth
+    return google_auth.default(scopes=scopes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/google/auth/_default.py", line 752, in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/utils.py", line 1561, in wrapper
+    result = original_function(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/main.py", line 4229, in completion
+    raise exception_type(
+          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/litellm_core_utils/exception_mapping_utils.py", line 2378, in exception_type
+    raise e
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/litellm_core_utils/exception_mapping_utils.py", line 2354, in exception_type
+    raise APIConnectionError(
+litellm.exceptions.APIConnectionError: litellm.APIConnectionError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/main.py", line 3332, in completion
+    model_response = vertex_chat_completion.completion(  # type: ignore
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/gemini/vertex_and_google_ai_studio_gemini.py", line 2657, in completion
+    _auth_header, vertex_project = self._ensure_access_token(
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 306, in _ensure_access_token
+    return self.get_access_token(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 575, in get_access_token
+    raise e
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 568, in get_access_token
+    _credentials, credential_project_id = self.load_auth(
+                                          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 126, in load_auth
+    creds, creds_project_id = self._credentials_from_default_auth(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 193, in _credentials_from_default_auth
+    return google_auth.default(scopes=scopes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/google/auth/_default.py", line 752, in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 568, in get_access_token
+    _credentials, credential_project_id = self.load_auth(
+                                          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 126, in load_auth
+    creds, creds_project_id = self._credentials_from_default_auth(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 193, in _credentials_from_default_auth
+    return google_auth.default(scopes=scopes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/google/auth/_default.py", line 752, in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Failed to load vertex credentials. Check to see if credentials containing partial/invalid information. Error: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/main.py", line 3332, in completion
+    model_response = vertex_chat_completion.completion(  # type: ignore
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/gemini/vertex_and_google_ai_studio_gemini.py", line 2657, in completion
+    _auth_header, vertex_project = self._ensure_access_token(
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 306, in _ensure_access_token
+    return self.get_access_token(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 575, in get_access_token
+    raise e
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 568, in get_access_token
+    _credentials, credential_project_id = self.load_auth(
+                                          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 126, in load_auth
+    creds, creds_project_id = self._credentials_from_default_auth(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 193, in _credentials_from_default_auth
+    return google_auth.default(scopes=scopes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/google/auth/_default.py", line 752, in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/utils.py", line 1561, in wrapper
+    result = original_function(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/main.py", line 4229, in completion
+    raise exception_type(
+          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/litellm_core_utils/exception_mapping_utils.py", line 2378, in exception_type
+    raise e
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/litellm_core_utils/exception_mapping_utils.py", line 2354, in exception_type
+    raise APIConnectionError(
+litellm.exceptions.APIConnectionError: litellm.APIConnectionError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/main.py", line 3332, in completion
+    model_response = vertex_chat_completion.completion(  # type: ignore
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/gemini/vertex_and_google_ai_studio_gemini.py", line 2657, in completion
+    _auth_header, vertex_project = self._ensure_access_token(
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 306, in _ensure_access_token
+    return self.get_access_token(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 575, in get_access_token
+    raise e
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 568, in get_access_token
+    _credentials, credential_project_id = self.load_auth(
+                                          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 126, in load_auth
+    creds, creds_project_id = self._credentials_from_default_auth(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 193, in _credentials_from_default_auth
+    return google_auth.default(scopes=scopes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/google/auth/_default.py", line 752, in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 568, in get_access_token
+    _credentials, credential_project_id = self.load_auth(
+                                          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 126, in load_auth
+    creds, creds_project_id = self._credentials_from_default_auth(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 193, in _credentials_from_default_auth
+    return google_auth.default(scopes=scopes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/google/auth/_default.py", line 752, in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Failed to load vertex credentials. Check to see if credentials containing partial/invalid information. Error: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 568, in get_access_token
+    _credentials, credential_project_id = self.load_auth(
+                                          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 126, in load_auth
+    creds, creds_project_id = self._credentials_from_default_auth(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 193, in _credentials_from_default_auth
+    return google_auth.default(scopes=scopes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/google/auth/_default.py", line 752, in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Failed to load vertex credentials. Check to see if credentials containing partial/invalid information. Error: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 568, in get_access_token
+    _credentials, credential_project_id = self.load_auth(
+                                          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 126, in load_auth
+    creds, creds_project_id = self._credentials_from_default_auth(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 193, in _credentials_from_default_auth
+    return google_auth.default(scopes=scopes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/google/auth/_default.py", line 752, in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Failed to load vertex credentials. Check to see if credentials containing partial/invalid information. Error: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 568, in get_access_token
+    _credentials, credential_project_id = self.load_auth(
+                                          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 126, in load_auth
+    creds, creds_project_id = self._credentials_from_default_auth(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 193, in _credentials_from_default_auth
+    return google_auth.default(scopes=scopes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/google/auth/_default.py", line 752, in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Failed to load vertex credentials. Check to see if credentials containing partial/invalid information. Error: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 568, in get_access_token
+    _credentials, credential_project_id = self.load_auth(
+                                          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 126, in load_auth
+    creds, creds_project_id = self._credentials_from_default_auth(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 193, in _credentials_from_default_auth
+    return google_auth.default(scopes=scopes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/google/auth/_default.py", line 752, in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Failed to load vertex credentials. Check to see if credentials containing partial/invalid information. Error: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 568, in get_access_token
+    _credentials, credential_project_id = self.load_auth(
+                                          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 126, in load_auth
+    creds, creds_project_id = self._credentials_from_default_auth(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 193, in _credentials_from_default_auth
+    return google_auth.default(scopes=scopes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/google/auth/_default.py", line 752, in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Failed to load vertex credentials. Check to see if credentials containing partial/invalid information. Error: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 568, in get_access_token
+    _credentials, credential_project_id = self.load_auth(
+                                          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 126, in load_auth
+    creds, creds_project_id = self._credentials_from_default_auth(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 193, in _credentials_from_default_auth
+    return google_auth.default(scopes=scopes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/google/auth/_default.py", line 752, in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Failed to load vertex credentials. Check to see if credentials containing partial/invalid information. Error: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 568, in get_access_token
+    _credentials, credential_project_id = self.load_auth(
+                                          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 126, in load_auth
+    creds, creds_project_id = self._credentials_from_default_auth(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 193, in _credentials_from_default_auth
+    return google_auth.default(scopes=scopes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/google/auth/_default.py", line 752, in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Failed to load vertex credentials. Check to see if credentials containing partial/invalid information. Error: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 568, in get_access_token
+    _credentials, credential_project_id = self.load_auth(
+                                          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 126, in load_auth
+    creds, creds_project_id = self._credentials_from_default_auth(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 193, in _credentials_from_default_auth
+    return google_auth.default(scopes=scopes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/google/auth/_default.py", line 752, in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Failed to load vertex credentials. Check to see if credentials containing partial/invalid information. Error: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 568, in get_access_token
+    _credentials, credential_project_id = self.load_auth(
+                                          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 126, in load_auth
+    creds, creds_project_id = self._credentials_from_default_auth(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 193, in _credentials_from_default_auth
+    return google_auth.default(scopes=scopes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/google/auth/_default.py", line 752, in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Failed to load vertex credentials. Check to see if credentials containing partial/invalid information. Error: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 568, in get_access_token
+    _credentials, credential_project_id = self.load_auth(
+                                          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 126, in load_auth
+    creds, creds_project_id = self._credentials_from_default_auth(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 193, in _credentials_from_default_auth
+    return google_auth.default(scopes=scopes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/google/auth/_default.py", line 752, in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Failed to load vertex credentials. Check to see if credentials containing partial/invalid information. Error: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 568, in get_access_token
+    _credentials, credential_project_id = self.load_auth(
+                                          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 126, in load_auth
+    creds, creds_project_id = self._credentials_from_default_auth(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 193, in _credentials_from_default_auth
+    return google_auth.default(scopes=scopes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/google/auth/_default.py", line 752, in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Failed to load vertex credentials. Check to see if credentials containing partial/invalid information. Error: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 568, in get_access_token
+    _credentials, credential_project_id = self.load_auth(
+                                          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 126, in load_auth
+    creds, creds_project_id = self._credentials_from_default_auth(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 193, in _credentials_from_default_auth
+    return google_auth.default(scopes=scopes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/google/auth/_default.py", line 752, in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Failed to load vertex credentials. Check to see if credentials containing partial/invalid information. Error: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 568, in get_access_token
+    _credentials, credential_project_id = self.load_auth(
+                                          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 126, in load_auth
+    creds, creds_project_id = self._credentials_from_default_auth(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 193, in _credentials_from_default_auth
+    return google_auth.default(scopes=scopes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/google/auth/_default.py", line 752, in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Failed to load vertex credentials. Check to see if credentials containing partial/invalid information. Error: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 568, in get_access_token
+    _credentials, credential_project_id = self.load_auth(
+                                          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 126, in load_auth
+    creds, creds_project_id = self._credentials_from_default_auth(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 193, in _credentials_from_default_auth
+    return google_auth.default(scopes=scopes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/google/auth/_default.py", line 752, in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Failed to load vertex credentials. Check to see if credentials containing partial/invalid information. Error: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 568, in get_access_token
+    _credentials, credential_project_id = self.load_auth(
+                                          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 126, in load_auth
+    creds, creds_project_id = self._credentials_from_default_auth(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 193, in _credentials_from_default_auth
+    return google_auth.default(scopes=scopes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/google/auth/_default.py", line 752, in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Failed to load vertex credentials. Check to see if credentials containing partial/invalid information. Error: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 568, in get_access_token
+    _credentials, credential_project_id = self.load_auth(
+                                          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 126, in load_auth
+    creds, creds_project_id = self._credentials_from_default_auth(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 193, in _credentials_from_default_auth
+    return google_auth.default(scopes=scopes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/google/auth/_default.py", line 752, in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Failed to load vertex credentials. Check to see if credentials containing partial/invalid information. Error: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.
+Traceback (most recent call last):
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 568, in get_access_token
+    _credentials, credential_project_id = self.load_auth(
+                                          ^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 126, in load_auth
+    creds, creds_project_id = self._credentials_from_default_auth(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/litellm/llms/vertex_ai/vertex_llm_base.py", line 193, in _credentials_from_default_auth
+    return google_auth.default(scopes=scopes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/scottsyms/code/fart/accreditation/itsg33-accreditation/.venv/lib/python3.11/site-packages/google/auth/_default.py", line 752, in default
+    raise exceptions.DefaultCredentialsError(_CLOUD_SDK_MISSING_CREDENTIALS)
+google.auth.exceptions.DefaultCredentialsError: Your default credentials were not found. To set up Application Default Credentials, see https://cloud.google.com/docs/authentication/external/set-up-adc for more information.

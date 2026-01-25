@@ -1,0 +1,134 @@
+version: '3.8'
+
+services:
+  # Main FastAPI Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: itsg33-app
+    ports:
+      - "8000:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.0-flash-exp}
+      - UPLOAD_DIR=/app/uploads
+      - OUTPUT_DIR=/app/outputs
+      - DATA_DIR=/app/data
+      - CHROMA_PERSIST_DIR=/app/chroma_db
+      - MCP_KNOWLEDGE_BASE_URL=http://mcp-knowledge-base:8005
+      - MCP_CONTROL_MAPPER_URL=http://mcp-control-mapper:8001
+      - MCP_EVIDENCE_ASSESSOR_URL=http://mcp-evidence-assessor:8002
+      - MCP_GAP_ANALYZER_URL=http://mcp-gap-analyzer:8003
+      - MCP_REPORT_GENERATOR_URL=http://mcp-report-generator:8004
+    volumes:
+      - uploads_data:/app/uploads
+      - outputs_data:/app/outputs
+      - chroma_data:/app/chroma_db
+    depends_on:
+      - mcp-knowledge-base
+      - mcp-control-mapper
+      - mcp-evidence-assessor
+      - mcp-gap-analyzer
+      - mcp-report-generator
+    networks:
+      - itsg33-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Knowledge Base MCP Server
+  mcp-knowledge-base:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+    container_name: itsg33-mcp-knowledge-base
+    command: python -m src.mcp_servers.knowledge_base.server
+    ports:
+      - "8005:8005"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - CHROMA_PERSIST_DIR=/app/chroma_db
+      - DATA_DIR=/app/data
+    volumes:
+      - chroma_data:/app/chroma_db
+    networks:
+      - itsg33-network
+    restart: unless-stopped
+
+  # Control Mapper MCP Server
+  mcp-control-mapper:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+    container_name: itsg33-mcp-control-mapper
+    command: python -m src.mcp_servers.control_mapper.server
+    ports:
+      - "8001:8001"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.0-flash-exp}
+    networks:
+      - itsg33-network
+    restart: unless-stopped
+
+  # Evidence Assessor MCP Server
+  mcp-evidence-assessor:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+    container_name: itsg33-mcp-evidence-assessor
+    command: python -m src.mcp_servers.evidence_assessor.server
+    ports:
+      - "8002:8002"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.0-flash-exp}
+    networks:
+      - itsg33-network
+    restart: unless-stopped
+
+  # Gap Analyzer MCP Server
+  mcp-gap-analyzer:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+    container_name: itsg33-mcp-gap-analyzer
+    command: python -m src.mcp_servers.gap_analyzer.server
+    ports:
+      - "8003:8003"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.0-flash-exp}
+    networks:
+      - itsg33-network
+    restart: unless-stopped
+
+  # Report Generator MCP Server
+  mcp-report-generator:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+    container_name: itsg33-mcp-report-generator
+    command: python -m src.mcp_servers.report_generator.server
+    ports:
+      - "8004:8004"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.0-flash-exp}
+    networks:
+      - itsg33-network
+    restart: unless-stopped
+
+networks:
+  itsg33-network:
+    driver: bridge
+
+volumes:
+  uploads_data:
+  outputs_data:
+  chroma_data:

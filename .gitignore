@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+.eggs/
+*.egg-info/
+*.egg
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Build
+dist/
+build/
+
+# Local development
+.env
+.env.local
+*.log
+
+# Application data (these are generated/uploaded)
+uploads/*
+!uploads/.gitkeep
+outputs/*
+!outputs/.gitkeep
+chroma_db/*
+!chroma_db/.gitkeep
+
+# Misc
+.DS_Store
+Thumbs.db
