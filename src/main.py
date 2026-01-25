@@ -144,6 +144,7 @@ async def create_assessment(request: AssessmentRequest):
 async def upload_documents(
     assessment_id: str,
     files: List[UploadFile] = File(...),
+    background_tasks: BackgroundTasks = None,
 ):
     """Upload documents for assessment."""
     # Verify assessment exists
@@ -152,6 +153,7 @@ async def upload_documents(
         raise HTTPException(status_code=404, detail="Assessment not found")
 
     uploaded_files = []
+    new_documents = []
 
     for file in files:
         try:
@@ -160,13 +162,19 @@ async def upload_documents(
             # Parse document
             parsed_content = await doc_parser.parse(file_path)
 
-            uploaded_files.append({
+            file_info = {
                 "filename": file.filename,
                 "path": str(file_path),
                 "content_type": file.content_type,
                 "parsed": parsed_content is not None,
                 "type": "diagram" if file.content_type and file.content_type.startswith("image/") else "document",
-            })
+            }
+
+            if parsed_content and "full_text" in parsed_content:
+                file_info["content"] = parsed_content["full_text"]
+                new_documents.append(file_info)
+
+            uploaded_files.append(file_info)
         except Exception as e:
             uploaded_files.append({
                 "filename": file.filename,
@@ -174,12 +182,31 @@ async def upload_documents(
                 "parsed": False,
             })
 
+    # If assessment has existing results and new documents were added, trigger reassessment
+    if assessment.get("results") and new_documents and background_tasks:
+        background_tasks.add_task(reassess_with_documents, assessment_id, new_documents)
+
     return {
         "assessment_id": assessment_id,
         "uploaded_files": uploaded_files,
         "total": len(uploaded_files),
         "successful": len([f for f in uploaded_files if "error" not in f]),
+        "will_reassess": bool(assessment.get("results") and new_documents),
     }
+
+
+async def reassess_with_documents(assessment_id: str, new_documents: List[Dict[str, Any]]):
+    """Background task to reassess with new documents."""
+    assessment_data = await storage.get_assessment(assessment_id)
+    if not assessment_data or not assessment_data.get("results"):
+        return
+
+    results = assessment_data["results"]
+
+    for doc in new_documents:
+        results = await coordinator.reassess_with_new_document(results, doc)
+
+    await storage.store_results(assessment_id, results)
 
 
 @app.post("/api/v1/assessment/{assessment_id}/conops")

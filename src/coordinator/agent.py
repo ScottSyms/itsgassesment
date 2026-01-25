@@ -1,15 +1,10 @@
 """Main coordinator agent orchestrating the ITSG-33 assessment."""
 
 import os
+import json
 from typing import Dict, Any, List, Optional
-import asyncio
+from pathlib import Path
 
-from swarms import Agent
-
-from src.agents.control_mapper import ControlMapperAgent
-from src.agents.evidence_assessor import EvidenceAssessorAgent
-from src.agents.gap_analyzer import GapAnalyzerAgent
-from src.agents.report_generator import ReportGeneratorAgent
 from src.utils.gemini_client import GeminiClient
 from src.utils.document_parser import DocumentParser
 
@@ -18,88 +13,22 @@ class ITSG33Coordinator:
     """Coordinator for ITSG-33 accreditation process."""
 
     def __init__(self):
-        """Initialize coordinator with agent handoffs."""
-        # Initialize specialized agents
-        self.control_mapper = ControlMapperAgent()
-        self.evidence_assessor = EvidenceAssessorAgent()
-        self.gap_analyzer = GapAnalyzerAgent()
-        self.report_generator = ReportGeneratorAgent()
-
-        # Initialize utilities
+        """Initialize coordinator."""
         self.gemini = GeminiClient()
         self.doc_parser = DocumentParser()
+        self.controls_data = self._load_controls()
 
-        # Initialize coordinator agent
-        self.coordinator = Agent(
-            agent_name="ITSG33Coordinator",
-            agent_description="""Orchestrates the complete ITSG-33 security
-            accreditation process, coordinating specialized agents.""",
-            system_prompt=self._get_system_prompt(),
-            model_name=os.getenv("GEMINI_MODEL", "gemini/gemini-2.0-flash-exp"),
-            max_loops="auto",
-            handoffs=[
-                self.control_mapper.get_agent(),
-                self.evidence_assessor.get_agent(),
-                self.gap_analyzer.get_agent(),
-                self.report_generator.get_agent(),
-            ],
-            dynamic_temperature_enabled=True,
-            saved_state_path="coordinator_state.json",
-            context_length=16000,
-            return_step_meta=True,
-        )
+    def _load_controls(self) -> List[Dict[str, Any]]:
+        """Load ITSG-33 controls from data file."""
+        data_path = Path(__file__).parent.parent.parent / "data" / "itsg33_controls.json"
+        if data_path.exists():
+            with open(data_path, "r") as f:
+                return json.load(f)
+        return []
 
-    def _get_system_prompt(self) -> str:
-        """Get coordinator system prompt."""
-        return """You are the ITSG-33 Accreditation Coordinator.
-
-You orchestrate the complete security assessment process following these phases:
-
-Phase 1 - Control Mapping:
-- Analyze CONOPS and system documentation
-- Determine security categorization (C/I/A)
-- Select appropriate ITSG-33 profile (1, 2, or 3)
-- Map applicable controls from all 17 families
-- Delegate to ControlMapper agent
-
-Phase 2 - Evidence Assessment:
-- Process submitted documentation
-- Map evidence to controls
-- Assess evidence quality and sufficiency
-- Delegate to EvidenceAssessor agent
-
-Phase 3 - Gap Analysis:
-- Identify implementation gaps
-- Identify evidence gaps
-- Prioritize by severity and risk
-- Delegate to GapAnalyzer agent
-
-Phase 4 - Iteration:
-- Review gap analysis results
-- Request additional evidence from client if needed
-- Re-assess with new documentation
-- Continue until satisfactory coverage
-
-Phase 5 - Report Generation:
-- Generate executive summary
-- Create detailed technical report
-- Produce compliance matrix
-- Develop remediation plan
-- Delegate to ReportGenerator agent
-
-Workflow Management:
-- Track overall progress
-- Coordinate between agents
-- Manage state and context
-- Handle errors gracefully
-- Ensure comprehensive assessment
-
-Always maintain:
-- Clear communication of progress
-- Traceability of decisions
-- Comprehensive documentation
-- Professional output quality
-"""
+    def get_controls_for_profile(self, profile: int) -> List[Dict[str, Any]]:
+        """Get all controls required for a given profile level."""
+        return [c for c in self.controls_data if c.get("profile", 1) <= profile]
 
     async def run_assessment(
         self,
@@ -113,7 +42,7 @@ Always maintain:
 
         Args:
             conops: Concept of operations document
-            documents: List of document metadata
+            documents: List of document metadata with content
             diagrams: List of diagram metadata
             client_id: Client identifier
 
@@ -127,163 +56,429 @@ Always maintain:
         }
 
         try:
-            # Phase 1: Control Mapping
-            categorization = await self._phase_control_mapping(conops, documents)
-            results["phases"]["control_mapping"] = categorization
+            # Phase 1: Analyze system and determine profile
+            system_analysis = await self._analyze_system(conops, documents)
+            results["phases"]["system_analysis"] = system_analysis
+            profile = system_analysis.get("recommended_profile", 2)
 
-            # Phase 2: Evidence Assessment
-            evidence_assessment = await self._phase_evidence_assessment(
-                documents, diagrams, categorization.get("control_mappings", [])
-            )
-            results["phases"]["evidence_assessment"] = evidence_assessment
+            # Phase 2: Get required controls for profile
+            required_controls = self.get_controls_for_profile(profile)
+            results["phases"]["required_controls"] = {
+                "profile": profile,
+                "total_controls": len(required_controls),
+                "controls_by_family": self._group_controls_by_family(required_controls),
+            }
 
-            # Phase 3: Gap Analysis
-            gap_analysis = await self._phase_gap_analysis(
-                evidence_assessment, categorization.get("profile", 2)
+            # Phase 3: Analyze each document for evidence
+            evidence_analysis = await self._analyze_documents_for_evidence(
+                documents, required_controls
             )
-            results["phases"]["gap_analysis"] = gap_analysis
+            results["phases"]["evidence_analysis"] = evidence_analysis
 
-            # Phase 4: Report Generation
-            reports = await self._phase_report_generation(
-                results, client_id
+            # Phase 4: Calculate control coverage
+            coverage = self._calculate_coverage(required_controls, evidence_analysis)
+            results["phases"]["coverage"] = coverage
+
+            # Phase 5: Generate recommendations
+            recommendations = await self._generate_recommendations(
+                coverage, required_controls
             )
-            results["phases"]["reports"] = reports
+            results["phases"]["recommendations"] = recommendations
 
             results["status"] = "completed"
+            results["summary"] = {
+                "profile": profile,
+                "total_controls": len(required_controls),
+                "controls_with_evidence": coverage["controls_with_evidence"],
+                "controls_partial": coverage["controls_partial"],
+                "controls_missing": coverage["controls_missing"],
+                "coverage_percentage": coverage["coverage_percentage"],
+            }
 
         except Exception as e:
             results["status"] = "error"
             results["error"] = str(e)
+            import traceback
+            results["traceback"] = traceback.format_exc()
 
         return results
 
-    async def _phase_control_mapping(
-        self,
-        conops: str,
-        documents: List[Dict[str, Any]],
+    async def _analyze_system(
+        self, conops: str, documents: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
-        """Execute control mapping phase."""
-        # Extract system description from documents
-        system_description = ""
-        data_types = []
-
-        for doc in documents[:5]:  # Process first 5 docs for description
+        """Analyze system to determine security profile."""
+        # Combine document content for context
+        doc_content = ""
+        for doc in documents[:3]:
             if "content" in doc:
-                system_description += doc.get("content", "")[:2000]
+                doc_content += f"\n\n--- {doc.get('filename', 'Document')} ---\n"
+                doc_content += doc["content"][:3000]
 
-        # Categorize system
-        categorization = await self.control_mapper.categorize_system(
-            conops=conops,
-            system_description=system_description,
-            data_types=data_types or ["General data"],
-        )
+        prompt = f"""Analyze this system and determine the appropriate ITSG-33 security profile.
 
-        # Map controls
-        control_mappings = await self.control_mapper.map_controls(
-            categorization=categorization.get("categorization", {}),
-            system_characteristics={"documents": len(documents)},
-        )
+CONOPS/System Description:
+{conops[:5000] if conops else "No CONOPS provided"}
 
+Additional Documentation:
+{doc_content[:8000]}
+
+Based on the above, determine:
+
+1. SYSTEM TYPE: What kind of system is this? (e.g., web application, internal tool, data processing system)
+
+2. DATA SENSITIVITY: What types of data does this system handle?
+   - Classify as: Unclassified, Protected A, Protected B, Protected C, or Classified
+
+3. SECURITY CATEGORIZATION (rate each as Low, Moderate, or High):
+   - Confidentiality: How sensitive is the information?
+   - Integrity: How critical is data accuracy?
+   - Availability: How critical is system uptime?
+
+4. RECOMMENDED PROFILE:
+   - Profile 1 (Low): Basic security for low-sensitivity systems
+   - Profile 2 (Moderate): Standard security for most government systems
+   - Profile 3 (High): Enhanced security for sensitive/critical systems
+
+5. RATIONALE: Explain why you recommend this profile
+
+Return your analysis as JSON with these exact keys:
+{{
+    "system_type": "description of system type",
+    "data_classification": "classification level",
+    "confidentiality": "Low|Moderate|High",
+    "integrity": "Low|Moderate|High",
+    "availability": "Low|Moderate|High",
+    "recommended_profile": 1|2|3,
+    "rationale": "explanation for profile recommendation"
+}}
+"""
+
+        try:
+            response = await self.gemini.generate_async(prompt)
+            # Try to parse JSON from response
+            json_start = response.find("{")
+            json_end = response.rfind("}") + 1
+            if json_start >= 0 and json_end > json_start:
+                analysis = json.loads(response[json_start:json_end])
+                return analysis
+        except Exception as e:
+            pass
+
+        # Default to Profile 2 if analysis fails
         return {
-            "categorization": categorization,
-            "control_mappings": control_mappings,
-            "profile": 2,  # Default to moderate
+            "system_type": "Unknown",
+            "data_classification": "Protected B",
+            "confidentiality": "Moderate",
+            "integrity": "Moderate",
+            "availability": "Moderate",
+            "recommended_profile": 2,
+            "rationale": "Default profile assigned due to insufficient information",
         }
 
-    async def _phase_evidence_assessment(
-        self,
-        documents: List[Dict[str, Any]],
-        diagrams: List[Dict[str, Any]],
-        control_mappings: List[Dict[str, Any]],
+    def _group_controls_by_family(
+        self, controls: List[Dict[str, Any]]
+    ) -> Dict[str, List[str]]:
+        """Group controls by family."""
+        families = {}
+        for control in controls:
+            family = control.get("family", "Unknown")
+            if family not in families:
+                families[family] = []
+            families[family].append(control.get("id", ""))
+        return families
+
+    async def _analyze_documents_for_evidence(
+        self, documents: List[Dict[str, Any]], required_controls: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
-        """Execute evidence assessment phase."""
-        evidence_items = []
+        """Analyze each document to find evidence for controls."""
+        evidence_map = {}  # control_id -> list of evidence items
+        document_analyses = []
 
         for doc in documents:
-            evidence_items.append({
-                "name": doc.get("filename", "Unknown"),
-                "summary": doc.get("content", "")[:500] if "content" in doc else "",
-            })
+            if "content" not in doc or not doc["content"]:
+                continue
 
-        for diagram in diagrams:
-            evidence_items.append({
-                "name": diagram.get("filename", "Unknown"),
-                "summary": "Diagram/image file",
-            })
+            doc_analysis = await self._analyze_single_document(
+                doc, required_controls
+            )
+            document_analyses.append(doc_analysis)
 
-        # Get list of control IDs from mappings
-        control_ids = []
-        for mapping in control_mappings:
-            if isinstance(mapping, dict) and "control_id" in mapping:
-                control_ids.append(mapping["control_id"])
+            # Update evidence map
+            for control_id, evidence in doc_analysis.get("controls_addressed", {}).items():
+                if control_id not in evidence_map:
+                    evidence_map[control_id] = []
+                evidence_map[control_id].append({
+                    "document": doc.get("filename", "Unknown"),
+                    "evidence": evidence,
+                })
 
-        if not control_ids:
-            control_ids = ["AC-1", "AU-1", "CM-1", "IA-1", "SC-1"]  # Default controls
+        return {
+            "document_analyses": document_analyses,
+            "evidence_by_control": evidence_map,
+        }
 
-        evaluation = await self.evidence_assessor.evaluate_evidence_set(
-            evidence_items=evidence_items,
-            required_controls=control_ids,
-        )
-
-        return evaluation
-
-    async def _phase_gap_analysis(
-        self,
-        evidence_assessment: Dict[str, Any],
-        profile: int,
+    async def _analyze_single_document(
+        self, doc: Dict[str, Any], required_controls: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
-        """Execute gap analysis phase."""
-        # Create control assessments from evidence assessment
-        control_assessments = []
+        """Analyze a single document for control evidence."""
+        # Create a summary of control families for the prompt
+        control_summary = {}
+        for control in required_controls:
+            family = control.get("family", "")
+            if family not in control_summary:
+                control_summary[family] = []
+            control_summary[family].append(f"{control['id']}: {control.get('name', '')}")
 
-        if "evidence_evaluation" in evidence_assessment:
-            # Parse the evaluation to create control assessments
-            control_assessments = [evidence_assessment]
-
-        gap_analysis = await self.gap_analyzer.analyze_gaps(
-            control_assessments=control_assessments,
-            profile=profile,
+        control_list = "\n".join(
+            [f"{fam}: {', '.join(ctrls[:5])}..." for fam, ctrls in control_summary.items()]
         )
 
-        return gap_analysis
+        prompt = f"""Analyze this security document and identify which ITSG-33 controls it provides evidence for.
 
-    async def _phase_report_generation(
+DOCUMENT: {doc.get('filename', 'Unknown')}
+CONTENT:
+{doc.get('content', '')[:12000]}
+
+ITSG-33 CONTROL FAMILIES TO CHECK:
+{control_list}
+
+For each control that this document provides evidence for, identify:
+1. The control ID (e.g., AC-1, AU-2)
+2. What evidence this document provides
+3. Whether the evidence is FULL (completely addresses the control), PARTIAL (some aspects), or MENTIONS (references but doesn't prove implementation)
+
+Focus on finding REAL evidence of security controls being implemented, not just mentions.
+
+Return as JSON:
+{{
+    "document_type": "type of document (policy, procedure, architecture, etc.)",
+    "document_purpose": "what this document is for",
+    "controls_addressed": {{
+        "CONTROL-ID": {{
+            "coverage": "FULL|PARTIAL|MENTIONS",
+            "evidence_summary": "what evidence this document provides",
+            "relevant_excerpt": "key quote or section that proves this"
+        }}
+    }},
+    "key_security_topics": ["list of security topics covered"]
+}}
+"""
+
+        try:
+            response = await self.gemini.generate_async(prompt)
+            json_start = response.find("{")
+            json_end = response.rfind("}") + 1
+            if json_start >= 0 and json_end > json_start:
+                analysis = json.loads(response[json_start:json_end])
+                analysis["filename"] = doc.get("filename", "Unknown")
+                return analysis
+        except Exception as e:
+            pass
+
+        return {
+            "filename": doc.get("filename", "Unknown"),
+            "document_type": "Unknown",
+            "document_purpose": "Could not analyze",
+            "controls_addressed": {},
+            "key_security_topics": [],
+            "error": "Analysis failed",
+        }
+
+    def _calculate_coverage(
         self,
-        results: Dict[str, Any],
-        client_id: str,
+        required_controls: List[Dict[str, Any]],
+        evidence_analysis: Dict[str, Any],
     ) -> Dict[str, Any]:
-        """Execute report generation phase."""
-        client_info = {"client_id": client_id}
+        """Calculate control coverage based on evidence."""
+        evidence_map = evidence_analysis.get("evidence_by_control", {})
 
-        # Generate executive summary
-        executive_summary = await self.report_generator.generate_executive_summary(
-            assessment_results=results,
-            client_info=client_info,
-        )
+        full_coverage = []
+        partial_coverage = []
+        no_coverage = []
 
-        # Generate compliance matrix
-        control_assessments = results.get("phases", {}).get(
-            "evidence_assessment", {}
-        )
-        compliance_matrix = await self.report_generator.generate_compliance_matrix(
-            control_assessments=[control_assessments],
-            profile=results.get("phases", {}).get("control_mapping", {}).get("profile", 2),
+        for control in required_controls:
+            control_id = control.get("id", "")
+            if control_id in evidence_map:
+                evidence_items = evidence_map[control_id]
+                # Check if any evidence is FULL
+                has_full = any(
+                    e.get("evidence", {}).get("coverage") == "FULL"
+                    for e in evidence_items
+                )
+                if has_full:
+                    full_coverage.append({
+                        "control_id": control_id,
+                        "control_name": control.get("name", ""),
+                        "family": control.get("family", ""),
+                        "evidence_count": len(evidence_items),
+                        "evidence": evidence_items,
+                    })
+                else:
+                    partial_coverage.append({
+                        "control_id": control_id,
+                        "control_name": control.get("name", ""),
+                        "family": control.get("family", ""),
+                        "evidence_count": len(evidence_items),
+                        "evidence": evidence_items,
+                    })
+            else:
+                no_coverage.append({
+                    "control_id": control_id,
+                    "control_name": control.get("name", ""),
+                    "family": control.get("family", ""),
+                    "questions": control.get("questions", []),
+                })
+
+        total = len(required_controls)
+        coverage_pct = (
+            (len(full_coverage) + len(partial_coverage) * 0.5) / total * 100
+            if total > 0
+            else 0
         )
 
         return {
-            "executive_summary": executive_summary,
-            "compliance_matrix": compliance_matrix,
+            "controls_with_evidence": len(full_coverage),
+            "controls_partial": len(partial_coverage),
+            "controls_missing": len(no_coverage),
+            "coverage_percentage": round(coverage_pct, 1),
+            "full_coverage": full_coverage,
+            "partial_coverage": partial_coverage,
+            "no_coverage": no_coverage,
         }
+
+    async def _generate_recommendations(
+        self,
+        coverage: Dict[str, Any],
+        required_controls: List[Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        """Generate recommendations based on gaps."""
+        missing_controls = coverage.get("no_coverage", [])
+        partial_controls = coverage.get("partial_coverage", [])
+
+        # Group missing by family
+        missing_by_family = {}
+        for ctrl in missing_controls:
+            family = ctrl.get("family", "Unknown")
+            if family not in missing_by_family:
+                missing_by_family[family] = []
+            missing_by_family[family].append(ctrl)
+
+        # Generate prioritized recommendations
+        high_priority = []
+        medium_priority = []
+        low_priority = []
+
+        # High priority: Access Control, Identification & Auth, Audit
+        high_families = ["AC", "IA", "AU", "SC"]
+        for ctrl in missing_controls:
+            if ctrl.get("family") in high_families:
+                high_priority.append({
+                    "control_id": ctrl["control_id"],
+                    "control_name": ctrl["control_name"],
+                    "action": "Provide evidence or implement this control",
+                    "suggested_evidence": self._suggest_evidence(ctrl["control_id"]),
+                })
+            elif ctrl.get("family") in ["CM", "SI", "IR"]:
+                medium_priority.append({
+                    "control_id": ctrl["control_id"],
+                    "control_name": ctrl["control_name"],
+                    "action": "Provide evidence or implement this control",
+                })
+            else:
+                low_priority.append({
+                    "control_id": ctrl["control_id"],
+                    "control_name": ctrl["control_name"],
+                })
+
+        return {
+            "high_priority": high_priority[:10],
+            "medium_priority": medium_priority[:10],
+            "low_priority_count": len(low_priority),
+            "missing_by_family": {
+                fam: len(ctrls) for fam, ctrls in missing_by_family.items()
+            },
+            "next_steps": [
+                "Upload security policies covering Access Control (AC) family",
+                "Provide authentication and identity management documentation (IA)",
+                "Submit audit logging configuration and procedures (AU)",
+                "Include system architecture and network diagrams (SC)",
+            ],
+        }
+
+    def _suggest_evidence(self, control_id: str) -> str:
+        """Suggest what evidence would satisfy a control."""
+        suggestions = {
+            "AC-1": "Access Control Policy document",
+            "AC-2": "Account management procedures, user provisioning documentation",
+            "AC-3": "Access control configuration, RBAC documentation",
+            "IA-1": "Identification and Authentication Policy",
+            "IA-2": "Multi-factor authentication configuration",
+            "AU-1": "Audit and Accountability Policy",
+            "AU-2": "Audit logging configuration, log retention policy",
+            "SC-1": "System and Communications Protection Policy",
+            "SC-7": "Network architecture diagram, firewall rules",
+        }
+        return suggestions.get(control_id, "Policy, procedure, or configuration documentation")
 
     async def get_status(self) -> Dict[str, Any]:
         """Get current coordinator status."""
         return {
             "coordinator": "ITSG33Coordinator",
-            "agents": [
-                "ControlMapper",
-                "EvidenceAssessor",
-                "GapAnalyzer",
-                "ReportGenerator",
-            ],
+            "controls_loaded": len(self.controls_data),
             "status": "ready",
         }
+
+    async def reassess_with_new_document(
+        self,
+        assessment_results: Dict[str, Any],
+        new_document: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Reassess when a new document is added."""
+        # Get required controls from previous assessment
+        profile = assessment_results.get("phases", {}).get(
+            "required_controls", {}
+        ).get("profile", 2)
+        required_controls = self.get_controls_for_profile(profile)
+
+        # Analyze new document
+        new_doc_analysis = await self._analyze_single_document(
+            new_document, required_controls
+        )
+
+        # Merge with existing evidence
+        existing_evidence = assessment_results.get("phases", {}).get(
+            "evidence_analysis", {}
+        ).get("evidence_by_control", {})
+
+        for control_id, evidence in new_doc_analysis.get("controls_addressed", {}).items():
+            if control_id not in existing_evidence:
+                existing_evidence[control_id] = []
+            existing_evidence[control_id].append({
+                "document": new_document.get("filename", "Unknown"),
+                "evidence": evidence,
+            })
+
+        # Recalculate coverage
+        evidence_analysis = {"evidence_by_control": existing_evidence}
+        coverage = self._calculate_coverage(required_controls, evidence_analysis)
+
+        # Update recommendations
+        recommendations = await self._generate_recommendations(
+            coverage, required_controls
+        )
+
+        # Update results
+        assessment_results["phases"]["evidence_analysis"]["evidence_by_control"] = existing_evidence
+        assessment_results["phases"]["evidence_analysis"]["document_analyses"].append(new_doc_analysis)
+        assessment_results["phases"]["coverage"] = coverage
+        assessment_results["phases"]["recommendations"] = recommendations
+        assessment_results["summary"] = {
+            "profile": profile,
+            "total_controls": len(required_controls),
+            "controls_with_evidence": coverage["controls_with_evidence"],
+            "controls_partial": coverage["controls_partial"],
+            "controls_missing": coverage["controls_missing"],
+            "coverage_percentage": coverage["coverage_percentage"],
+        }
+
+        return assessment_results
