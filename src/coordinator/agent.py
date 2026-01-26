@@ -388,11 +388,13 @@ Return as JSON:
                 low_priority.append({
                     "control_id": ctrl["control_id"],
                     "control_name": ctrl["control_name"],
+                    "action": "Provide evidence documentation",
                 })
 
         return {
-            "high_priority": high_priority[:10],
-            "medium_priority": medium_priority[:10],
+            "high_priority": high_priority,
+            "medium_priority": medium_priority,
+            "low_priority": low_priority,
             "low_priority_count": len(low_priority),
             "missing_by_family": {
                 fam: len(ctrls) for fam, ctrls in missing_by_family.items()

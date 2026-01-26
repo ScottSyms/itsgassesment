@@ -228,7 +228,7 @@ class WordReportGenerator:
                     shading = parse_xml(f'<w:shd {nsdecls("w")} w:fill="CCFFCC"/>')
                     header_cells[i]._tc.get_or_add_tcPr().append(shading)
 
-                for ctrl in low_priority[:50]:  # Limit to 50 items
+                for ctrl in low_priority:
                     row = low_table.add_row().cells
                     row[0].text = f"POAM-{item_id:03d}"
                     row[1].text = ctrl.get("control_id", "")
@@ -238,14 +238,44 @@ class WordReportGenerator:
                     row[5].text = "Open"
                     item_id += 1
 
-                if len(low_priority) > 50:
-                    doc.add_paragraph(f"Note: {len(low_priority) - 50} additional low-risk items not shown.")
+                doc.add_paragraph()
+
+            # PARTIAL COVERAGE Section - controls with some evidence but incomplete
+            partial_items = [c for c in partial_coverage if c.get("control_id") not in high_ids + medium_ids]
+            if partial_items:
+                doc.add_heading("PARTIAL COVERAGE (Additional Evidence Required)", level=2)
+                p = doc.add_paragraph()
+                p.add_run("These controls have some evidence but require additional documentation to be fully compliant.").italic = True
+
+                partial_table = doc.add_table(rows=1, cols=6)
+                partial_table.style = "Table Grid"
+
+                header_cells = partial_table.rows[0].cells
+                headers = ["ID", "Control", "Weakness", "Remediation", "Target Date", "Status"]
+                for i, header in enumerate(headers):
+                    header_cells[i].text = header
+                    header_cells[i].paragraphs[0].runs[0].bold = True
+                    # Light blue background for partial coverage header
+                    from docx.oxml.ns import nsdecls
+                    from docx.oxml import parse_xml
+                    shading = parse_xml(f'<w:shd {nsdecls("w")} w:fill="CCE5FF"/>')
+                    header_cells[i]._tc.get_or_add_tcPr().append(shading)
+
+                for ctrl in partial_items:
+                    row = partial_table.add_row().cells
+                    row[0].text = f"POAM-{item_id:03d}"
+                    row[1].text = ctrl.get("control_id", "")
+                    row[2].text = f"Partial evidence for {ctrl.get('control_name', '')}"
+                    row[3].text = "Provide additional supporting documentation"
+                    row[4].text = self._get_target_date(60)
+                    row[5].text = "Open"
+                    item_id += 1
 
                 doc.add_paragraph()
 
             # Risk Summary Table
             doc.add_heading("Risk Summary", level=2)
-            summary_table = doc.add_table(rows=4, cols=3)
+            summary_table = doc.add_table(rows=5, cols=3)
             summary_table.style = "Table Grid"
 
             summary_table.rows[0].cells[0].text = "Risk Level"
@@ -262,9 +292,13 @@ class WordReportGenerator:
             summary_table.rows[2].cells[1].text = str(len(medium_priority))
             summary_table.rows[2].cells[2].text = "60 days"
 
-            summary_table.rows[3].cells[0].text = "LOW"
-            summary_table.rows[3].cells[1].text = str(len(low_priority))
-            summary_table.rows[3].cells[2].text = "90 days"
+            summary_table.rows[3].cells[0].text = "PARTIAL"
+            summary_table.rows[3].cells[1].text = str(len(partial_items) if partial_coverage else 0)
+            summary_table.rows[3].cells[2].text = "60 days"
+
+            summary_table.rows[4].cells[0].text = "LOW"
+            summary_table.rows[4].cells[1].text = str(len(low_priority))
+            summary_table.rows[4].cells[2].text = "90 days"
 
         else:
             doc.add_paragraph("No weaknesses identified. All controls have sufficient evidence.")
@@ -393,13 +427,19 @@ class WordReportGenerator:
             # Full coverage
             if cov.get("full_coverage"):
                 doc.add_heading("Controls with Full Evidence", level=1)
-                self._add_controls_table(doc, cov["full_coverage"][:30])
+                self._add_controls_table(doc, cov["full_coverage"])
+
+            # Partial coverage
+            if cov.get("partial_coverage"):
+                doc.add_heading("Controls with Partial Evidence", level=1)
+                doc.add_paragraph(f"{len(cov['partial_coverage'])} controls have partial evidence and need additional documentation:")
+                self._add_controls_table(doc, cov["partial_coverage"])
 
             # Missing coverage
             if cov.get("no_coverage"):
                 doc.add_heading("Controls Missing Evidence", level=1)
                 doc.add_paragraph(f"{len(cov['no_coverage'])} controls require evidence documentation:")
-                self._add_controls_table(doc, cov["no_coverage"][:30])
+                self._add_controls_table(doc, cov["no_coverage"])
 
         # Recommendations
         if results.get("phases", {}).get("recommendations"):

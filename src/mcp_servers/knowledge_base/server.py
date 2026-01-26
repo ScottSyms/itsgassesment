@@ -202,4 +202,4 @@ async def get_control_questions(control_id: str) -> List[str]:
 
 
 if __name__ == "__main__":
-    mcp.run()
+    mcp.run(transport="sse", host="0.0.0.0", port=8005)

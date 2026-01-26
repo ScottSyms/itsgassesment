@@ -387,6 +387,11 @@
                                         <i class="fas fa-play mr-1"></i>Run
                                     </button>
                                     <button x-show="assessment.status === 'completed'"
+                                            @click="addDocumentsToAssessment(assessment)"
+                                            class="px-3 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors text-sm">
+                                        <i class="fas fa-file-upload mr-1"></i>Add Docs
+                                    </button>
+                                    <button x-show="assessment.status === 'completed'"
                                             @click="rerunAssessment(assessment.assessment_id)"
                                             class="px-3 py-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors text-sm">
                                         <i class="fas fa-redo mr-1"></i>Rerun
@@ -514,17 +519,50 @@
                                     <div class="mb-6">
                                         <h4 class="font-semibold text-gray-800 mb-2">Current Run</h4>
                                         <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-                                            <div class="flex justify-between items-center">
-                                                <div>
-                                                    <span class="text-sm font-medium text-green-800">Run #<span x-text="assessmentHistory.current_run.run_id"></span></span>
-                                                    <p class="text-xs text-green-600 mt-1">
+                                            <div class="flex justify-between items-start">
+                                                <div class="flex-1">
+                                                    <div class="flex items-center justify-between mb-2">
+                                                        <span class="text-sm font-medium text-green-800">Run #<span x-text="assessmentHistory.current_run.run_id"></span></span>
+                                                        <span class="px-2 py-1 bg-green-200 text-green-800 text-xs font-medium rounded-full">Current</span>
+                                                    </div>
+                                                    <p class="text-xs text-green-600">
                                                         Completed: <span x-text="formatDate(assessmentHistory.current_run.completed_at)"></span>
                                                     </p>
-                                                    <p class="text-xs text-green-600">
+                                                    <p class="text-xs text-green-600 mb-3">
                                                         Documents: <span x-text="assessmentHistory.current_run.document_count"></span>
                                                     </p>
+                                                    <!-- Controls Summary -->
+                                                    <div class="bg-white rounded-lg p-3 border border-green-100">
+                                                        <p class="text-xs font-semibold text-gray-700 mb-2">Controls Summary</p>
+                                                        <div class="grid grid-cols-2 gap-2 text-xs">
+                                                            <div>
+                                                                <span class="text-gray-500">Total Assessed:</span>
+                                                                <span class="font-medium text-gray-800" x-text="assessmentHistory.current_run.total_controls || 0"></span>
+                                                            </div>
+                                                            <div>
+                                                                <span class="text-gray-500">Full Evidence:</span>
+                                                                <span class="font-medium text-green-600" x-text="assessmentHistory.current_run.controls_with_evidence || 0"></span>
+                                                            </div>
+                                                            <div>
+                                                                <span class="text-gray-500">Partial:</span>
+                                                                <span class="font-medium text-yellow-600" x-text="assessmentHistory.current_run.controls_partial || 0"></span>
+                                                            </div>
+                                                            <div>
+                                                                <span class="text-gray-500">Missing:</span>
+                                                                <span class="font-medium text-red-600" x-text="assessmentHistory.current_run.controls_missing || 0"></span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="mt-2 pt-2 border-t border-green-100">
+                                                            <div class="flex items-center justify-between">
+                                                                <span class="text-xs text-gray-500">Coverage:</span>
+                                                                <span class="text-sm font-bold" :class="assessmentHistory.current_run.coverage_percentage >= 80 ? 'text-green-600' : assessmentHistory.current_run.coverage_percentage >= 50 ? 'text-yellow-600' : 'text-red-600'" x-text="(assessmentHistory.current_run.coverage_percentage || 0) + '%'"></span>
+                                                            </div>
+                                                            <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                                                                <div class="h-1.5 rounded-full" :class="assessmentHistory.current_run.coverage_percentage >= 80 ? 'bg-green-500' : assessmentHistory.current_run.coverage_percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500'" :style="'width: ' + (assessmentHistory.current_run.coverage_percentage || 0) + '%'"></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <span class="px-2 py-1 bg-green-200 text-green-800 text-xs font-medium rounded-full">Current</span>
                                             </div>
                                         </div>
                                     </div>
@@ -537,17 +575,50 @@
                                         <div class="space-y-3">
                                             <template x-for="run in assessmentHistory.history" :key="run.run_id">
                                                 <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                                                    <div class="flex justify-between items-center">
-                                                        <div>
-                                                            <span class="text-sm font-medium text-gray-800">Run #<span x-text="run.run_id"></span></span>
-                                                            <p class="text-xs text-gray-600 mt-1">
+                                                    <div class="flex justify-between items-start">
+                                                        <div class="flex-1">
+                                                            <div class="flex items-center justify-between mb-2">
+                                                                <span class="text-sm font-medium text-gray-800">Run #<span x-text="run.run_id"></span></span>
+                                                                <span class="px-2 py-1 bg-gray-200 text-gray-600 text-xs font-medium rounded-full">Archived</span>
+                                                            </div>
+                                                            <p class="text-xs text-gray-600">
                                                                 Completed: <span x-text="formatDate(run.completed_at)"></span>
                                                             </p>
-                                                            <p class="text-xs text-gray-600">
+                                                            <p class="text-xs text-gray-600 mb-3">
                                                                 Documents: <span x-text="run.document_count"></span>
                                                             </p>
+                                                            <!-- Controls Summary -->
+                                                            <div class="bg-white rounded-lg p-3 border border-gray-100">
+                                                                <p class="text-xs font-semibold text-gray-700 mb-2">Controls Summary</p>
+                                                                <div class="grid grid-cols-2 gap-2 text-xs">
+                                                                    <div>
+                                                                        <span class="text-gray-500">Total Assessed:</span>
+                                                                        <span class="font-medium text-gray-800" x-text="run.total_controls || 0"></span>
+                                                                    </div>
+                                                                    <div>
+                                                                        <span class="text-gray-500">Full Evidence:</span>
+                                                                        <span class="font-medium text-green-600" x-text="run.controls_with_evidence || 0"></span>
+                                                                    </div>
+                                                                    <div>
+                                                                        <span class="text-gray-500">Partial:</span>
+                                                                        <span class="font-medium text-yellow-600" x-text="run.controls_partial || 0"></span>
+                                                                    </div>
+                                                                    <div>
+                                                                        <span class="text-gray-500">Missing:</span>
+                                                                        <span class="font-medium text-red-600" x-text="run.controls_missing || 0"></span>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="mt-2 pt-2 border-t border-gray-100">
+                                                                    <div class="flex items-center justify-between">
+                                                                        <span class="text-xs text-gray-500">Coverage:</span>
+                                                                        <span class="text-sm font-bold" :class="run.coverage_percentage >= 80 ? 'text-green-600' : run.coverage_percentage >= 50 ? 'text-yellow-600' : 'text-red-600'" x-text="(run.coverage_percentage || 0) + '%'"></span>
+                                                                    </div>
+                                                                    <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                                                                        <div class="h-1.5 rounded-full" :class="run.coverage_percentage >= 80 ? 'bg-green-500' : run.coverage_percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500'" :style="'width: ' + (run.coverage_percentage || 0) + '%'"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                        <span class="px-2 py-1 bg-gray-200 text-gray-600 text-xs font-medium rounded-full">Archived</span>
                                                     </div>
                                                 </div>
                                             </template>
@@ -560,6 +631,81 @@
                                 </template>
                             </div>
                         </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Documents Modal -->
+        <div x-show="showAddDocsModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" @keydown.escape.window="closeAddDocsModal()">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center">
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="closeAddDocsModal()"></div>
+
+                <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full mx-auto z-10 max-h-[80vh] overflow-hidden flex flex-col">
+                    <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
+                        <h3 class="text-xl font-semibold text-gray-900">
+                            <i class="fas fa-file-upload mr-2 text-indigo-600"></i>Add Documents to Assessment
+                        </h3>
+                        <button @click="closeAddDocsModal()" class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+
+                    <div class="p-6 overflow-y-auto flex-1">
+                        <template x-if="addDocsAssessment">
+                            <div>
+                                <p class="text-sm text-gray-600 mb-4">
+                                    Adding documents to: <strong x-text="addDocsAssessment.project_name"></strong>
+                                </p>
+
+                                <!-- Drop Zone -->
+                                <div class="border-2 border-dashed rounded-xl p-8 text-center transition-colors mb-6"
+                                     :class="dragover ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300 hover:border-indigo-400'"
+                                     @dragover.prevent="dragover = true"
+                                     @dragleave.prevent="dragover = false"
+                                     @drop.prevent="handleAddDocsDrop($event)">
+                                    <i class="fas fa-cloud-upload-alt text-4xl mb-4" :class="dragover ? 'text-indigo-500' : 'text-gray-400'"></i>
+                                    <p class="text-gray-600 mb-2">Drag & drop files here or</p>
+                                    <label class="inline-block px-4 py-2 bg-indigo-600 text-white rounded-lg cursor-pointer hover:bg-indigo-700 transition-colors">
+                                        <i class="fas fa-folder-open mr-2"></i>Browse Files
+                                        <input type="file" multiple accept=".pdf,.docx,.doc,.txt,.png,.jpg,.jpeg"
+                                               class="hidden" @change="handleAddDocsFiles($event)">
+                                    </label>
+                                    <p class="text-xs text-gray-500 mt-3">Supported: PDF, DOCX, TXT, PNG, JPG</p>
+                                </div>
+
+                                <!-- Uploaded Files List -->
+                                <template x-if="addDocsFiles.length > 0">
+                                    <div class="mb-6">
+                                        <h4 class="font-semibold text-gray-800 mb-2">Uploaded Files</h4>
+                                        <div class="space-y-2">
+                                            <template x-for="file in addDocsFiles" :key="file.file_id">
+                                                <div class="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-3">
+                                                    <div class="flex items-center">
+                                                        <i class="fas fa-file text-green-600 mr-3"></i>
+                                                        <span class="text-sm text-gray-700" x-text="file.filename"></span>
+                                                    </div>
+                                                    <i class="fas fa-check-circle text-green-600"></i>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+
+                    <div class="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end space-x-3 flex-shrink-0">
+                        <button @click="closeAddDocsModal()"
+                                class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                            Cancel
+                        </button>
+                        <button @click="finishAddDocsAndRerun()"
+                                :disabled="addDocsFiles.length === 0"
+                                :class="addDocsFiles.length === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'"
+                                class="px-4 py-2 text-white rounded-lg transition-colors">
+                            <i class="fas fa-redo mr-2"></i>Add & Rerun Assessment
+                        </button>
                     </div>
                 </div>
             </div>
@@ -608,7 +754,10 @@
                 assessmentResults: null,
                 showModal: false,
                 showHistoryModal: false,
+                showAddDocsModal: false,
                 assessmentHistory: null,
+                addDocsAssessment: null,
+                addDocsFiles: [],
                 isRunning: false,
                 dragover: false,
                 toast: { show: false, message: '', type: 'info' },
@@ -929,49 +1078,46 @@
                             // Controls with full evidence
                             if (cov.full_coverage && cov.full_coverage.length > 0) {
                                 html += `
-                                    <h2>Controls with Full Evidence</h2>
-                                    <table><tr><th>Control ID</th><th>Control Name</th><th>Family</th><th>Evidence Documents</th></tr>
+                                    <h2>Controls with Full Evidence (${cov.full_coverage.length})</h2>
+                                    <details>
+                                        <summary style="cursor:pointer;color:#059669;font-weight:500;margin-bottom:10px;">Click to expand full list</summary>
+                                        <table><tr><th>Control ID</th><th>Control Name</th><th>Family</th><th>Evidence Documents</th></tr>
                                 `;
-                                for (const ctrl of cov.full_coverage.slice(0, 20)) {
+                                for (const ctrl of cov.full_coverage) {
                                     const docs = (ctrl.evidence || []).map(e => e.document).join(', ');
                                     html += `<tr><td><strong>${ctrl.control_id}</strong></td><td>${ctrl.control_name}</td><td>${ctrl.family}</td><td>${docs}</td></tr>`;
                                 }
-                                if (cov.full_coverage.length > 20) {
-                                    html += `<tr><td colspan="4"><em>... and ${cov.full_coverage.length - 20} more</em></td></tr>`;
-                                }
-                                html += `</table>`;
+                                html += `</table></details>`;
                             }
 
                             // Controls with partial evidence
                             if (cov.partial_coverage && cov.partial_coverage.length > 0) {
                                 html += `
-                                    <h2>Controls with Partial Evidence</h2>
-                                    <p>These controls have some evidence but may need additional documentation:</p>
-                                    <table><tr><th>Control ID</th><th>Control Name</th><th>Family</th></tr>
+                                    <h2>Controls with Partial Evidence (${cov.partial_coverage.length})</h2>
+                                    <p style="color:#d97706">These controls have some evidence but need additional documentation:</p>
+                                    <details open>
+                                        <summary style="cursor:pointer;color:#d97706;font-weight:500;margin-bottom:10px;">Click to expand/collapse</summary>
+                                        <table><tr><th>Control ID</th><th>Control Name</th><th>Family</th></tr>
                                 `;
-                                for (const ctrl of cov.partial_coverage.slice(0, 15)) {
+                                for (const ctrl of cov.partial_coverage) {
                                     html += `<tr><td><strong>${ctrl.control_id}</strong></td><td>${ctrl.control_name}</td><td>${ctrl.family}</td></tr>`;
                                 }
-                                if (cov.partial_coverage.length > 15) {
-                                    html += `<tr><td colspan="3"><em>... and ${cov.partial_coverage.length - 15} more</em></td></tr>`;
-                                }
-                                html += `</table>`;
+                                html += `</table></details>`;
                             }
 
                             // Controls missing evidence
                             if (cov.no_coverage && cov.no_coverage.length > 0) {
                                 html += `
-                                    <h2>Controls Missing Evidence</h2>
+                                    <h2>Controls Missing Evidence (${cov.no_coverage.length})</h2>
                                     <p style="color:#dc2626"><strong>${cov.no_coverage.length} controls</strong> require evidence documentation:</p>
-                                    <table><tr><th>Control ID</th><th>Control Name</th><th>Family</th></tr>
+                                    <details open>
+                                        <summary style="cursor:pointer;color:#dc2626;font-weight:500;margin-bottom:10px;">Click to expand/collapse full list</summary>
+                                        <table><tr><th>Control ID</th><th>Control Name</th><th>Family</th></tr>
                                 `;
-                                for (const ctrl of cov.no_coverage.slice(0, 20)) {
+                                for (const ctrl of cov.no_coverage) {
                                     html += `<tr><td><strong>${ctrl.control_id}</strong></td><td>${ctrl.control_name}</td><td>${ctrl.family}</td></tr>`;
                                 }
-                                if (cov.no_coverage.length > 20) {
-                                    html += `<tr><td colspan="3"><em>... and ${cov.no_coverage.length - 20} more</em></td></tr>`;
-                                }
-                                html += `</table>`;
+                                html += `</table></details>`;
                             }
                         }
 
@@ -1003,7 +1149,19 @@
                                 html += `</table>`;
                             }
 
-                            if (rec.low_priority_count > 0) {
+                            if (rec.low_priority && rec.low_priority.length > 0) {
+                                html += `
+                                    <h3><span style="background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:4px;">Low Priority (${rec.low_priority.length})</span></h3>
+                                    <p>These controls should be addressed as part of continuous improvement:</p>
+                                    <details>
+                                        <summary style="cursor:pointer;color:#065f46;font-weight:500;margin-bottom:10px;">Click to show all ${rec.low_priority.length} low-priority controls</summary>
+                                        <table><tr><th>Control</th><th>Action</th></tr>
+                                `;
+                                for (const item of rec.low_priority) {
+                                    html += `<tr><td><strong>${item.control_id}</strong></td><td>${item.action || 'Provide required documentation'}</td></tr>`;
+                                }
+                                html += `</table></details>`;
+                            } else if (rec.low_priority_count > 0) {
                                 html += `<p><strong>${rec.low_priority_count}</strong> additional low-priority controls need attention.</p>`;
                             }
 
@@ -1141,19 +1299,30 @@ ${sa.rationale || 'No rationale provided.'}
                                     md += '\n';
                                 }
 
+                                if (cov.partial_coverage && cov.partial_coverage.length > 0) {
+                                    md += `## Controls with Partial Evidence (${cov.partial_coverage.length})
+
+These controls have some evidence but need additional documentation:
+
+| Control ID | Control Name | Family |
+|------------|--------------|--------|
+`;
+                                    for (const ctrl of cov.partial_coverage) {
+                                        md += `| ${ctrl.control_id} | ${ctrl.control_name} | ${ctrl.family} |\n`;
+                                    }
+                                    md += '\n';
+                                }
+
                                 if (cov.no_coverage && cov.no_coverage.length > 0) {
-                                    md += `## Controls Missing Evidence
+                                    md += `## Controls Missing Evidence (${cov.no_coverage.length})
 
 **${cov.no_coverage.length} controls** require evidence documentation:
 
 | Control ID | Control Name | Family |
 |------------|--------------|--------|
 `;
-                                    for (const ctrl of cov.no_coverage.slice(0, 30)) {
+                                    for (const ctrl of cov.no_coverage) {
                                         md += `| ${ctrl.control_id} | ${ctrl.control_name} | ${ctrl.family} |\n`;
-                                    }
-                                    if (cov.no_coverage.length > 30) {
-                                        md += `\n*... and ${cov.no_coverage.length - 30} more*\n`;
                                     }
                                     md += '\n';
                                 }
@@ -1166,13 +1335,37 @@ ${sa.rationale || 'No rationale provided.'}
 
 `;
                                 if (rec.high_priority && rec.high_priority.length > 0) {
-                                    md += `### High Priority
+                                    md += `### High Priority (${rec.high_priority.length})
 
 | Control | Action | Suggested Evidence |
 |---------|--------|-------------------|
 `;
                                     for (const item of rec.high_priority) {
                                         md += `| ${item.control_id} | ${item.action || ''} | ${item.suggested_evidence || ''} |\n`;
+                                    }
+                                    md += '\n';
+                                }
+
+                                if (rec.medium_priority && rec.medium_priority.length > 0) {
+                                    md += `### Medium Priority (${rec.medium_priority.length})
+
+| Control | Action |
+|---------|--------|
+`;
+                                    for (const item of rec.medium_priority) {
+                                        md += `| ${item.control_id} | ${item.action || ''} |\n`;
+                                    }
+                                    md += '\n';
+                                }
+
+                                if (rec.low_priority && rec.low_priority.length > 0) {
+                                    md += `### Low Priority (${rec.low_priority.length})
+
+| Control | Action |
+|---------|--------|
+`;
+                                    for (const item of rec.low_priority) {
+                                        md += `| ${item.control_id} | ${item.action || ''} |\n`;
                                     }
                                     md += '\n';
                                 }
@@ -1286,6 +1479,58 @@ This assessment has been created but not yet executed. Upload documents and run 
                     } catch (error) {
                         this.showToast('Failed to load history', 'error');
                     }
+                },
+
+                addDocumentsToAssessment(assessment) {
+                    this.addDocsAssessment = assessment;
+                    this.addDocsFiles = [];
+                    this.showAddDocsModal = true;
+                },
+
+                async handleAddDocsFiles(event) {
+                    await this.uploadAddDocs(event.target.files);
+                },
+
+                async handleAddDocsDrop(event) {
+                    this.dragover = false;
+                    await this.uploadAddDocs(event.dataTransfer.files);
+                },
+
+                async uploadAddDocs(files) {
+                    if (!this.addDocsAssessment) return;
+
+                    const formData = new FormData();
+                    for (const file of files) {
+                        formData.append('files', file);
+                    }
+
+                    try {
+                        const response = await fetch(`/api/v1/assessment/${this.addDocsAssessment.assessment_id}/upload`, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const data = await response.json();
+                        this.addDocsFiles = [...this.addDocsFiles, ...data.uploaded_files];
+                        this.showToast(`${data.successful} file(s) uploaded`, 'success');
+                    } catch (error) {
+                        this.showToast('Failed to upload files', 'error');
+                    }
+                },
+
+                async finishAddDocsAndRerun() {
+                    if (!this.addDocsAssessment) return;
+
+                    this.showAddDocsModal = false;
+                    await this.rerunAssessment(this.addDocsAssessment.assessment_id);
+                    this.addDocsAssessment = null;
+                    this.addDocsFiles = [];
+                },
+
+                closeAddDocsModal() {
+                    this.showAddDocsModal = false;
+                    this.addDocsAssessment = null;
+                    this.addDocsFiles = [];
+                    this.loadAssessments();
                 },
 
                 getStatusClass(status) {

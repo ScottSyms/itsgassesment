@@ -447,18 +447,40 @@ async def get_assessment_history(assessment_id: str):
     history = assessment_data.get("run_history", [])
     current_run = None
 
+    # Helper to extract summary from results
+    def extract_summary(results):
+        if not results:
+            return {}
+        summary = results.get("summary", {})
+        return {
+            "total_controls": summary.get("total_controls", 0),
+            "controls_with_evidence": summary.get("controls_with_evidence", 0),
+            "controls_partial": summary.get("controls_partial", 0),
+            "controls_missing": summary.get("controls_missing", 0),
+            "coverage_percentage": summary.get("coverage_percentage", 0),
+        }
+
     if assessment_data.get("results"):
+        results = assessment_data.get("results", {})
         current_run = {
             "run_id": len(history) + 1,
             "completed_at": assessment_data.get("updated_at"),
             "is_current": True,
             "document_count": len(assessment_data.get("documents", [])),
+            **extract_summary(results),
         }
+
+    # Add summary to historical runs
+    enriched_history = []
+    for run in history:
+        enriched_run = {**run}
+        enriched_run.update(extract_summary(run.get("results", {})))
+        enriched_history.append(enriched_run)
 
     return {
         "assessment_id": assessment_id,
         "current_run": current_run,
-        "history": history,
+        "history": enriched_history,
         "total_runs": len(history) + (1 if current_run else 0),
     }
 
