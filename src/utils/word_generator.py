@@ -131,61 +131,140 @@ class WordReportGenerator:
 
         doc.add_paragraph()
 
-        # POA&M Table
-        doc.add_heading("Detailed POA&M Items", level=1)
+        # POA&M Items grouped by Risk
+        doc.add_heading("POA&M Items by Risk Level", level=1)
 
         if no_coverage or partial_coverage:
-            # Create POA&M table
-            poam_table = doc.add_table(rows=1, cols=7)
-            poam_table.style = "Table Grid"
-
-            # Header row
-            header_cells = poam_table.rows[0].cells
-            headers = ["ID", "Control", "Weakness", "Remediation", "Resources", "Target Date", "Status"]
-            for i, header in enumerate(headers):
-                header_cells[i].text = header
-                header_cells[i].paragraphs[0].runs[0].bold = True
-
-            # Add high priority items
             item_id = 1
-            for item in recommendations.get("high_priority", []):
-                row = poam_table.add_row().cells
-                row[0].text = f"POAM-{item_id:03d}"
-                row[1].text = item.get("control_id", "")
-                row[2].text = f"Missing evidence for {item.get('control_name', item.get('control_id', ''))}"
-                row[3].text = item.get("action", "Provide required documentation")
-                row[4].text = "TBD"
-                row[5].text = self._get_target_date(30)  # 30 days for high priority
-                row[6].text = "Open"
-                item_id += 1
 
-            # Add medium priority items
-            for item in recommendations.get("medium_priority", []):
-                row = poam_table.add_row().cells
-                row[0].text = f"POAM-{item_id:03d}"
-                row[1].text = item.get("control_id", "")
-                row[2].text = f"Missing evidence for {item.get('control_name', item.get('control_id', ''))}"
-                row[3].text = item.get("action", "Provide required documentation")
-                row[4].text = "TBD"
-                row[5].text = self._get_target_date(60)  # 60 days for medium priority
-                row[6].text = "Open"
-                item_id += 1
+            # HIGH RISK Section
+            high_priority = recommendations.get("high_priority", [])
+            if high_priority:
+                doc.add_heading("HIGH RISK", level=2)
+                p = doc.add_paragraph()
+                p.add_run("These items pose significant security risk and should be addressed within 30 days.").italic = True
 
-            # Add remaining items from no_coverage (up to 50)
-            remaining = [c for c in no_coverage if c.get("control_id") not in
-                        [r.get("control_id") for r in recommendations.get("high_priority", [])] +
-                        [r.get("control_id") for r in recommendations.get("medium_priority", [])]]
+                high_table = doc.add_table(rows=1, cols=6)
+                high_table.style = "Table Grid"
 
-            for ctrl in remaining[:50]:
-                row = poam_table.add_row().cells
-                row[0].text = f"POAM-{item_id:03d}"
-                row[1].text = ctrl.get("control_id", "")
-                row[2].text = f"No evidence provided for {ctrl.get('control_name', '')}"
-                row[3].text = "Provide policy, procedure, or configuration documentation"
-                row[4].text = "TBD"
-                row[5].text = self._get_target_date(90)  # 90 days for low priority
-                row[6].text = "Open"
-                item_id += 1
+                header_cells = high_table.rows[0].cells
+                headers = ["ID", "Control", "Weakness", "Remediation", "Target Date", "Status"]
+                for i, header in enumerate(headers):
+                    header_cells[i].text = header
+                    header_cells[i].paragraphs[0].runs[0].bold = True
+                    # Red background for high risk header
+                    from docx.oxml.ns import nsdecls
+                    from docx.oxml import parse_xml
+                    shading = parse_xml(f'<w:shd {nsdecls("w")} w:fill="FFCCCC"/>')
+                    header_cells[i]._tc.get_or_add_tcPr().append(shading)
+
+                for item in high_priority:
+                    row = high_table.add_row().cells
+                    row[0].text = f"POAM-{item_id:03d}"
+                    row[1].text = item.get("control_id", "")
+                    row[2].text = f"Missing evidence for {item.get('control_name', item.get('control_id', ''))}"
+                    row[3].text = item.get("action", "Provide required documentation")
+                    row[4].text = self._get_target_date(30)
+                    row[5].text = "Open"
+                    item_id += 1
+
+                doc.add_paragraph()
+
+            # MEDIUM RISK Section
+            medium_priority = recommendations.get("medium_priority", [])
+            if medium_priority:
+                doc.add_heading("MEDIUM RISK", level=2)
+                p = doc.add_paragraph()
+                p.add_run("These items should be addressed within 60 days to maintain security posture.").italic = True
+
+                medium_table = doc.add_table(rows=1, cols=6)
+                medium_table.style = "Table Grid"
+
+                header_cells = medium_table.rows[0].cells
+                headers = ["ID", "Control", "Weakness", "Remediation", "Target Date", "Status"]
+                for i, header in enumerate(headers):
+                    header_cells[i].text = header
+                    header_cells[i].paragraphs[0].runs[0].bold = True
+                    # Orange/Yellow background for medium risk header
+                    from docx.oxml.ns import nsdecls
+                    from docx.oxml import parse_xml
+                    shading = parse_xml(f'<w:shd {nsdecls("w")} w:fill="FFE5CC"/>')
+                    header_cells[i]._tc.get_or_add_tcPr().append(shading)
+
+                for item in medium_priority:
+                    row = medium_table.add_row().cells
+                    row[0].text = f"POAM-{item_id:03d}"
+                    row[1].text = item.get("control_id", "")
+                    row[2].text = f"Missing evidence for {item.get('control_name', item.get('control_id', ''))}"
+                    row[3].text = item.get("action", "Provide required documentation")
+                    row[4].text = self._get_target_date(60)
+                    row[5].text = "Open"
+                    item_id += 1
+
+                doc.add_paragraph()
+
+            # LOW RISK Section
+            # Get remaining items not in high or medium
+            high_ids = [r.get("control_id") for r in high_priority]
+            medium_ids = [r.get("control_id") for r in medium_priority]
+            low_priority = [c for c in no_coverage if c.get("control_id") not in high_ids + medium_ids]
+
+            if low_priority:
+                doc.add_heading("LOW RISK", level=2)
+                p = doc.add_paragraph()
+                p.add_run("These items should be addressed within 90 days as part of continuous improvement.").italic = True
+
+                low_table = doc.add_table(rows=1, cols=6)
+                low_table.style = "Table Grid"
+
+                header_cells = low_table.rows[0].cells
+                headers = ["ID", "Control", "Weakness", "Remediation", "Target Date", "Status"]
+                for i, header in enumerate(headers):
+                    header_cells[i].text = header
+                    header_cells[i].paragraphs[0].runs[0].bold = True
+                    # Green background for low risk header
+                    from docx.oxml.ns import nsdecls
+                    from docx.oxml import parse_xml
+                    shading = parse_xml(f'<w:shd {nsdecls("w")} w:fill="CCFFCC"/>')
+                    header_cells[i]._tc.get_or_add_tcPr().append(shading)
+
+                for ctrl in low_priority[:50]:  # Limit to 50 items
+                    row = low_table.add_row().cells
+                    row[0].text = f"POAM-{item_id:03d}"
+                    row[1].text = ctrl.get("control_id", "")
+                    row[2].text = f"No evidence provided for {ctrl.get('control_name', '')}"
+                    row[3].text = "Provide policy, procedure, or configuration documentation"
+                    row[4].text = self._get_target_date(90)
+                    row[5].text = "Open"
+                    item_id += 1
+
+                if len(low_priority) > 50:
+                    doc.add_paragraph(f"Note: {len(low_priority) - 50} additional low-risk items not shown.")
+
+                doc.add_paragraph()
+
+            # Risk Summary Table
+            doc.add_heading("Risk Summary", level=2)
+            summary_table = doc.add_table(rows=4, cols=3)
+            summary_table.style = "Table Grid"
+
+            summary_table.rows[0].cells[0].text = "Risk Level"
+            summary_table.rows[0].cells[1].text = "Count"
+            summary_table.rows[0].cells[2].text = "Target Resolution"
+            for cell in summary_table.rows[0].cells:
+                cell.paragraphs[0].runs[0].bold = True
+
+            summary_table.rows[1].cells[0].text = "HIGH"
+            summary_table.rows[1].cells[1].text = str(len(high_priority))
+            summary_table.rows[1].cells[2].text = "30 days"
+
+            summary_table.rows[2].cells[0].text = "MEDIUM"
+            summary_table.rows[2].cells[1].text = str(len(medium_priority))
+            summary_table.rows[2].cells[2].text = "60 days"
+
+            summary_table.rows[3].cells[0].text = "LOW"
+            summary_table.rows[3].cells[1].text = str(len(low_priority))
+            summary_table.rows[3].cells[2].text = "90 days"
 
         else:
             doc.add_paragraph("No weaknesses identified. All controls have sufficient evidence.")
