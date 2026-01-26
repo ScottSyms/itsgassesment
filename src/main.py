@@ -7,13 +7,14 @@ from typing import List, Dict, Any, Optional
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
+from fastapi.responses import JSONResponse, HTMLResponse, FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from src.coordinator.agent import ITSG33Coordinator
 from src.utils.document_parser import DocumentParser
 from src.utils.storage import StorageManager
+from src.utils.word_generator import WordReportGenerator
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -45,6 +46,7 @@ app.add_middleware(
 coordinator = ITSG33Coordinator()
 doc_parser = DocumentParser()
 storage = StorageManager()
+word_generator = WordReportGenerator()
 
 
 # Request/Response Models
@@ -404,6 +406,131 @@ async def get_profiles():
             },
         ]
     }
+
+
+@app.post("/api/v1/assessment/{assessment_id}/rerun")
+async def rerun_assessment(
+    assessment_id: str,
+    background_tasks: BackgroundTasks,
+):
+    """Rerun a completed assessment with any new documents."""
+    assessment_data = await storage.get_assessment(assessment_id)
+    if not assessment_data:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+
+    # Check if documents exist
+    documents = await storage.get_documents(assessment_id)
+    if not documents:
+        raise HTTPException(
+            status_code=400,
+            detail="No documents uploaded. Please upload documents first.",
+        )
+
+    # Start assessment in background (will preserve history)
+    background_tasks.add_task(run_assessment_task, assessment_id)
+
+    return {
+        "assessment_id": assessment_id,
+        "status": "running",
+        "message": "Assessment rerun started. Previous results will be preserved in history.",
+        "previous_runs": len(assessment_data.get("run_history", [])) + (1 if assessment_data.get("results") else 0),
+    }
+
+
+@app.get("/api/v1/assessment/{assessment_id}/history")
+async def get_assessment_history(assessment_id: str):
+    """Get assessment run history."""
+    assessment_data = await storage.get_assessment(assessment_id)
+    if not assessment_data:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+
+    history = assessment_data.get("run_history", [])
+    current_run = None
+
+    if assessment_data.get("results"):
+        current_run = {
+            "run_id": len(history) + 1,
+            "completed_at": assessment_data.get("updated_at"),
+            "is_current": True,
+            "document_count": len(assessment_data.get("documents", [])),
+        }
+
+    return {
+        "assessment_id": assessment_id,
+        "current_run": current_run,
+        "history": history,
+        "total_runs": len(history) + (1 if current_run else 0),
+    }
+
+
+@app.get("/api/v1/assessment/{assessment_id}/history/{run_id}")
+async def get_historical_run(assessment_id: str, run_id: int):
+    """Get a specific historical run's results."""
+    run = await storage.get_historical_run(assessment_id, run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="Historical run not found")
+
+    return run
+
+
+@app.get("/api/v1/assessment/{assessment_id}/download/word")
+async def download_word_report(assessment_id: str):
+    """Download assessment report as Word document."""
+    assessment_data = await storage.get_assessment(assessment_id)
+    if not assessment_data:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+
+    if not assessment_data.get("results"):
+        raise HTTPException(
+            status_code=400,
+            detail="Assessment not completed. Run the assessment first.",
+        )
+
+    # Generate Word document
+    doc_buffer = word_generator.generate_assessment_report(
+        assessment=assessment_data,
+        results=assessment_data["results"],
+        project_name=assessment_data.get("project_name", "Unknown"),
+        client_id=assessment_data.get("client_id", "Unknown"),
+    )
+
+    filename = f"ITSG33_Assessment_{assessment_data.get('project_name', 'Report').replace(' ', '_')}_{assessment_data['assessment_id'][:8]}.docx"
+
+    return StreamingResponse(
+        doc_buffer,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
+
+
+@app.get("/api/v1/assessment/{assessment_id}/download/poam")
+async def download_poam(assessment_id: str):
+    """Download Plan of Action and Milestones (POA&M) as Word document."""
+    assessment_data = await storage.get_assessment(assessment_id)
+    if not assessment_data:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+
+    if not assessment_data.get("results"):
+        raise HTTPException(
+            status_code=400,
+            detail="Assessment not completed. Run the assessment first.",
+        )
+
+    # Generate POAM document
+    doc_buffer = word_generator.generate_poam(
+        assessment=assessment_data,
+        results=assessment_data["results"],
+        project_name=assessment_data.get("project_name", "Unknown"),
+        client_id=assessment_data.get("client_id", "Unknown"),
+    )
+
+    filename = f"POAM_{assessment_data.get('project_name', 'Report').replace(' ', '_')}_{assessment_data['assessment_id'][:8]}.docx"
+
+    return StreamingResponse(
+        doc_buffer,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
 
 
 if __name__ == "__main__":

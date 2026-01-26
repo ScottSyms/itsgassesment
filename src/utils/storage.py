@@ -50,7 +50,8 @@ class StorageManager:
             "updated_at": datetime.utcnow().isoformat(),
             "documents": [],
             "diagrams": [],
-            "results": None
+            "results": None,
+            "run_history": [],  # Track all assessment runs
         }
 
         self._assessments[assessment_id] = assessment
@@ -137,13 +138,28 @@ class StorageManager:
     async def store_results(
         self,
         assessment_id: str,
-        results: Dict[str, Any]
+        results: Dict[str, Any],
+        preserve_history: bool = True
     ) -> None:
-        """Store assessment results."""
+        """Store assessment results, optionally preserving history."""
         if assessment_id in self._assessments:
+            now = datetime.utcnow().isoformat()
+
+            # Preserve previous run in history if there was one
+            if preserve_history and self._assessments[assessment_id].get("results"):
+                previous_run = {
+                    "run_id": len(self._assessments[assessment_id].get("run_history", [])) + 1,
+                    "completed_at": self._assessments[assessment_id].get("updated_at"),
+                    "results": self._assessments[assessment_id]["results"],
+                    "document_count": len(self._assessments[assessment_id].get("documents", [])),
+                }
+                if "run_history" not in self._assessments[assessment_id]:
+                    self._assessments[assessment_id]["run_history"] = []
+                self._assessments[assessment_id]["run_history"].append(previous_run)
+
             self._assessments[assessment_id]["results"] = results
             self._assessments[assessment_id]["status"] = "completed"
-            self._assessments[assessment_id]["updated_at"] = datetime.utcnow().isoformat()
+            self._assessments[assessment_id]["updated_at"] = now
 
             await self._save_assessment_metadata(
                 assessment_id,
@@ -154,6 +170,26 @@ class StorageManager:
             results_path = self.output_dir / f"{assessment_id}_results.json"
             async with aiofiles.open(results_path, "w") as f:
                 await f.write(json.dumps(results, indent=2))
+
+            # Also save timestamped version for history
+            history_path = self.output_dir / f"{assessment_id}_results_{now.replace(':', '-')}.json"
+            async with aiofiles.open(history_path, "w") as f:
+                await f.write(json.dumps(results, indent=2))
+
+    async def get_run_history(self, assessment_id: str) -> List[Dict[str, Any]]:
+        """Get assessment run history."""
+        assessment = await self.get_assessment(assessment_id)
+        if assessment:
+            return assessment.get("run_history", [])
+        return []
+
+    async def get_historical_run(self, assessment_id: str, run_id: int) -> Optional[Dict[str, Any]]:
+        """Get a specific historical run."""
+        history = await self.get_run_history(assessment_id)
+        for run in history:
+            if run.get("run_id") == run_id:
+                return run
+        return None
 
     async def get_status(self, assessment_id: str) -> Optional[Dict[str, Any]]:
         """Get assessment status."""
