@@ -4,6 +4,7 @@ import os
 import uuid
 from pathlib import Path
 from typing import List, Dict, Any, Optional
+from datetime import datetime
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
@@ -553,6 +554,297 @@ async def download_poam(assessment_id: str):
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         headers={"Content-Disposition": f"attachment; filename={filename}"},
     )
+
+
+class MarkNotApplicableRequest(BaseModel):
+    """Request model for marking a control as not applicable."""
+    reason: str
+
+
+class RejectEvidenceRequest(BaseModel):
+    """Request model for rejecting evidence as insufficient."""
+    reason: str
+
+
+@app.post("/api/v1/assessment/{assessment_id}/control/{control_id}/not-applicable")
+async def mark_control_not_applicable(
+    assessment_id: str,
+    control_id: str,
+    request: MarkNotApplicableRequest,
+):
+    """Mark a control as not applicable to this solution (manual override)."""
+    if not request.reason or not request.reason.strip():
+        raise HTTPException(status_code=400, detail="Reason is required")
+
+    assessment_data = await storage.get_assessment(assessment_id)
+    if not assessment_data:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+
+    if not assessment_data.get("results"):
+        raise HTTPException(status_code=400, detail="Assessment not completed. Run the assessment first.")
+
+    results = assessment_data["results"]
+    coverage = results.get("phases", {}).get("coverage", {})
+
+    # Initialize not_applicable list if it doesn't exist
+    if "not_applicable" not in coverage:
+        coverage["not_applicable"] = []
+
+    # Find the control in full_coverage, partial_coverage, no_coverage, or rejected_evidence
+    control_found = None
+    source_list = None
+
+    for list_name in ["full_coverage", "partial_coverage", "no_coverage", "rejected_evidence"]:
+        for ctrl in coverage.get(list_name, []):
+            if ctrl.get("control_id") == control_id:
+                control_found = ctrl.copy()
+                source_list = list_name
+                break
+        if control_found:
+            break
+
+    if not control_found:
+        raise HTTPException(status_code=404, detail=f"Control {control_id} not found")
+
+    # Remove from source list
+    coverage[source_list] = [c for c in coverage[source_list] if c.get("control_id") != control_id]
+
+    # Clean up any previous rejection info
+    control_found.pop("rejection_reason", None)
+    control_found.pop("rejected_from", None)
+    control_found.pop("rejected_at", None)
+
+    # Add to not_applicable with reason - mark as manual override
+    control_found["not_applicable_reason"] = request.reason.strip()
+    control_found["marked_not_applicable_at"] = datetime.utcnow().isoformat()
+    control_found["original_status"] = source_list
+    control_found["auto_determined"] = False  # Manual override
+    coverage["not_applicable"].append(control_found)
+
+    # Recalculate coverage statistics (not_applicable excluded from total)
+    total_controls = results.get("summary", {}).get("total_controls", 0)
+    not_applicable_count = len(coverage.get("not_applicable", []))
+    full_count = len(coverage.get("full_coverage", []))
+    partial_count = len(coverage.get("partial_coverage", []))
+    rejected_evidence_count = len(coverage.get("rejected_evidence", []))
+    no_coverage_count = len(coverage.get("no_coverage", []))
+
+    # Coverage percentage: not_applicable excluded from denominator
+    effective_total = total_controls - not_applicable_count
+    if effective_total > 0:
+        coverage_pct = (full_count + partial_count * 0.5) / effective_total * 100
+    else:
+        coverage_pct = 0
+
+    coverage["controls_with_evidence"] = full_count
+    coverage["controls_partial"] = partial_count
+    coverage["controls_missing"] = no_coverage_count
+    coverage["controls_rejected_evidence"] = rejected_evidence_count
+    coverage["controls_not_applicable"] = not_applicable_count
+    coverage["coverage_percentage"] = round(coverage_pct, 1)
+
+    # Update summary
+    results["summary"]["controls_with_evidence"] = full_count
+    results["summary"]["controls_partial"] = partial_count
+    results["summary"]["controls_missing"] = no_coverage_count
+    results["summary"]["controls_rejected_evidence"] = rejected_evidence_count
+    results["summary"]["controls_not_applicable"] = not_applicable_count
+    results["summary"]["coverage_percentage"] = round(coverage_pct, 1)
+
+    await storage.store_results(assessment_id, results, preserve_history=False)
+
+    return {
+        "status": "marked_not_applicable",
+        "control_id": control_id,
+        "message": f"Control {control_id} marked as not applicable",
+        "new_coverage_percentage": round(coverage_pct, 1),
+    }
+
+
+@app.post("/api/v1/assessment/{assessment_id}/control/{control_id}/reject-evidence")
+async def reject_control_evidence(
+    assessment_id: str,
+    control_id: str,
+    request: RejectEvidenceRequest,
+):
+    """Reject evidence for a control as insufficient (control remains applicable)."""
+    if not request.reason or not request.reason.strip():
+        raise HTTPException(status_code=400, detail="Reason is required")
+
+    assessment_data = await storage.get_assessment(assessment_id)
+    if not assessment_data:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+
+    if not assessment_data.get("results"):
+        raise HTTPException(status_code=400, detail="Assessment not completed. Run the assessment first.")
+
+    results = assessment_data["results"]
+    coverage = results.get("phases", {}).get("coverage", {})
+
+    # Initialize rejected_evidence list if it doesn't exist
+    if "rejected_evidence" not in coverage:
+        coverage["rejected_evidence"] = []
+
+    # Find the control in full_coverage or partial_coverage only (must have evidence to reject)
+    control_found = None
+    source_list = None
+
+    for list_name in ["full_coverage", "partial_coverage"]:
+        for ctrl in coverage.get(list_name, []):
+            if ctrl.get("control_id") == control_id:
+                control_found = ctrl.copy()
+                source_list = list_name
+                break
+        if control_found:
+            break
+
+    if not control_found:
+        raise HTTPException(status_code=404, detail=f"Control {control_id} not found in controls with evidence")
+
+    # Remove from source list
+    coverage[source_list] = [c for c in coverage[source_list] if c.get("control_id") != control_id]
+
+    # Add to rejected_evidence with rejection info
+    control_found["rejection_reason"] = request.reason.strip()
+    control_found["rejected_from"] = source_list
+    control_found["rejected_at"] = datetime.utcnow().isoformat()
+    coverage["rejected_evidence"].append(control_found)
+
+    # Recalculate coverage statistics
+    total_controls = results.get("summary", {}).get("total_controls", 0)
+    not_applicable_count = len(coverage.get("not_applicable", []))
+    full_count = len(coverage.get("full_coverage", []))
+    partial_count = len(coverage.get("partial_coverage", []))
+    rejected_evidence_count = len(coverage.get("rejected_evidence", []))
+    no_coverage_count = len(coverage.get("no_coverage", []))
+
+    # Coverage: not_applicable excluded, rejected_evidence counts as needing evidence
+    effective_total = total_controls - not_applicable_count
+    if effective_total > 0:
+        coverage_pct = (full_count + partial_count * 0.5) / effective_total * 100
+    else:
+        coverage_pct = 0
+
+    coverage["controls_with_evidence"] = full_count
+    coverage["controls_partial"] = partial_count
+    coverage["controls_missing"] = no_coverage_count
+    coverage["controls_rejected_evidence"] = rejected_evidence_count
+    coverage["controls_not_applicable"] = not_applicable_count
+    coverage["coverage_percentage"] = round(coverage_pct, 1)
+
+    # Update summary
+    results["summary"]["controls_with_evidence"] = full_count
+    results["summary"]["controls_partial"] = partial_count
+    results["summary"]["controls_missing"] = no_coverage_count
+    results["summary"]["controls_rejected_evidence"] = rejected_evidence_count
+    results["summary"]["controls_not_applicable"] = not_applicable_count
+    results["summary"]["coverage_percentage"] = round(coverage_pct, 1)
+
+    await storage.store_results(assessment_id, results, preserve_history=False)
+
+    return {
+        "status": "evidence_rejected",
+        "control_id": control_id,
+        "message": f"Evidence for control {control_id} rejected - needs better documentation",
+        "new_coverage_percentage": round(coverage_pct, 1),
+    }
+
+
+@app.post("/api/v1/assessment/{assessment_id}/control/{control_id}/restore")
+async def restore_control(assessment_id: str, control_id: str):
+    """Restore a control from not_applicable or rejected_evidence back to its original status."""
+    assessment_data = await storage.get_assessment(assessment_id)
+    if not assessment_data:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+
+    if not assessment_data.get("results"):
+        raise HTTPException(status_code=400, detail="Assessment not completed.")
+
+    results = assessment_data["results"]
+    coverage = results.get("phases", {}).get("coverage", {})
+
+    # Find the control in not_applicable or rejected_evidence
+    control_found = None
+    source_list = None
+
+    for list_name in ["not_applicable", "rejected_evidence"]:
+        for ctrl in coverage.get(list_name, []):
+            if ctrl.get("control_id") == control_id:
+                control_found = ctrl.copy()
+                source_list = list_name
+                break
+        if control_found:
+            break
+
+    if not control_found:
+        raise HTTPException(status_code=404, detail=f"Control {control_id} not found in not applicable or rejected evidence")
+
+    # Remove from source list
+    coverage[source_list] = [c for c in coverage[source_list] if c.get("control_id") != control_id]
+
+    # Determine where to restore to
+    if source_list == "not_applicable":
+        # If it was auto-determined not applicable, restore to no_coverage
+        # If it was manually marked, restore to original_status
+        was_auto = control_found.get("auto_determined", False)
+        if was_auto:
+            original_list = "no_coverage"
+        else:
+            original_list = control_found.get("original_status", "no_coverage")
+    else:
+        original_list = control_found.get("rejected_from", "partial_coverage")
+
+    # Clean up metadata
+    control_found.pop("rejection_reason", None)
+    control_found.pop("rejected_from", None)
+    control_found.pop("rejected_at", None)
+    control_found.pop("not_applicable_reason", None)
+    control_found.pop("marked_not_applicable_at", None)
+    control_found.pop("original_status", None)
+    control_found.pop("auto_determined", None)
+
+    if original_list not in coverage:
+        coverage[original_list] = []
+    coverage[original_list].append(control_found)
+
+    # Recalculate coverage statistics
+    total_controls = results.get("summary", {}).get("total_controls", 0)
+    not_applicable_count = len(coverage.get("not_applicable", []))
+    full_count = len(coverage.get("full_coverage", []))
+    partial_count = len(coverage.get("partial_coverage", []))
+    rejected_evidence_count = len(coverage.get("rejected_evidence", []))
+    no_coverage_count = len(coverage.get("no_coverage", []))
+
+    effective_total = total_controls - not_applicable_count
+    if effective_total > 0:
+        coverage_pct = (full_count + partial_count * 0.5) / effective_total * 100
+    else:
+        coverage_pct = 0
+
+    coverage["controls_with_evidence"] = full_count
+    coverage["controls_partial"] = partial_count
+    coverage["controls_missing"] = no_coverage_count
+    coverage["controls_rejected_evidence"] = rejected_evidence_count
+    coverage["controls_not_applicable"] = not_applicable_count
+    coverage["coverage_percentage"] = round(coverage_pct, 1)
+
+    # Update summary
+    results["summary"]["controls_with_evidence"] = full_count
+    results["summary"]["controls_partial"] = partial_count
+    results["summary"]["controls_missing"] = no_coverage_count
+    results["summary"]["controls_rejected_evidence"] = rejected_evidence_count
+    results["summary"]["controls_not_applicable"] = not_applicable_count
+    results["summary"]["coverage_percentage"] = round(coverage_pct, 1)
+
+    await storage.store_results(assessment_id, results, preserve_history=False)
+
+    return {
+        "status": "restored",
+        "control_id": control_id,
+        "message": f"Control {control_id} restored to {original_list}",
+        "restored_to": original_list,
+        "new_coverage_percentage": round(coverage_pct, 1),
+    }
 
 
 if __name__ == "__main__":

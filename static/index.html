@@ -39,6 +39,7 @@
         .markdown-content .severity-high { background-color: #fef3c7; color: #92400e; padding: 0.125rem 0.5rem; border-radius: 0.25rem; }
         .markdown-content .severity-medium { background-color: #fef9c3; color: #854d0e; padding: 0.125rem 0.5rem; border-radius: 0.25rem; }
         .markdown-content .severity-low { background-color: #dcfce7; color: #166534; padding: 0.125rem 0.5rem; border-radius: 0.25rem; }
+        .markdown-content blockquote { margin: 0.5rem 0; padding: 0.75rem; background: #f9fafb; border-left: 3px solid #9ca3af; font-style: italic; font-size: 0.9rem; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -711,6 +712,85 @@
             </div>
         </div>
 
+        <!-- Reject/Not Applicable Modal -->
+        <div x-show="showRejectModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" @keydown.escape.window="closeRejectModal()">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center">
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="closeRejectModal()"></div>
+
+                <div class="relative bg-white rounded-xl shadow-xl max-w-lg w-full mx-auto z-10">
+                    <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-xl">
+                        <h3 class="text-xl font-semibold text-gray-900">
+                            <template x-if="rejectAction === 'not_applicable'">
+                                <span><i class="fas fa-ban mr-2 text-blue-600"></i>Mark Not Applicable</span>
+                            </template>
+                            <template x-if="rejectAction === 'reject_evidence'">
+                                <span><i class="fas fa-times-circle mr-2 text-orange-600"></i>Reject Evidence</span>
+                            </template>
+                        </h3>
+                        <button @click="closeRejectModal()" class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+
+                    <div class="p-6">
+                        <template x-if="rejectingControl">
+                            <div>
+                                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+                                    <p class="text-sm text-gray-600 mb-2">
+                                        <strong>Control ID:</strong> <span class="font-mono text-gray-900" x-text="rejectingControl.control_id"></span>
+                                    </p>
+                                    <p class="text-sm text-gray-600">
+                                        <strong>Control Name:</strong> <span x-text="rejectingControl.control_name"></span>
+                                    </p>
+                                </div>
+
+                                <!-- Context message based on action -->
+                                <div class="mb-4 p-4 rounded-lg"
+                                     :class="rejectAction === 'not_applicable' ? 'bg-blue-50 border border-blue-200' : 'bg-orange-50 border border-orange-200'">
+                                    <template x-if="rejectAction === 'not_applicable'">
+                                        <p class="text-sm text-blue-800">
+                                            <i class="fas fa-info-circle mr-1"></i>
+                                            This control will be marked as <strong>not applicable</strong> to this solution and excluded from coverage calculations.
+                                        </p>
+                                    </template>
+                                    <template x-if="rejectAction === 'reject_evidence'">
+                                        <p class="text-sm text-orange-800">
+                                            <i class="fas fa-info-circle mr-1"></i>
+                                            The evidence will be rejected as <strong>insufficient</strong>. The control remains applicable and will need better documentation.
+                                        </p>
+                                    </template>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        Reason <span class="text-red-500">*</span>
+                                    </label>
+                                    <textarea x-model="rejectReason" rows="3"
+                                              class="w-full px-4 py-3 border rounded-lg focus:ring-2 transition-colors"
+                                              :class="rejectError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'"
+                                              :placeholder="rejectAction === 'not_applicable' ? 'e.g., This is a cloud-hosted solution with no on-premise infrastructure...' : 'e.g., The document references policies but does not provide implementation details...'"></textarea>
+                                    <p x-show="rejectError" class="mt-1 text-sm text-red-600" x-text="rejectError"></p>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+
+                    <div class="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end space-x-3 rounded-b-xl">
+                        <button @click="closeRejectModal()"
+                                class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                            Cancel
+                        </button>
+                        <button @click="confirmRejectAction()"
+                                class="px-4 py-2 text-white rounded-lg transition-colors"
+                                :class="rejectAction === 'not_applicable' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-orange-600 hover:bg-orange-700'">
+                            <i :class="rejectAction === 'not_applicable' ? 'fas fa-ban mr-2' : 'fas fa-times-circle mr-2'"></i>
+                            <span x-text="rejectAction === 'not_applicable' ? 'Mark Not Applicable' : 'Reject Evidence'"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Toast Notifications -->
         <div x-show="toast.show" x-cloak
              x-transition:enter="transform ease-out duration-300 transition"
@@ -761,11 +841,31 @@
                 isRunning: false,
                 dragover: false,
                 toast: { show: false, message: '', type: 'info' },
+                showRejectModal: false,
+                rejectingControl: null,
+                rejectAction: 'reject_evidence',  // 'reject_evidence' or 'not_applicable'
+                rejectReason: '',
+                rejectError: '',
 
                 async init() {
                     await this.loadAssessments();
                     await this.loadControlFamilies();
                     await this.loadProfiles();
+
+                    // Listen for reject-evidence events
+                    window.addEventListener('reject-evidence', (e) => {
+                        this.openRejectModal(e.detail, 'reject_evidence');
+                    });
+
+                    // Listen for mark-not-applicable events
+                    window.addEventListener('mark-not-applicable', (e) => {
+                        this.openRejectModal(e.detail, 'not_applicable');
+                    });
+
+                    // Listen for restore-control events
+                    window.addEventListener('restore-control', (e) => {
+                        this.restoreEvidence(e.detail);
+                    });
                 },
 
                 async loadAssessments() {
@@ -980,9 +1080,15 @@
                         const coveragePct = s.coverage_percentage || 0;
                         const coverageColor = coveragePct >= 70 ? '#059669' : coveragePct >= 40 ? '#d97706' : '#dc2626';
 
+                        const notApplicableList = r.phases?.coverage?.not_applicable || [];
+                        const rejectedEvidenceList = r.phases?.coverage?.rejected_evidence || [];
+                        const notApplicableCount = notApplicableList.length;
+                        const autoNACount = notApplicableList.filter(c => c.auto_determined === true).length;
+                        const manualNACount = notApplicableList.filter(c => c.auto_determined === false).length;
+                        const rejectedEvidenceCount = rejectedEvidenceList.length;
                         html += `
                             <h2>Assessment Summary</h2>
-                            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem">
+                            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1rem">
                                 <div style="background:#f0fdf4;padding:1rem;border-radius:0.5rem;text-align:center">
                                     <div style="font-size:2rem;font-weight:bold;color:#059669">${s.controls_with_evidence || 0}</div>
                                     <div style="font-size:0.875rem;color:#166534">Full Evidence</div>
@@ -992,12 +1098,27 @@
                                     <div style="font-size:0.875rem;color:#92400e">Partial Evidence</div>
                                 </div>
                                 <div style="background:#fee2e2;padding:1rem;border-radius:0.5rem;text-align:center">
-                                    <div style="font-size:2rem;font-weight:bold;color:#dc2626">${s.controls_missing || 0}</div>
-                                    <div style="font-size:0.875rem;color:#991b1b">Missing Evidence</div>
+                                    <div style="font-size:2rem;font-weight:bold;color:#dc2626">${(s.controls_missing || 0) + rejectedEvidenceCount}</div>
+                                    <div style="font-size:0.875rem;color:#991b1b">Needs Evidence</div>
                                 </div>
-                                <div style="background:#dbeafe;padding:1rem;border-radius:0.5rem;text-align:center">
-                                    <div style="font-size:2rem;font-weight:bold;color:${coverageColor}">${coveragePct}%</div>
-                                    <div style="font-size:0.875rem;color:#1e40af">Coverage</div>
+                            </div>
+                            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem">
+                                <div style="background:#dbeafe;padding:0.75rem;border-radius:0.5rem;text-align:center">
+                                    <div style="font-size:1.5rem;font-weight:bold;color:#1e40af">${notApplicableCount}</div>
+                                    <div style="font-size:0.75rem;color:#3b82f6">Not Applicable</div>
+                                    <div style="font-size:0.65rem;color:#6b7280;margin-top:2px"><i class="fas fa-robot"></i> ${autoNACount} auto / <i class="fas fa-user"></i> ${manualNACount} manual</div>
+                                </div>
+                                <div style="background:#fef3c7;padding:0.75rem;border-radius:0.5rem;text-align:center">
+                                    <div style="font-size:1.5rem;font-weight:bold;color:#92400e">${rejectedEvidenceCount}</div>
+                                    <div style="font-size:0.75rem;color:#d97706">Evidence Rejected</div>
+                                </div>
+                                <div style="background:#f3f4f6;padding:0.75rem;border-radius:0.5rem;text-align:center">
+                                    <div style="font-size:1.5rem;font-weight:bold;color:${coverageColor}">${coveragePct}%</div>
+                                    <div style="font-size:0.75rem;color:#6b7280">Coverage</div>
+                                </div>
+                                <div style="background:#e0e7ff;padding:0.75rem;border-radius:0.5rem;text-align:center">
+                                    <div style="font-size:1.5rem;font-weight:bold;color:#4338ca">${s.applicable_controls || (s.total_controls - notApplicableCount)}</div>
+                                    <div style="font-size:0.75rem;color:#6366f1">Applicable</div>
                                 </div>
                             </div>
                             <table>
@@ -1081,11 +1202,33 @@
                                     <h2>Controls with Full Evidence (${cov.full_coverage.length})</h2>
                                     <details>
                                         <summary style="cursor:pointer;color:#059669;font-weight:500;margin-bottom:10px;">Click to expand full list</summary>
-                                        <table><tr><th>Control ID</th><th>Control Name</th><th>Family</th><th>Evidence Documents</th></tr>
+                                        <table><tr><th style="width:120px">Control</th><th>Evidence</th><th style="width:140px">Actions</th></tr>
                                 `;
                                 for (const ctrl of cov.full_coverage) {
-                                    const docs = (ctrl.evidence || []).map(e => e.document).join(', ');
-                                    html += `<tr><td><strong>${ctrl.control_id}</strong></td><td>${ctrl.control_name}</td><td>${ctrl.family}</td><td>${docs}</td></tr>`;
+                                    const evidenceItems = ctrl.evidence || [];
+                                    let evidenceHtml = '';
+                                    for (const ev of evidenceItems) {
+                                        const excerpt = ev.evidence?.relevant_excerpt || '';
+                                        const summary = ev.evidence?.evidence_summary || '';
+                                        evidenceHtml += `
+                                            <div style="margin-bottom:0.75rem;padding-bottom:0.75rem;border-bottom:1px solid #e5e7eb">
+                                                <div style="font-size:0.75rem;color:#059669;font-weight:500;margin-bottom:0.25rem"><i class="fas fa-file-alt"></i> ${ev.document || 'Unknown'}</div>
+                                                <p style="margin:0 0 0.5rem 0;font-size:0.875rem">${summary}</p>
+                                                ${excerpt ? `<blockquote style="margin:0;padding:0.5rem;background:#f0fdf4;border-left:3px solid #059669;font-style:italic;font-size:0.85rem">"${excerpt}"</blockquote>` : ''}
+                                            </div>
+                                        `;
+                                    }
+                                    const ctrlJson = JSON.stringify(ctrl).replace(/"/g, '&quot;');
+                                    html += `
+                                        <tr>
+                                            <td style="vertical-align:top"><strong>${ctrl.control_id}</strong><br><small style="color:#666">${ctrl.control_name}</small></td>
+                                            <td>${evidenceHtml || '<em style="color:#9ca3af">No evidence details</em>'}</td>
+                                            <td style="vertical-align:top">
+                                                <button onclick="window.dispatchEvent(new CustomEvent('mark-not-applicable', {detail: ${ctrlJson}}))" style="background:#dbeafe;color:#1e40af;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.7rem;margin-bottom:4px;display:block;width:100%" title="Mark as Not Applicable"><i class="fas fa-ban"></i> N/A</button>
+                                                <button onclick="window.dispatchEvent(new CustomEvent('reject-evidence', {detail: ${ctrlJson}}))" style="background:#fef3c7;color:#92400e;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.7rem;display:block;width:100%" title="Reject Evidence"><i class="fas fa-times-circle"></i> Reject Evidence</button>
+                                            </td>
+                                        </tr>
+                                    `;
                                 }
                                 html += `</table></details>`;
                             }
@@ -1097,10 +1240,33 @@
                                     <p style="color:#d97706">These controls have some evidence but need additional documentation:</p>
                                     <details open>
                                         <summary style="cursor:pointer;color:#d97706;font-weight:500;margin-bottom:10px;">Click to expand/collapse</summary>
-                                        <table><tr><th>Control ID</th><th>Control Name</th><th>Family</th></tr>
+                                        <table><tr><th style="width:120px">Control</th><th>Evidence</th><th style="width:140px">Actions</th></tr>
                                 `;
                                 for (const ctrl of cov.partial_coverage) {
-                                    html += `<tr><td><strong>${ctrl.control_id}</strong></td><td>${ctrl.control_name}</td><td>${ctrl.family}</td></tr>`;
+                                    const evidenceItems = ctrl.evidence || [];
+                                    let evidenceHtml = '';
+                                    for (const ev of evidenceItems) {
+                                        const excerpt = ev.evidence?.relevant_excerpt || '';
+                                        const summary = ev.evidence?.evidence_summary || '';
+                                        evidenceHtml += `
+                                            <div style="margin-bottom:0.75rem;padding-bottom:0.75rem;border-bottom:1px solid #e5e7eb">
+                                                <div style="font-size:0.75rem;color:#d97706;font-weight:500;margin-bottom:0.25rem"><i class="fas fa-file-alt"></i> ${ev.document || 'Unknown'}</div>
+                                                <p style="margin:0 0 0.5rem 0;font-size:0.875rem">${summary}</p>
+                                                ${excerpt ? `<blockquote style="margin:0;padding:0.5rem;background:#fef9c3;border-left:3px solid #d97706;font-style:italic;font-size:0.85rem">"${excerpt}"</blockquote>` : ''}
+                                            </div>
+                                        `;
+                                    }
+                                    const ctrlJson = JSON.stringify(ctrl).replace(/"/g, '&quot;');
+                                    html += `
+                                        <tr>
+                                            <td style="vertical-align:top"><strong>${ctrl.control_id}</strong><br><small style="color:#666">${ctrl.control_name}</small></td>
+                                            <td>${evidenceHtml || '<em style="color:#9ca3af">No evidence details</em>'}</td>
+                                            <td style="vertical-align:top">
+                                                <button onclick="window.dispatchEvent(new CustomEvent('mark-not-applicable', {detail: ${ctrlJson}}))" style="background:#dbeafe;color:#1e40af;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.7rem;margin-bottom:4px;display:block;width:100%" title="Mark as Not Applicable"><i class="fas fa-ban"></i> N/A</button>
+                                                <button onclick="window.dispatchEvent(new CustomEvent('reject-evidence', {detail: ${ctrlJson}}))" style="background:#fef3c7;color:#92400e;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.7rem;display:block;width:100%" title="Reject Evidence"><i class="fas fa-times-circle"></i> Reject Evidence</button>
+                                            </td>
+                                        </tr>
+                                    `;
                                 }
                                 html += `</table></details>`;
                             }
@@ -1112,10 +1278,97 @@
                                     <p style="color:#dc2626"><strong>${cov.no_coverage.length} controls</strong> require evidence documentation:</p>
                                     <details open>
                                         <summary style="cursor:pointer;color:#dc2626;font-weight:500;margin-bottom:10px;">Click to expand/collapse full list</summary>
-                                        <table><tr><th>Control ID</th><th>Control Name</th><th>Family</th></tr>
+                                        <table><tr><th style="width:100px">Control ID</th><th>Control Name</th><th style="width:60px">Family</th><th style="width:80px">Action</th></tr>
                                 `;
                                 for (const ctrl of cov.no_coverage) {
-                                    html += `<tr><td><strong>${ctrl.control_id}</strong></td><td>${ctrl.control_name}</td><td>${ctrl.family}</td></tr>`;
+                                    const ctrlJson = JSON.stringify(ctrl).replace(/"/g, '&quot;');
+                                    html += `<tr><td><strong>${ctrl.control_id}</strong></td><td>${ctrl.control_name}</td><td>${ctrl.family}</td><td><button onclick="window.dispatchEvent(new CustomEvent('mark-not-applicable', {detail: ${ctrlJson}}))" style="background:#dbeafe;color:#1e40af;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.7rem" title="Mark as Not Applicable"><i class="fas fa-ban"></i> N/A</button></td></tr>`;
+                                }
+                                html += `</table></details>`;
+                            }
+
+                            // Not Applicable controls
+                            const notApplicable = cov.not_applicable || [];
+                            if (notApplicable.length > 0) {
+                                // Separate auto-determined vs manually marked
+                                const autoNA = notApplicable.filter(c => c.auto_determined === true);
+                                const manualNA = notApplicable.filter(c => c.auto_determined === false);
+
+                                html += `
+                                    <h2>Not Applicable Controls (${notApplicable.length})</h2>
+                                    <p style="color:#3b82f6">These controls do not apply to this solution (excluded from coverage):</p>
+                                `;
+
+                                // Auto-determined section
+                                if (autoNA.length > 0) {
+                                    html += `
+                                        <h3 style="font-size:1rem;color:#6366f1;margin-top:1rem"><i class="fas fa-robot"></i> Auto-Determined (${autoNA.length})</h3>
+                                        <p style="font-size:0.875rem;color:#6b7280;margin-bottom:0.5rem">Determined by system analysis based on technology/architecture:</p>
+                                        <details>
+                                            <summary style="cursor:pointer;color:#6366f1;font-weight:500;margin-bottom:10px;">Click to expand/collapse</summary>
+                                            <table><tr><th style="width:120px">Control</th><th>Reason</th><th style="width:80px">Action</th></tr>
+                                    `;
+                                    for (const ctrl of autoNA) {
+                                        html += `
+                                            <tr>
+                                                <td><strong>${ctrl.control_id}</strong><br><small style="color:#666">${ctrl.control_name}</small></td>
+                                                <td><span style="display:inline-block;background:#e0e7ff;color:#4338ca;padding:2px 6px;border-radius:4px;font-size:0.7rem;margin-bottom:4px"><i class="fas fa-robot"></i> Auto</span><br>${ctrl.not_applicable_reason || '<em style="color:#9ca3af">No reason provided</em>'}</td>
+                                                <td>
+                                                    <button onclick="window.dispatchEvent(new CustomEvent('restore-control', {detail: '${ctrl.control_id}'}))" style="background:#dcfce7;color:#166534;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem" title="Override - mark as applicable"><i class="fas fa-undo"></i> Restore</button>
+                                                </td>
+                                            </tr>
+                                        `;
+                                    }
+                                    html += `</table></details>`;
+                                }
+
+                                // Manually marked section
+                                if (manualNA.length > 0) {
+                                    html += `
+                                        <h3 style="font-size:1rem;color:#3b82f6;margin-top:1rem"><i class="fas fa-user"></i> Manually Marked (${manualNA.length})</h3>
+                                        <p style="font-size:0.875rem;color:#6b7280;margin-bottom:0.5rem">Marked by operator as not applicable:</p>
+                                        <details open>
+                                            <summary style="cursor:pointer;color:#3b82f6;font-weight:500;margin-bottom:10px;">Click to expand/collapse</summary>
+                                            <table><tr><th style="width:120px">Control</th><th>Reason</th><th style="width:80px">Action</th></tr>
+                                    `;
+                                    for (const ctrl of manualNA) {
+                                        html += `
+                                            <tr>
+                                                <td><strong>${ctrl.control_id}</strong><br><small style="color:#666">${ctrl.control_name}</small></td>
+                                                <td><span style="display:inline-block;background:#dbeafe;color:#1e40af;padding:2px 6px;border-radius:4px;font-size:0.7rem;margin-bottom:4px"><i class="fas fa-user"></i> Manual</span><br>${ctrl.not_applicable_reason || '<em style="color:#9ca3af">No reason provided</em>'}</td>
+                                                <td>
+                                                    <button onclick="window.dispatchEvent(new CustomEvent('restore-control', {detail: '${ctrl.control_id}'}))" style="background:#dcfce7;color:#166534;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem" title="Restore to applicable"><i class="fas fa-undo"></i> Restore</button>
+                                                </td>
+                                            </tr>
+                                        `;
+                                    }
+                                    html += `</table></details>`;
+                                }
+                            }
+
+                            // Rejected Evidence controls (applicable but evidence insufficient)
+                            const rejectedEvidence = cov.rejected_evidence || [];
+                            if (rejectedEvidence.length > 0) {
+                                html += `
+                                    <h2>Rejected Evidence (${rejectedEvidence.length})</h2>
+                                    <p style="color:#d97706">These controls are applicable but need better evidence:</p>
+                                    <details open>
+                                        <summary style="cursor:pointer;color:#d97706;font-weight:500;margin-bottom:10px;">Click to expand/collapse</summary>
+                                        <table><tr><th style="width:120px">Control</th><th style="width:80px">Had</th><th>Rejection Reason</th><th style="width:80px">Action</th></tr>
+                                `;
+                                for (const ctrl of rejectedEvidence) {
+                                    const originalStatus = ctrl.rejected_from === 'full_coverage' ? 'Full' : 'Partial';
+                                    const statusColor = ctrl.rejected_from === 'full_coverage' ? '#059669' : '#d97706';
+                                    html += `
+                                        <tr>
+                                            <td><strong>${ctrl.control_id}</strong><br><small style="color:#666">${ctrl.control_name}</small></td>
+                                            <td><span style="color:${statusColor}">${originalStatus}</span></td>
+                                            <td>${ctrl.rejection_reason || '<em style="color:#9ca3af">No reason provided</em>'}</td>
+                                            <td>
+                                                <button onclick="window.dispatchEvent(new CustomEvent('restore-control', {detail: '${ctrl.control_id}'}))" style="background:#dcfce7;color:#166534;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem" title="Restore evidence"><i class="fas fa-undo"></i> Restore</button>
+                                            </td>
+                                        </tr>
+                                    `;
                                 }
                                 html += `</table></details>`;
                             }
@@ -1551,6 +1804,88 @@ This assessment has been created but not yet executed. Upload documents and run 
                         month: 'short',
                         day: 'numeric'
                     });
+                },
+
+                openRejectModal(control, action) {
+                    this.rejectingControl = control;
+                    this.rejectAction = action;  // 'reject_evidence' or 'not_applicable'
+                    this.rejectReason = '';
+                    this.rejectError = '';
+                    this.showRejectModal = true;
+                },
+
+                closeRejectModal() {
+                    this.showRejectModal = false;
+                    this.rejectingControl = null;
+                    this.rejectAction = 'reject_evidence';
+                    this.rejectReason = '';
+                    this.rejectError = '';
+                },
+
+                async confirmRejectAction() {
+                    if (!this.rejectingControl || !this.selectedAssessment) return;
+
+                    // Validate reason is provided
+                    if (!this.rejectReason.trim()) {
+                        this.rejectError = 'Please provide a reason';
+                        return;
+                    }
+                    this.rejectError = '';
+
+                    const assessmentId = this.selectedAssessment.assessment_id;
+                    const controlId = this.rejectingControl.control_id;
+                    const endpoint = this.rejectAction === 'not_applicable'
+                        ? `/api/v1/assessment/${assessmentId}/control/${controlId}/not-applicable`
+                        : `/api/v1/assessment/${assessmentId}/control/${controlId}/reject-evidence`;
+
+                    try {
+                        const response = await fetch(endpoint, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ reason: this.rejectReason })
+                        });
+
+                        if (!response.ok) {
+                            const error = await response.json();
+                            throw new Error(error.detail || 'Action failed');
+                        }
+
+                        const data = await response.json();
+                        const message = this.rejectAction === 'not_applicable'
+                            ? `Control ${controlId} marked as not applicable`
+                            : `Evidence for ${controlId} rejected`;
+                        this.showToast(`${message}. Coverage: ${data.new_coverage_percentage}%`, 'success');
+
+                        await this.viewAssessment(assessmentId);
+                        this.closeRejectModal();
+                    } catch (error) {
+                        this.showToast(`Failed: ${error.message}`, 'error');
+                    }
+                },
+
+                async restoreEvidence(controlId) {
+                    if (!this.selectedAssessment) return;
+
+                    const assessmentId = this.selectedAssessment.assessment_id;
+
+                    try {
+                        const response = await fetch(`/api/v1/assessment/${assessmentId}/control/${controlId}/restore`, {
+                            method: 'POST'
+                        });
+
+                        if (!response.ok) {
+                            const error = await response.json();
+                            throw new Error(error.detail || 'Restore failed');
+                        }
+
+                        const data = await response.json();
+                        this.showToast(`Control ${controlId} evidence restored. New coverage: ${data.new_coverage_percentage}%`, 'success');
+
+                        // Refresh the assessment results
+                        await this.viewAssessment(assessmentId);
+                    } catch (error) {
+                        this.showToast(`Failed to restore evidence: ${error.message}`, 'error');
+                    }
                 },
 
                 showToast(message, type = 'info') {

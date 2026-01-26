@@ -69,19 +69,29 @@ class ITSG33Coordinator:
                 "controls_by_family": self._group_controls_by_family(required_controls),
             }
 
-            # Phase 3: Analyze each document for evidence
+            # Phase 3: Determine control applicability based on system characteristics
+            applicability = await self._assess_control_applicability(
+                system_analysis, conops, documents, required_controls
+            )
+            results["phases"]["applicability"] = applicability
+            applicable_controls = applicability["applicable_controls"]
+
+            # Phase 4: Analyze each document for evidence (only for applicable controls)
             evidence_analysis = await self._analyze_documents_for_evidence(
-                documents, required_controls
+                documents, applicable_controls
             )
             results["phases"]["evidence_analysis"] = evidence_analysis
 
-            # Phase 4: Calculate control coverage
-            coverage = self._calculate_coverage(required_controls, evidence_analysis)
+            # Phase 5: Calculate control coverage (based on applicable controls only)
+            coverage = self._calculate_coverage(applicable_controls, evidence_analysis)
+            # Add not_applicable from the applicability phase
+            coverage["not_applicable"] = applicability["not_applicable_controls"]
+            coverage["controls_not_applicable"] = len(applicability["not_applicable_controls"])
             results["phases"]["coverage"] = coverage
 
-            # Phase 5: Generate recommendations
+            # Phase 6: Generate recommendations
             recommendations = await self._generate_recommendations(
-                coverage, required_controls
+                coverage, applicable_controls
             )
             results["phases"]["recommendations"] = recommendations
 
@@ -89,6 +99,8 @@ class ITSG33Coordinator:
             results["summary"] = {
                 "profile": profile,
                 "total_controls": len(required_controls),
+                "applicable_controls": len(applicable_controls),
+                "controls_not_applicable": len(applicability["not_applicable_controls"]),
                 "controls_with_evidence": coverage["controls_with_evidence"],
                 "controls_partial": coverage["controls_partial"],
                 "controls_missing": coverage["controls_missing"],
@@ -186,6 +198,129 @@ Return your analysis as JSON with these exact keys:
                 families[family] = []
             families[family].append(control.get("id", ""))
         return families
+
+    async def _assess_control_applicability(
+        self,
+        system_analysis: Dict[str, Any],
+        conops: str,
+        documents: List[Dict[str, Any]],
+        required_controls: List[Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        """
+        Assess which controls are applicable to this system based on its characteristics.
+
+        Some controls may not apply based on:
+        - System architecture (cloud vs on-premise)
+        - Technology stack (no encryption = no encryption controls)
+        - Deployment model (internal vs external facing)
+        - Data types processed
+        """
+        # Get document content for context
+        doc_content = ""
+        for doc in documents[:3]:
+            if "content" in doc:
+                doc_content += f"\n--- {doc.get('filename', 'Document')} ---\n"
+                doc_content += doc["content"][:2000]
+
+        # Create control list for the prompt
+        control_list = "\n".join([
+            f"- {c['id']}: {c.get('name', '')} ({c.get('family', '')})"
+            for c in required_controls
+        ])
+
+        prompt = f"""Based on this system's characteristics, determine which ITSG-33 controls are APPLICABLE.
+
+SYSTEM ANALYSIS:
+- System Type: {system_analysis.get('system_type', 'Unknown')}
+- Data Classification: {system_analysis.get('data_classification', 'Unknown')}
+- Confidentiality: {system_analysis.get('confidentiality', 'Unknown')}
+- Integrity: {system_analysis.get('integrity', 'Unknown')}
+- Availability: {system_analysis.get('availability', 'Unknown')}
+
+CONOPS/SYSTEM DESCRIPTION:
+{conops[:3000] if conops else "No CONOPS provided"}
+
+ADDITIONAL DOCUMENTATION:
+{doc_content[:5000]}
+
+CONTROLS TO EVALUATE:
+{control_list}
+
+For each control, determine if it is APPLICABLE or NOT APPLICABLE to this specific system.
+
+A control is NOT APPLICABLE if:
+- The system doesn't use the technology the control addresses (e.g., no wireless = no wireless controls)
+- The system architecture makes the control irrelevant (e.g., SaaS = no physical server controls)
+- The deployment model excludes certain requirements (e.g., internal only = fewer external-facing controls)
+- The control addresses something the system simply doesn't have or do
+
+Be CONSERVATIVE - when in doubt, mark as APPLICABLE. Only mark NOT APPLICABLE when clearly justified.
+
+Return as JSON:
+{{
+    "applicable": [
+        {{"control_id": "AC-1", "reason": "Access control policies are required for all systems"}}
+    ],
+    "not_applicable": [
+        {{"control_id": "PE-1", "reason": "Cloud-hosted system with no physical infrastructure managed by the organization"}}
+    ]
+}}
+"""
+
+        try:
+            response = await self.gemini.generate_async(prompt)
+            json_start = response.find("{")
+            json_end = response.rfind("}") + 1
+            if json_start >= 0 and json_end > json_start:
+                result = json.loads(response[json_start:json_end])
+
+                # Build lists of applicable and not applicable controls
+                applicable_ids = {item["control_id"] for item in result.get("applicable", [])}
+                not_applicable_items = result.get("not_applicable", [])
+                not_applicable_ids = {item["control_id"] for item in not_applicable_items}
+
+                # Build the applicable controls list (full control objects)
+                applicable_controls = []
+                not_applicable_controls = []
+
+                for control in required_controls:
+                    control_id = control.get("id", "")
+                    if control_id in not_applicable_ids:
+                        # Find the reason
+                        reason = next(
+                            (item["reason"] for item in not_applicable_items if item["control_id"] == control_id),
+                            "Determined not applicable based on system analysis"
+                        )
+                        not_applicable_controls.append({
+                            "control_id": control_id,
+                            "control_name": control.get("name", ""),
+                            "family": control.get("family", ""),
+                            "not_applicable_reason": reason,
+                            "auto_determined": True,
+                        })
+                    else:
+                        # Default to applicable if not explicitly marked as not applicable
+                        applicable_controls.append(control)
+
+                return {
+                    "applicable_controls": applicable_controls,
+                    "not_applicable_controls": not_applicable_controls,
+                    "total_assessed": len(required_controls),
+                    "applicable_count": len(applicable_controls),
+                    "not_applicable_count": len(not_applicable_controls),
+                }
+        except Exception as e:
+            pass
+
+        # Default: all controls are applicable if analysis fails
+        return {
+            "applicable_controls": required_controls,
+            "not_applicable_controls": [],
+            "total_assessed": len(required_controls),
+            "applicable_count": len(required_controls),
+            "not_applicable_count": 0,
+            "note": "Applicability assessment failed - all controls marked as applicable",
+        }
 
     async def _analyze_documents_for_evidence(
         self, documents: List[Dict[str, Any]], required_controls: List[Dict[str, Any]]
@@ -442,9 +577,14 @@ Return as JSON:
         ).get("profile", 2)
         required_controls = self.get_controls_for_profile(profile)
 
-        # Analyze new document
+        # Get applicable controls from previous assessment (or all if not available)
+        applicability = assessment_results.get("phases", {}).get("applicability", {})
+        applicable_controls = applicability.get("applicable_controls", required_controls)
+        not_applicable_controls = applicability.get("not_applicable_controls", [])
+
+        # Analyze new document against applicable controls only
         new_doc_analysis = await self._analyze_single_document(
-            new_document, required_controls
+            new_document, applicable_controls
         )
 
         # Merge with existing evidence
@@ -460,13 +600,24 @@ Return as JSON:
                 "evidence": evidence,
             })
 
-        # Recalculate coverage
+        # Recalculate coverage based on applicable controls only
         evidence_analysis = {"evidence_by_control": existing_evidence}
-        coverage = self._calculate_coverage(required_controls, evidence_analysis)
+        coverage = self._calculate_coverage(applicable_controls, evidence_analysis)
+
+        # Preserve not_applicable and rejected_evidence from previous assessment
+        coverage["not_applicable"] = assessment_results.get("phases", {}).get(
+            "coverage", {}
+        ).get("not_applicable", not_applicable_controls)
+        coverage["controls_not_applicable"] = len(coverage["not_applicable"])
+
+        coverage["rejected_evidence"] = assessment_results.get("phases", {}).get(
+            "coverage", {}
+        ).get("rejected_evidence", [])
+        coverage["controls_rejected_evidence"] = len(coverage.get("rejected_evidence", []))
 
         # Update recommendations
         recommendations = await self._generate_recommendations(
-            coverage, required_controls
+            coverage, applicable_controls
         )
 
         # Update results
@@ -477,9 +628,12 @@ Return as JSON:
         assessment_results["summary"] = {
             "profile": profile,
             "total_controls": len(required_controls),
+            "applicable_controls": len(applicable_controls),
+            "controls_not_applicable": coverage["controls_not_applicable"],
             "controls_with_evidence": coverage["controls_with_evidence"],
             "controls_partial": coverage["controls_partial"],
             "controls_missing": coverage["controls_missing"],
+            "controls_rejected_evidence": coverage.get("controls_rejected_evidence", 0),
             "coverage_percentage": coverage["coverage_percentage"],
         }
 
