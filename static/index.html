@@ -729,60 +729,212 @@
                 renderCompletedResults(r) {
                     let html = '';
 
+                    // Summary section
+                    if (r.summary) {
+                        const s = r.summary;
+                        const coveragePct = s.coverage_percentage || 0;
+                        const coverageColor = coveragePct >= 70 ? '#059669' : coveragePct >= 40 ? '#d97706' : '#dc2626';
+
+                        html += `
+                            <h2>Assessment Summary</h2>
+                            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem">
+                                <div style="background:#f0fdf4;padding:1rem;border-radius:0.5rem;text-align:center">
+                                    <div style="font-size:2rem;font-weight:bold;color:#059669">${s.controls_with_evidence || 0}</div>
+                                    <div style="font-size:0.875rem;color:#166534">Full Evidence</div>
+                                </div>
+                                <div style="background:#fef9c3;padding:1rem;border-radius:0.5rem;text-align:center">
+                                    <div style="font-size:2rem;font-weight:bold;color:#d97706">${s.controls_partial || 0}</div>
+                                    <div style="font-size:0.875rem;color:#92400e">Partial Evidence</div>
+                                </div>
+                                <div style="background:#fee2e2;padding:1rem;border-radius:0.5rem;text-align:center">
+                                    <div style="font-size:2rem;font-weight:bold;color:#dc2626">${s.controls_missing || 0}</div>
+                                    <div style="font-size:0.875rem;color:#991b1b">Missing Evidence</div>
+                                </div>
+                                <div style="background:#dbeafe;padding:1rem;border-radius:0.5rem;text-align:center">
+                                    <div style="font-size:2rem;font-weight:bold;color:${coverageColor}">${coveragePct}%</div>
+                                    <div style="font-size:0.875rem;color:#1e40af">Coverage</div>
+                                </div>
+                            </div>
+                            <table>
+                                <tr><th style="width:200px">Security Profile</th><td><strong>Profile ${s.profile || 2}</strong> (${s.profile === 1 ? 'Low' : s.profile === 3 ? 'High' : 'Moderate'} Impact)</td></tr>
+                                <tr><th>Total Controls Required</th><td>${s.total_controls || 0}</td></tr>
+                            </table>
+                        `;
+                    }
+
                     if (r.phases) {
-                        // Control Mapping Results
-                        if (r.phases.control_mapping) {
-                            const cm = r.phases.control_mapping;
+                        // System Analysis
+                        if (r.phases.system_analysis) {
+                            const sa = r.phases.system_analysis;
                             html += `
-                                <h2>System Categorization</h2>
-                                <p>Based on the CONOPS and documentation provided, the system has been categorized as follows:</p>
+                                <h2>System Analysis</h2>
                                 <table>
-                                    <tr><th style="width:200px">Security Profile</th><td><strong>Profile ${cm.profile || 2}</strong> (${cm.profile === 1 ? 'Low' : cm.profile === 3 ? 'High' : 'Moderate'} Impact)</td></tr>
+                                    <tr><th style="width:200px">System Type</th><td>${sa.system_type || 'Unknown'}</td></tr>
+                                    <tr><th>Data Classification</th><td>${sa.data_classification || 'Unknown'}</td></tr>
+                                    <tr><th>Confidentiality</th><td>${sa.confidentiality || 'Unknown'}</td></tr>
+                                    <tr><th>Integrity</th><td>${sa.integrity || 'Unknown'}</td></tr>
+                                    <tr><th>Availability</th><td>${sa.availability || 'Unknown'}</td></tr>
+                                    <tr><th>Recommended Profile</th><td><strong>Profile ${sa.recommended_profile || 2}</strong></td></tr>
                                 </table>
+                                <h3>Rationale</h3>
+                                <p>${sa.rationale || 'No rationale provided.'}</p>
                             `;
-
-                            if (cm.categorization) {
-                                html += `<h3>Categorization Details</h3><pre style="background:#f3f4f6;padding:1rem;border-radius:0.5rem;overflow-x:auto">${JSON.stringify(cm.categorization, null, 2)}</pre>`;
-                            }
                         }
 
-                        // Evidence Assessment
-                        if (r.phases.evidence_assessment) {
+                        // Required Controls by Family
+                        if (r.phases.required_controls && r.phases.required_controls.controls_by_family) {
+                            const cbf = r.phases.required_controls.controls_by_family;
                             html += `
-                                <h2>Evidence Assessment</h2>
-                                <p>The following evidence was reviewed and mapped to applicable controls:</p>
+                                <h2>Required Controls by Family</h2>
+                                <table>
+                                    <tr><th>Family</th><th>Controls</th></tr>
                             `;
-
-                            const ea = r.phases.evidence_assessment;
-                            if (typeof ea === 'object') {
-                                html += `<pre style="background:#f3f4f6;padding:1rem;border-radius:0.5rem;overflow-x:auto">${JSON.stringify(ea, null, 2)}</pre>`;
+                            for (const [family, controls] of Object.entries(cbf)) {
+                                html += `<tr><td><strong>${family}</strong></td><td>${controls.length} controls</td></tr>`;
                             }
+                            html += `</table>`;
                         }
 
-                        // Gap Analysis
-                        if (r.phases.gap_analysis) {
+                        // Evidence Analysis - Document Analysis
+                        if (r.phases.evidence_analysis && r.phases.evidence_analysis.document_analyses) {
+                            const docs = r.phases.evidence_analysis.document_analyses;
                             html += `
-                                <h2>Gap Analysis</h2>
-                                <p>The following gaps were identified during the assessment:</p>
+                                <h2>Document Analysis</h2>
+                                <p>${docs.length} document(s) analyzed for security evidence:</p>
                             `;
 
-                            const ga = r.phases.gap_analysis;
-                            if (typeof ga === 'object') {
-                                html += `<pre style="background:#f3f4f6;padding:1rem;border-radius:0.5rem;overflow-x:auto">${JSON.stringify(ga, null, 2)}</pre>`;
+                            for (const doc of docs) {
+                                const controlCount = Object.keys(doc.controls_addressed || {}).length;
+                                html += `
+                                    <h3>${doc.filename || 'Unknown Document'}</h3>
+                                    <table>
+                                        <tr><th style="width:200px">Document Type</th><td>${doc.document_type || 'Unknown'}</td></tr>
+                                        <tr><th>Purpose</th><td>${doc.document_purpose || 'Unknown'}</td></tr>
+                                        <tr><th>Controls Addressed</th><td>${controlCount} control(s)</td></tr>
+                                        <tr><th>Security Topics</th><td>${(doc.key_security_topics || []).join(', ') || 'None identified'}</td></tr>
+                                    </table>
+                                `;
+
+                                if (controlCount > 0) {
+                                    html += `<h4>Controls Addressed:</h4><table><tr><th>Control</th><th>Coverage</th><th>Evidence</th></tr>`;
+                                    for (const [ctrlId, evidence] of Object.entries(doc.controls_addressed)) {
+                                        const coverageClass = evidence.coverage === 'FULL' ? 'status-implemented' : evidence.coverage === 'PARTIAL' ? 'status-partial' : 'status-not-implemented';
+                                        html += `<tr><td><strong>${ctrlId}</strong></td><td class="${coverageClass}">${evidence.coverage || 'Unknown'}</td><td>${evidence.evidence_summary || ''}</td></tr>`;
+                                    }
+                                    html += `</table>`;
+                                }
                             }
                         }
 
-                        // Reports
-                        if (r.phases.reports) {
-                            html += `
-                                <h2>Recommendations</h2>
-                            `;
+                        // Coverage Details
+                        if (r.phases.coverage) {
+                            const cov = r.phases.coverage;
 
-                            const rep = r.phases.reports;
-                            if (rep.executive_summary) {
-                                html += `<h3>Executive Summary</h3><pre style="background:#f3f4f6;padding:1rem;border-radius:0.5rem;overflow-x:auto">${JSON.stringify(rep.executive_summary, null, 2)}</pre>`;
+                            // Controls with full evidence
+                            if (cov.full_coverage && cov.full_coverage.length > 0) {
+                                html += `
+                                    <h2>Controls with Full Evidence</h2>
+                                    <table><tr><th>Control ID</th><th>Control Name</th><th>Family</th><th>Evidence Documents</th></tr>
+                                `;
+                                for (const ctrl of cov.full_coverage.slice(0, 20)) {
+                                    const docs = (ctrl.evidence || []).map(e => e.document).join(', ');
+                                    html += `<tr><td><strong>${ctrl.control_id}</strong></td><td>${ctrl.control_name}</td><td>${ctrl.family}</td><td>${docs}</td></tr>`;
+                                }
+                                if (cov.full_coverage.length > 20) {
+                                    html += `<tr><td colspan="4"><em>... and ${cov.full_coverage.length - 20} more</em></td></tr>`;
+                                }
+                                html += `</table>`;
+                            }
+
+                            // Controls with partial evidence
+                            if (cov.partial_coverage && cov.partial_coverage.length > 0) {
+                                html += `
+                                    <h2>Controls with Partial Evidence</h2>
+                                    <p>These controls have some evidence but may need additional documentation:</p>
+                                    <table><tr><th>Control ID</th><th>Control Name</th><th>Family</th></tr>
+                                `;
+                                for (const ctrl of cov.partial_coverage.slice(0, 15)) {
+                                    html += `<tr><td><strong>${ctrl.control_id}</strong></td><td>${ctrl.control_name}</td><td>${ctrl.family}</td></tr>`;
+                                }
+                                if (cov.partial_coverage.length > 15) {
+                                    html += `<tr><td colspan="3"><em>... and ${cov.partial_coverage.length - 15} more</em></td></tr>`;
+                                }
+                                html += `</table>`;
+                            }
+
+                            // Controls missing evidence
+                            if (cov.no_coverage && cov.no_coverage.length > 0) {
+                                html += `
+                                    <h2>Controls Missing Evidence</h2>
+                                    <p style="color:#dc2626"><strong>${cov.no_coverage.length} controls</strong> require evidence documentation:</p>
+                                    <table><tr><th>Control ID</th><th>Control Name</th><th>Family</th></tr>
+                                `;
+                                for (const ctrl of cov.no_coverage.slice(0, 20)) {
+                                    html += `<tr><td><strong>${ctrl.control_id}</strong></td><td>${ctrl.control_name}</td><td>${ctrl.family}</td></tr>`;
+                                }
+                                if (cov.no_coverage.length > 20) {
+                                    html += `<tr><td colspan="3"><em>... and ${cov.no_coverage.length - 20} more</em></td></tr>`;
+                                }
+                                html += `</table>`;
                             }
                         }
+
+                        // Recommendations
+                        if (r.phases.recommendations) {
+                            const rec = r.phases.recommendations;
+                            html += `<h2>Recommendations</h2>`;
+
+                            if (rec.high_priority && rec.high_priority.length > 0) {
+                                html += `
+                                    <h3><span class="severity-critical">High Priority</span></h3>
+                                    <p>Address these controls first:</p>
+                                    <table><tr><th>Control</th><th>Action</th><th>Suggested Evidence</th></tr>
+                                `;
+                                for (const item of rec.high_priority) {
+                                    html += `<tr><td><strong>${item.control_id}</strong></td><td>${item.action || ''}</td><td>${item.suggested_evidence || ''}</td></tr>`;
+                                }
+                                html += `</table>`;
+                            }
+
+                            if (rec.medium_priority && rec.medium_priority.length > 0) {
+                                html += `
+                                    <h3><span class="severity-high">Medium Priority</span></h3>
+                                    <table><tr><th>Control</th><th>Action</th></tr>
+                                `;
+                                for (const item of rec.medium_priority) {
+                                    html += `<tr><td><strong>${item.control_id}</strong></td><td>${item.action || ''}</td></tr>`;
+                                }
+                                html += `</table>`;
+                            }
+
+                            if (rec.low_priority_count > 0) {
+                                html += `<p><strong>${rec.low_priority_count}</strong> additional low-priority controls need attention.</p>`;
+                            }
+
+                            if (rec.next_steps && rec.next_steps.length > 0) {
+                                html += `<h3>Next Steps</h3><ul>`;
+                                for (const step of rec.next_steps) {
+                                    html += `<li>${step}</li>`;
+                                }
+                                html += `</ul>`;
+                            }
+
+                            if (rec.missing_by_family) {
+                                html += `<h3>Missing Controls by Family</h3><table><tr><th>Family</th><th>Missing Controls</th></tr>`;
+                                for (const [family, count] of Object.entries(rec.missing_by_family)) {
+                                    html += `<tr><td><strong>${family}</strong></td><td>${count}</td></tr>`;
+                                }
+                                html += `</table>`;
+                            }
+                        }
+                    }
+
+                    // Handle error
+                    if (r.error) {
+                        html += `
+                            <h2 style="color:#dc2626">Assessment Error</h2>
+                            <p>${r.error}</p>
+                        `;
                     }
 
                     return html;
@@ -838,57 +990,106 @@
 `;
 
                     if (a.status === 'completed' && r) {
-                        if (r.phases) {
-                            if (r.phases.control_mapping) {
-                                const cm = r.phases.control_mapping;
-                                md += `## System Categorization
+                        // Summary
+                        if (r.summary) {
+                            const s = r.summary;
+                            md += `## Assessment Summary
 
-Based on the CONOPS and documentation provided, the system has been categorized as follows:
+| Metric | Value |
+|--------|-------|
+| Security Profile | Profile ${s.profile || 2} |
+| Total Controls Required | ${s.total_controls || 0} |
+| Controls with Full Evidence | ${s.controls_with_evidence || 0} |
+| Controls with Partial Evidence | ${s.controls_partial || 0} |
+| Controls Missing Evidence | ${s.controls_missing || 0} |
+| **Coverage Percentage** | **${s.coverage_percentage || 0}%** |
+
+`;
+                        }
+
+                        if (r.phases) {
+                            // System Analysis
+                            if (r.phases.system_analysis) {
+                                const sa = r.phases.system_analysis;
+                                md += `## System Analysis
 
 | Attribute | Value |
 |-----------|-------|
-| Security Profile | **Profile ${cm.profile || 2}** (${cm.profile === 1 ? 'Low' : cm.profile === 3 ? 'High' : 'Moderate'} Impact) |
+| System Type | ${sa.system_type || 'Unknown'} |
+| Data Classification | ${sa.data_classification || 'Unknown'} |
+| Confidentiality | ${sa.confidentiality || 'Unknown'} |
+| Integrity | ${sa.integrity || 'Unknown'} |
+| Availability | ${sa.availability || 'Unknown'} |
+| Recommended Profile | Profile ${sa.recommended_profile || 2} |
+
+### Rationale
+
+${sa.rationale || 'No rationale provided.'}
 
 `;
-                                if (cm.categorization) {
-                                    md += `### Categorization Details
+                            }
 
-\`\`\`json
-${JSON.stringify(cm.categorization, null, 2)}
-\`\`\`
+                            // Coverage
+                            if (r.phases.coverage) {
+                                const cov = r.phases.coverage;
 
+                                if (cov.full_coverage && cov.full_coverage.length > 0) {
+                                    md += `## Controls with Full Evidence
+
+| Control ID | Control Name | Family |
+|------------|--------------|--------|
 `;
+                                    for (const ctrl of cov.full_coverage) {
+                                        md += `| ${ctrl.control_id} | ${ctrl.control_name} | ${ctrl.family} |\n`;
+                                    }
+                                    md += '\n';
+                                }
+
+                                if (cov.no_coverage && cov.no_coverage.length > 0) {
+                                    md += `## Controls Missing Evidence
+
+**${cov.no_coverage.length} controls** require evidence documentation:
+
+| Control ID | Control Name | Family |
+|------------|--------------|--------|
+`;
+                                    for (const ctrl of cov.no_coverage.slice(0, 30)) {
+                                        md += `| ${ctrl.control_id} | ${ctrl.control_name} | ${ctrl.family} |\n`;
+                                    }
+                                    if (cov.no_coverage.length > 30) {
+                                        md += `\n*... and ${cov.no_coverage.length - 30} more*\n`;
+                                    }
+                                    md += '\n';
                                 }
                             }
 
-                            if (r.phases.evidence_assessment) {
-                                md += `## Evidence Assessment
-
-\`\`\`json
-${JSON.stringify(r.phases.evidence_assessment, null, 2)}
-\`\`\`
-
-`;
-                            }
-
-                            if (r.phases.gap_analysis) {
-                                md += `## Gap Analysis
-
-\`\`\`json
-${JSON.stringify(r.phases.gap_analysis, null, 2)}
-\`\`\`
-
-`;
-                            }
-
-                            if (r.phases.reports) {
+                            // Recommendations
+                            if (r.phases.recommendations) {
+                                const rec = r.phases.recommendations;
                                 md += `## Recommendations
 
-\`\`\`json
-${JSON.stringify(r.phases.reports, null, 2)}
-\`\`\`
+`;
+                                if (rec.high_priority && rec.high_priority.length > 0) {
+                                    md += `### High Priority
+
+| Control | Action | Suggested Evidence |
+|---------|--------|-------------------|
+`;
+                                    for (const item of rec.high_priority) {
+                                        md += `| ${item.control_id} | ${item.action || ''} | ${item.suggested_evidence || ''} |\n`;
+                                    }
+                                    md += '\n';
+                                }
+
+                                if (rec.next_steps && rec.next_steps.length > 0) {
+                                    md += `### Next Steps
 
 `;
+                                    for (const step of rec.next_steps) {
+                                        md += `- ${step}\n`;
+                                    }
+                                    md += '\n';
+                                }
                             }
                         }
                     } else if (a.status === 'created') {
@@ -905,29 +1106,7 @@ This assessment has been created but not yet executed. Upload documents and run 
 `;
                     }
 
-                    md += `## About ITSG-33
-
-ITSG-33 (IT Security Risk Management: A Lifecycle Approach) is the Government of Canada's framework for managing IT security risks. It defines security controls across 17 families:
-
-- **AC** - Access Control
-- **AT** - Awareness and Training
-- **AU** - Audit and Accountability
-- **CA** - Assessment, Authorization, and Monitoring
-- **CM** - Configuration Management
-- **CP** - Contingency Planning
-- **IA** - Identification and Authentication
-- **IR** - Incident Response
-- **MA** - Maintenance
-- **MP** - Media Protection
-- **PE** - Physical and Environmental Protection
-- **PL** - Planning
-- **PS** - Personnel Security
-- **RA** - Risk Assessment
-- **SA** - System and Services Acquisition
-- **SC** - System and Communications Protection
-- **SI** - System and Information Integrity
-
----
+                    md += `---
 
 *Generated by ITSG-33 Accreditation System*
 `;
