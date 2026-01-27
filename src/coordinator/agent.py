@@ -105,6 +105,9 @@ class ITSG33Coordinator:
                 "controls_partial": coverage["controls_partial"],
                 "controls_missing": coverage["controls_missing"],
                 "coverage_percentage": coverage["coverage_percentage"],
+                "quality_score": coverage.get("quality_score", 0),
+                "machine_verifiable_count": coverage.get("machine_verifiable_count", 0),
+                "human_curated_count": coverage.get("human_curated_count", 0),
             }
 
         except Exception as e:
@@ -374,13 +377,26 @@ DOCUMENT: {doc.get('filename', 'Unknown')}
 CONTENT:
 {doc.get('content', '')[:12000]}
 
+EVIDENCE STRENGTH CLASSIFICATION (classify each piece of evidence by type):
+1. SYSTEM_GENERATED - Logs, audit records, config exports, IAM policy dumps, compliance script output (e.g., kubectl get, aws iam)
+2. INFRASTRUCTURE_AS_CODE - Terraform, Helm charts, Ansible playbooks, K8s manifests enforcing RBAC/policies
+3. AUTOMATED_TEST - CI pipeline output, security scan reports (SAST/DAST), CIS benchmark results
+4. CODE_ENFORCEMENT - Authorization middleware, input validation code, crypto usage in application logic
+5. SCREENSHOT - Admin console screenshots, RBAC settings in UI, configuration panels
+6. VIDEO_WALKTHROUGH - Demonstrative recordings, walkthroughs (non-auditable)
+7. NARRATIVE - Written descriptions, attestations, policy statements ("The system enforces X...")
+
+Rule: Prefer machine-verifiable artifacts (tiers 1-4) over human-curated ones (tiers 5-7).
+
 ITSG-33 CONTROL FAMILIES TO CHECK:
 {control_list}
 
 For each control that this document provides evidence for, identify:
 1. The control ID (e.g., AC-1, AU-2)
 2. What evidence this document provides
-3. Whether the evidence is FULL (completely addresses the control), PARTIAL (some aspects), or MENTIONS (references but doesn't prove implementation)
+3. Coverage: FULL (completely addresses), PARTIAL (some aspects), MENTIONS (references only)
+4. Evidence strength tier (1-7 from classification above)
+5. Evidence type category (SYSTEM_GENERATED, INFRASTRUCTURE_AS_CODE, etc.)
 
 Focus on finding REAL evidence of security controls being implemented, not just mentions.
 
@@ -391,6 +407,8 @@ Return as JSON:
     "controls_addressed": {{
         "CONTROL-ID": {{
             "coverage": "FULL|PARTIAL|MENTIONS",
+            "evidence_strength_tier": 1-7,
+            "evidence_type_category": "SYSTEM_GENERATED|INFRASTRUCTURE_AS_CODE|AUTOMATED_TEST|CODE_ENFORCEMENT|SCREENSHOT|VIDEO_WALKTHROUGH|NARRATIVE",
             "evidence_summary": "what evidence this document provides",
             "relevant_excerpt": "key quote or section that proves this"
         }}
@@ -424,38 +442,72 @@ Return as JSON:
         required_controls: List[Dict[str, Any]],
         evidence_analysis: Dict[str, Any],
     ) -> Dict[str, Any]:
-        """Calculate control coverage based on evidence."""
+        """Calculate control coverage based on evidence, including quality score."""
         evidence_map = evidence_analysis.get("evidence_by_control", {})
+
+        # Evidence strength scores by tier
+        STRENGTH_SCORES = {1: 100, 2: 90, 3: 80, 4: 70, 5: 50, 6: 30, 7: 20}
+        COVERAGE_MULTIPLIERS = {"FULL": 1.0, "PARTIAL": 0.5, "MENTIONS": 0.25}
 
         full_coverage = []
         partial_coverage = []
         no_coverage = []
 
+        # Track weighted scores for quality calculation
+        total_weighted_score = 0
+        max_possible_score = len(required_controls) * 100  # Max 100 per control
+
         for control in required_controls:
             control_id = control.get("id", "")
             if control_id in evidence_map:
                 evidence_items = evidence_map[control_id]
-                # Check if any evidence is FULL
-                has_full = any(
-                    e.get("evidence", {}).get("coverage") == "FULL"
-                    for e in evidence_items
-                )
+
+                # Calculate best evidence score for this control
+                best_weighted_score = 0
+                best_strength_tier = 7
+                has_full = False
+
+                for ev in evidence_items:
+                    evidence_data = ev.get("evidence", {})
+                    coverage = evidence_data.get("coverage", "MENTIONS")
+                    strength_tier = evidence_data.get("evidence_strength_tier", 7)
+
+                    # Ensure tier is an integer
+                    if isinstance(strength_tier, str):
+                        try:
+                            strength_tier = int(strength_tier)
+                        except ValueError:
+                            strength_tier = 7
+
+                    # Calculate effective score (strength * coverage multiplier)
+                    strength_score = STRENGTH_SCORES.get(strength_tier, 20)
+                    coverage_mult = COVERAGE_MULTIPLIERS.get(coverage, 0.25)
+                    effective_score = strength_score * coverage_mult
+
+                    if effective_score > best_weighted_score:
+                        best_weighted_score = effective_score
+                        best_strength_tier = strength_tier
+
+                    if coverage == "FULL":
+                        has_full = True
+
+                total_weighted_score += best_weighted_score
+
+                # Build control entry with best evidence strength
+                control_entry = {
+                    "control_id": control_id,
+                    "control_name": control.get("name", ""),
+                    "family": control.get("family", ""),
+                    "evidence_count": len(evidence_items),
+                    "evidence": evidence_items,
+                    "best_evidence_strength": best_strength_tier,
+                    "is_machine_verifiable": best_strength_tier <= 4,
+                }
+
                 if has_full:
-                    full_coverage.append({
-                        "control_id": control_id,
-                        "control_name": control.get("name", ""),
-                        "family": control.get("family", ""),
-                        "evidence_count": len(evidence_items),
-                        "evidence": evidence_items,
-                    })
+                    full_coverage.append(control_entry)
                 else:
-                    partial_coverage.append({
-                        "control_id": control_id,
-                        "control_name": control.get("name", ""),
-                        "family": control.get("family", ""),
-                        "evidence_count": len(evidence_items),
-                        "evidence": evidence_items,
-                    })
+                    partial_coverage.append(control_entry)
             else:
                 no_coverage.append({
                     "control_id": control_id,
@@ -465,17 +517,36 @@ Return as JSON:
                 })
 
         total = len(required_controls)
+
+        # Traditional coverage percentage
         coverage_pct = (
             (len(full_coverage) + len(partial_coverage) * 0.5) / total * 100
             if total > 0
             else 0
         )
 
+        # Quality score (strength-weighted)
+        quality_score = (
+            (total_weighted_score / max_possible_score) * 100
+            if max_possible_score > 0
+            else 0
+        )
+
+        # Count machine-verifiable vs human-curated evidence
+        machine_verifiable_count = sum(
+            1 for c in full_coverage + partial_coverage
+            if c.get("is_machine_verifiable", False)
+        )
+        human_curated_count = len(full_coverage) + len(partial_coverage) - machine_verifiable_count
+
         return {
             "controls_with_evidence": len(full_coverage),
             "controls_partial": len(partial_coverage),
             "controls_missing": len(no_coverage),
             "coverage_percentage": round(coverage_pct, 1),
+            "quality_score": round(quality_score, 1),
+            "machine_verifiable_count": machine_verifiable_count,
+            "human_curated_count": human_curated_count,
             "full_coverage": full_coverage,
             "partial_coverage": partial_coverage,
             "no_coverage": no_coverage,

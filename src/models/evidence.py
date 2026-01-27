@@ -1,6 +1,6 @@
 """Data models for evidence and gaps."""
 
-from enum import Enum
+from enum import Enum, IntEnum
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from pydantic import BaseModel, Field
@@ -20,6 +20,84 @@ class EvidenceType(str, Enum):
     CONTRACT = "Contract"
     TRAINING_RECORD = "Training Record"
     OTHER = "Other"
+
+
+class EvidenceStrength(IntEnum):
+    """Evidence strength ranking (1=strongest, 7=weakest).
+
+    Ranked from strongest to weakest based on auditability and verifiability:
+    - Tiers 1-4: Machine-verifiable artifacts (preferred)
+    - Tiers 5-7: Human-curated evidence
+    """
+
+    SYSTEM_GENERATED = 1       # Logs, audit records, config exports, IAM dumps
+    INFRASTRUCTURE_AS_CODE = 2 # Terraform, Helm charts, Ansible, K8s manifests
+    AUTOMATED_TEST = 3         # CI pipeline output, SAST/DAST, CIS benchmarks
+    CODE_ENFORCEMENT = 4       # Authorization middleware, input validation, crypto
+    SCREENSHOT = 5             # Admin console shots, RBAC settings in UI
+    VIDEO_WALKTHROUGH = 6      # Demonstrative recordings (non-auditable)
+    NARRATIVE = 7              # Written descriptions, attestations
+
+
+# Evidence strength scores (0-100)
+EVIDENCE_STRENGTH_SCORES: Dict[EvidenceStrength, int] = {
+    EvidenceStrength.SYSTEM_GENERATED: 100,
+    EvidenceStrength.INFRASTRUCTURE_AS_CODE: 90,
+    EvidenceStrength.AUTOMATED_TEST: 80,
+    EvidenceStrength.CODE_ENFORCEMENT: 70,
+    EvidenceStrength.SCREENSHOT: 50,
+    EvidenceStrength.VIDEO_WALKTHROUGH: 30,
+    EvidenceStrength.NARRATIVE: 20,
+}
+
+# Human-readable labels for evidence strength tiers
+EVIDENCE_STRENGTH_LABELS: Dict[EvidenceStrength, str] = {
+    EvidenceStrength.SYSTEM_GENERATED: "System-Generated",
+    EvidenceStrength.INFRASTRUCTURE_AS_CODE: "Infrastructure-as-Code",
+    EvidenceStrength.AUTOMATED_TEST: "Automated Test",
+    EvidenceStrength.CODE_ENFORCEMENT: "Code Enforcement",
+    EvidenceStrength.SCREENSHOT: "Screenshot",
+    EvidenceStrength.VIDEO_WALKTHROUGH: "Video Walkthrough",
+    EvidenceStrength.NARRATIVE: "Narrative",
+}
+
+# Category name to EvidenceStrength mapping
+EVIDENCE_CATEGORY_MAP: Dict[str, EvidenceStrength] = {
+    "SYSTEM_GENERATED": EvidenceStrength.SYSTEM_GENERATED,
+    "INFRASTRUCTURE_AS_CODE": EvidenceStrength.INFRASTRUCTURE_AS_CODE,
+    "AUTOMATED_TEST": EvidenceStrength.AUTOMATED_TEST,
+    "CODE_ENFORCEMENT": EvidenceStrength.CODE_ENFORCEMENT,
+    "SCREENSHOT": EvidenceStrength.SCREENSHOT,
+    "VIDEO_WALKTHROUGH": EvidenceStrength.VIDEO_WALKTHROUGH,
+    "NARRATIVE": EvidenceStrength.NARRATIVE,
+}
+
+
+def get_strength_score(tier: int) -> int:
+    """Get numeric score (0-100) for evidence strength tier."""
+    try:
+        return EVIDENCE_STRENGTH_SCORES.get(EvidenceStrength(tier), 20)
+    except ValueError:
+        return 20  # Default to lowest score for invalid tiers
+
+
+def get_strength_label(tier: int) -> str:
+    """Get human-readable label for evidence strength tier."""
+    try:
+        return EVIDENCE_STRENGTH_LABELS.get(EvidenceStrength(tier), "Unknown")
+    except ValueError:
+        return "Unknown"
+
+
+def is_machine_verifiable(tier: int) -> bool:
+    """Check if evidence type is machine-verifiable (tiers 1-4)."""
+    return 1 <= tier <= 4
+
+
+def get_strength_from_category(category: str) -> int:
+    """Get strength tier from category name."""
+    strength = EVIDENCE_CATEGORY_MAP.get(category.upper())
+    return strength.value if strength else 7  # Default to NARRATIVE
 
 
 class Evidence(BaseModel):

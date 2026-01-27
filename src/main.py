@@ -847,6 +847,86 @@ async def restore_control(assessment_id: str, control_id: str):
     }
 
 
+@app.get("/api/v1/assessment/{assessment_id}/quality-report")
+async def get_evidence_quality_report(assessment_id: str):
+    """Get detailed evidence quality analysis with strength distribution."""
+    assessment_data = await storage.get_assessment(assessment_id)
+    if not assessment_data:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+
+    if not assessment_data.get("results"):
+        raise HTTPException(status_code=400, detail="Assessment not completed. Run the assessment first.")
+
+    results = assessment_data["results"]
+    coverage = results.get("phases", {}).get("coverage", {})
+    summary = results.get("summary", {})
+
+    # Strength labels for the response
+    strength_labels = {
+        1: "System-Generated",
+        2: "Infrastructure-as-Code",
+        3: "Automated Test",
+        4: "Code Enforcement",
+        5: "Screenshot",
+        6: "Video Walkthrough",
+        7: "Narrative"
+    }
+
+    # Aggregate evidence by strength tier
+    strength_distribution = {tier: 0 for tier in range(1, 8)}
+    machine_verifiable_count = 0
+    human_curated_count = 0
+    evidence_details = []
+
+    for category in ["full_coverage", "partial_coverage"]:
+        for ctrl in coverage.get(category, []):
+            for ev in ctrl.get("evidence", []):
+                tier = ev.get("evidence", {}).get("evidence_strength_tier", 7)
+                # Ensure tier is an integer
+                if isinstance(tier, str):
+                    try:
+                        tier = int(tier)
+                    except ValueError:
+                        tier = 7
+                tier = max(1, min(7, tier))  # Clamp to valid range
+
+                strength_distribution[tier] += 1
+                if tier <= 4:
+                    machine_verifiable_count += 1
+                else:
+                    human_curated_count += 1
+
+                evidence_details.append({
+                    "control_id": ctrl.get("control_id"),
+                    "document": ev.get("document"),
+                    "strength_tier": tier,
+                    "strength_label": strength_labels.get(tier, "Unknown"),
+                    "coverage": ev.get("evidence", {}).get("coverage", "MENTIONS"),
+                    "is_machine_verifiable": tier <= 4,
+                })
+
+    total_evidence = machine_verifiable_count + human_curated_count
+    machine_verifiable_ratio = round(
+        machine_verifiable_count / max(total_evidence, 1) * 100, 1
+    )
+
+    return {
+        "assessment_id": assessment_id,
+        "quality_score": summary.get("quality_score", 0),
+        "coverage_percentage": summary.get("coverage_percentage", 0),
+        "strength_distribution": {
+            strength_labels[tier]: count
+            for tier, count in strength_distribution.items()
+        },
+        "strength_distribution_raw": strength_distribution,
+        "total_evidence_items": total_evidence,
+        "machine_verifiable_count": machine_verifiable_count,
+        "human_curated_count": human_curated_count,
+        "machine_verifiable_ratio": machine_verifiable_ratio,
+        "evidence_details": evidence_details,
+    }
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

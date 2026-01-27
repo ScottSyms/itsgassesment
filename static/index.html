@@ -40,6 +40,17 @@
         .markdown-content .severity-medium { background-color: #fef9c3; color: #854d0e; padding: 0.125rem 0.5rem; border-radius: 0.25rem; }
         .markdown-content .severity-low { background-color: #dcfce7; color: #166534; padding: 0.125rem 0.5rem; border-radius: 0.25rem; }
         .markdown-content blockquote { margin: 0.5rem 0; padding: 0.75rem; background: #f9fafb; border-left: 3px solid #9ca3af; font-style: italic; font-size: 0.9rem; }
+        /* Evidence Strength Badges */
+        .strength-badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
+        .strength-1 { background: #dcfce7; color: #166534; }  /* System Generated - Green */
+        .strength-2 { background: #d1fae5; color: #065f46; }  /* IaC - Teal */
+        .strength-3 { background: #dbeafe; color: #1e40af; }  /* Automated Test - Blue */
+        .strength-4 { background: #e0e7ff; color: #4338ca; }  /* Code - Indigo */
+        .strength-5 { background: #fef9c3; color: #854d0e; }  /* Screenshot - Yellow */
+        .strength-6 { background: #fed7aa; color: #c2410c; }  /* Video - Orange */
+        .strength-7 { background: #fee2e2; color: #991b1b; }  /* Narrative - Red */
+        .machine-verifiable-badge { color: #059669; font-size: 0.65rem; }
+        .human-curated-badge { color: #d97706; font-size: 0.65rem; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -1102,7 +1113,7 @@
                                     <div style="font-size:0.875rem;color:#991b1b">Needs Evidence</div>
                                 </div>
                             </div>
-                            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem">
+                            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:1.5rem">
                                 <div style="background:#dbeafe;padding:0.75rem;border-radius:0.5rem;text-align:center">
                                     <div style="font-size:1.5rem;font-weight:bold;color:#1e40af">${notApplicableCount}</div>
                                     <div style="font-size:0.75rem;color:#3b82f6">Not Applicable</div>
@@ -1115,6 +1126,11 @@
                                 <div style="background:#f3f4f6;padding:0.75rem;border-radius:0.5rem;text-align:center">
                                     <div style="font-size:1.5rem;font-weight:bold;color:${coverageColor}">${coveragePct}%</div>
                                     <div style="font-size:0.75rem;color:#6b7280">Coverage</div>
+                                </div>
+                                <div style="background:#e0f2fe;padding:0.75rem;border-radius:0.5rem;text-align:center">
+                                    <div style="font-size:1.5rem;font-weight:bold;color:#0369a1">${s.quality_score || 0}%</div>
+                                    <div style="font-size:0.75rem;color:#0284c7">Evidence Quality</div>
+                                    <div style="font-size:0.65rem;color:#6b7280;margin-top:2px"><i class="fas fa-robot"></i> ${s.machine_verifiable_count || 0} / <i class="fas fa-user"></i> ${s.human_curated_count || 0}</div>
                                 </div>
                                 <div style="background:#e0e7ff;padding:0.75rem;border-radius:0.5rem;text-align:center">
                                     <div style="font-size:1.5rem;font-weight:bold;color:#4338ca">${s.applicable_controls || (s.total_controls - notApplicableCount)}</div>
@@ -1210,9 +1226,16 @@
                                     for (const ev of evidenceItems) {
                                         const excerpt = ev.evidence?.relevant_excerpt || '';
                                         const summary = ev.evidence?.evidence_summary || '';
+                                        const strengthTier = ev.evidence?.evidence_strength_tier || 7;
+                                        const strengthLabel = this.getStrengthLabel(strengthTier);
+                                        const isMachineVerifiable = strengthTier <= 4;
                                         evidenceHtml += `
                                             <div style="margin-bottom:0.75rem;padding-bottom:0.75rem;border-bottom:1px solid #e5e7eb">
-                                                <div style="font-size:0.75rem;color:#059669;font-weight:500;margin-bottom:0.25rem"><i class="fas fa-file-alt"></i> ${ev.document || 'Unknown'}</div>
+                                                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:0.25rem">
+                                                    <span style="font-size:0.75rem;color:#059669;font-weight:500"><i class="fas fa-file-alt"></i> ${ev.document || 'Unknown'}</span>
+                                                    <span class="strength-badge strength-${strengthTier}">${strengthLabel}</span>
+                                                    ${isMachineVerifiable ? '<span class="machine-verifiable-badge"><i class="fas fa-robot"></i> Machine-Verifiable</span>' : '<span class="human-curated-badge"><i class="fas fa-user"></i> Human-Curated</span>'}
+                                                </div>
                                                 <p style="margin:0 0 0.5rem 0;font-size:0.875rem">${summary}</p>
                                                 ${excerpt ? `<blockquote style="margin:0;padding:0.5rem;background:#f0fdf4;border-left:3px solid #059669;font-style:italic;font-size:0.85rem">"${excerpt}"</blockquote>` : ''}
                                             </div>
@@ -1248,9 +1271,16 @@
                                     for (const ev of evidenceItems) {
                                         const excerpt = ev.evidence?.relevant_excerpt || '';
                                         const summary = ev.evidence?.evidence_summary || '';
+                                        const strengthTier = ev.evidence?.evidence_strength_tier || 7;
+                                        const strengthLabel = this.getStrengthLabel(strengthTier);
+                                        const isMachineVerifiable = strengthTier <= 4;
                                         evidenceHtml += `
                                             <div style="margin-bottom:0.75rem;padding-bottom:0.75rem;border-bottom:1px solid #e5e7eb">
-                                                <div style="font-size:0.75rem;color:#d97706;font-weight:500;margin-bottom:0.25rem"><i class="fas fa-file-alt"></i> ${ev.document || 'Unknown'}</div>
+                                                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:0.25rem">
+                                                    <span style="font-size:0.75rem;color:#d97706;font-weight:500"><i class="fas fa-file-alt"></i> ${ev.document || 'Unknown'}</span>
+                                                    <span class="strength-badge strength-${strengthTier}">${strengthLabel}</span>
+                                                    ${isMachineVerifiable ? '<span class="machine-verifiable-badge"><i class="fas fa-robot"></i> Machine-Verifiable</span>' : '<span class="human-curated-badge"><i class="fas fa-user"></i> Human-Curated</span>'}
+                                                </div>
                                                 <p style="margin:0 0 0.5rem 0;font-size:0.875rem">${summary}</p>
                                                 ${excerpt ? `<blockquote style="margin:0;padding:0.5rem;background:#fef9c3;border-left:3px solid #d97706;font-style:italic;font-size:0.85rem">"${excerpt}"</blockquote>` : ''}
                                             </div>
@@ -1886,6 +1916,24 @@ This assessment has been created but not yet executed. Upload documents and run 
                     } catch (error) {
                         this.showToast(`Failed to restore evidence: ${error.message}`, 'error');
                     }
+                },
+
+                getStrengthLabel(tier) {
+                    const labels = {
+                        1: 'System-Generated',
+                        2: 'IaC',
+                        3: 'Automated Test',
+                        4: 'Code',
+                        5: 'Screenshot',
+                        6: 'Video',
+                        7: 'Narrative'
+                    };
+                    return labels[tier] || 'Unknown';
+                },
+
+                getStrengthScore(tier) {
+                    const scores = {1: 100, 2: 90, 3: 80, 4: 70, 5: 50, 6: 30, 7: 20};
+                    return scores[tier] || 20;
                 },
 
                 showToast(message, type = 'info') {

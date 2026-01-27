@@ -373,8 +373,14 @@ class WordReportGenerator:
             s = results["summary"]
             doc.add_heading("Assessment Summary", level=1)
 
-            summary_table = doc.add_table(rows=6, cols=2)
+            summary_table = doc.add_table(rows=8, cols=2)
             summary_table.style = "Table Grid"
+
+            # Calculate machine-verifiable ratio
+            mv_count = s.get("machine_verifiable_count", 0)
+            hc_count = s.get("human_curated_count", 0)
+            total_ev = mv_count + hc_count
+            mv_ratio = f"{round(mv_count / max(total_ev, 1) * 100, 1)}%" if total_ev > 0 else "N/A"
 
             summary_data = [
                 ("Security Profile", f"Profile {s.get('profile', 2)}"),
@@ -383,6 +389,8 @@ class WordReportGenerator:
                 ("Controls with Partial Evidence", str(s.get("controls_partial", 0))),
                 ("Controls Missing Evidence", str(s.get("controls_missing", 0))),
                 ("Coverage Percentage", f"{s.get('coverage_percentage', 0)}%"),
+                ("Evidence Quality Score", f"{s.get('quality_score', 0)}%"),
+                ("Machine-Verifiable Evidence", f"{mv_count} of {total_ev} ({mv_ratio})"),
             ]
 
             for i, (label, value) in enumerate(summary_data):
