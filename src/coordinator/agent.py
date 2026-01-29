@@ -4,6 +4,7 @@ import os
 import json
 from typing import Dict, Any, List, Optional
 from pathlib import Path
+from PIL import Image
 
 from src.utils.gemini_client import GeminiClient
 from src.utils.document_parser import DocumentParser
@@ -36,6 +37,7 @@ class ITSG33Coordinator:
         documents: List[Dict[str, Any]],
         diagrams: List[Dict[str, Any]],
         client_id: str,
+        videos: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
         """
         Run complete ITSG-33 assessment.
@@ -45,6 +47,7 @@ class ITSG33Coordinator:
             documents: List of document metadata with content
             diagrams: List of diagram metadata
             client_id: Client identifier
+            videos: List of video metadata with keyframes
 
         Returns:
             Complete assessment results
@@ -54,6 +57,9 @@ class ITSG33Coordinator:
             "status": "in_progress",
             "phases": {},
         }
+
+        # Combine documents and videos for evidence analysis
+        all_evidence_sources = documents + (videos or [])
 
         try:
             # Phase 1: Analyze system and determine profile
@@ -76,9 +82,9 @@ class ITSG33Coordinator:
             results["phases"]["applicability"] = applicability
             applicable_controls = applicability["applicable_controls"]
 
-            # Phase 4: Analyze each document for evidence (only for applicable controls)
+            # Phase 4: Analyze each source for evidence (only for applicable controls)
             evidence_analysis = await self._analyze_documents_for_evidence(
-                documents, applicable_controls
+                all_evidence_sources, applicable_controls
             )
             results["phases"]["evidence_analysis"] = evidence_analysis
 
@@ -90,9 +96,7 @@ class ITSG33Coordinator:
             results["phases"]["coverage"] = coverage
 
             # Phase 6: Generate recommendations
-            recommendations = await self._generate_recommendations(
-                coverage, applicable_controls
-            )
+            recommendations = await self._generate_recommendations(coverage, applicable_controls)
             results["phases"]["recommendations"] = recommendations
 
             results["status"] = "completed"
@@ -114,13 +118,12 @@ class ITSG33Coordinator:
             results["status"] = "error"
             results["error"] = str(e)
             import traceback
+
             results["traceback"] = traceback.format_exc()
 
         return results
 
-    async def _analyze_system(
-        self, conops: str, documents: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+    async def _analyze_system(self, conops: str, documents: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Analyze system to determine security profile."""
         # Combine document content for context
         doc_content = ""
@@ -190,9 +193,7 @@ Return your analysis as JSON with these exact keys:
             "rationale": "Default profile assigned due to insufficient information",
         }
 
-    def _group_controls_by_family(
-        self, controls: List[Dict[str, Any]]
-    ) -> Dict[str, List[str]]:
+    def _group_controls_by_family(self, controls: List[Dict[str, Any]]) -> Dict[str, List[str]]:
         """Group controls by family."""
         families = {}
         for control in controls:
@@ -226,19 +227,18 @@ Return your analysis as JSON with these exact keys:
                 doc_content += doc["content"][:2000]
 
         # Create control list for the prompt
-        control_list = "\n".join([
-            f"- {c['id']}: {c.get('name', '')} ({c.get('family', '')})"
-            for c in required_controls
-        ])
+        control_list = "\n".join(
+            [f"- {c['id']}: {c.get('name', '')} ({c.get('family', '')})" for c in required_controls]
+        )
 
         prompt = f"""Based on this system's characteristics, determine which ITSG-33 controls are APPLICABLE.
 
 SYSTEM ANALYSIS:
-- System Type: {system_analysis.get('system_type', 'Unknown')}
-- Data Classification: {system_analysis.get('data_classification', 'Unknown')}
-- Confidentiality: {system_analysis.get('confidentiality', 'Unknown')}
-- Integrity: {system_analysis.get('integrity', 'Unknown')}
-- Availability: {system_analysis.get('availability', 'Unknown')}
+- System Type: {system_analysis.get("system_type", "Unknown")}
+- Data Classification: {system_analysis.get("data_classification", "Unknown")}
+- Confidentiality: {system_analysis.get("confidentiality", "Unknown")}
+- Integrity: {system_analysis.get("integrity", "Unknown")}
+- Availability: {system_analysis.get("availability", "Unknown")}
 
 CONOPS/SYSTEM DESCRIPTION:
 {conops[:3000] if conops else "No CONOPS provided"}
@@ -291,16 +291,22 @@ Return as JSON:
                     if control_id in not_applicable_ids:
                         # Find the reason
                         reason = next(
-                            (item["reason"] for item in not_applicable_items if item["control_id"] == control_id),
-                            "Determined not applicable based on system analysis"
+                            (
+                                item["reason"]
+                                for item in not_applicable_items
+                                if item["control_id"] == control_id
+                            ),
+                            "Determined not applicable based on system analysis",
                         )
-                        not_applicable_controls.append({
-                            "control_id": control_id,
-                            "control_name": control.get("name", ""),
-                            "family": control.get("family", ""),
-                            "not_applicable_reason": reason,
-                            "auto_determined": True,
-                        })
+                        not_applicable_controls.append(
+                            {
+                                "control_id": control_id,
+                                "control_name": control.get("name", ""),
+                                "family": control.get("family", ""),
+                                "not_applicable_reason": reason,
+                                "auto_determined": True,
+                            }
+                        )
                     else:
                         # Default to applicable if not explicitly marked as not applicable
                         applicable_controls.append(control)
@@ -336,19 +342,19 @@ Return as JSON:
             if "content" not in doc or not doc["content"]:
                 continue
 
-            doc_analysis = await self._analyze_single_document(
-                doc, required_controls
-            )
+            doc_analysis = await self._analyze_single_document(doc, required_controls)
             document_analyses.append(doc_analysis)
 
             # Update evidence map
             for control_id, evidence in doc_analysis.get("controls_addressed", {}).items():
                 if control_id not in evidence_map:
                     evidence_map[control_id] = []
-                evidence_map[control_id].append({
-                    "document": doc.get("filename", "Unknown"),
-                    "evidence": evidence,
-                })
+                evidence_map[control_id].append(
+                    {
+                        "document": doc.get("filename", "Unknown"),
+                        "evidence": evidence,
+                    }
+                )
 
         return {
             "document_analyses": document_analyses,
@@ -358,7 +364,24 @@ Return as JSON:
     async def _analyze_single_document(
         self, doc: Dict[str, Any], required_controls: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
-        """Analyze a single document for control evidence."""
+        """Analyze a single document or video for control evidence."""
+        user_control_hints = doc.get("user_control_hints") or []
+        user_explanation = doc.get("user_explanation") or doc.get("significance_note")
+        declared_type = doc.get("declared_type") or doc.get("document_type")
+
+        hint_lines = []
+        if user_control_hints:
+            hint_lines.append(f"Suggested Controls: {', '.join(user_control_hints)}")
+        if declared_type:
+            hint_lines.append(f"Declared Type: {declared_type}")
+        if user_explanation:
+            hint_lines.append(f"CRITICAL USER SIGNIFICANCE NOTE: {user_explanation}")
+            hint_lines.append(
+                "TRUST THIS NOTE: The user has identified the above as the primary significance of this file. Use it as your main lead for control mapping."
+            )
+
+        hint_block = "\n".join(hint_lines) if hint_lines else "None provided"
+
         # Create a summary of control families for the prompt
         control_summary = {}
         for control in required_controls:
@@ -371,54 +394,78 @@ Return as JSON:
             [f"{fam}: {', '.join(ctrls[:5])}..." for fam, ctrls in control_summary.items()]
         )
 
-        prompt = f"""Analyze this security document and identify which ITSG-33 controls it provides evidence for.
+        prompt = f"""Analyze this security evidence and identify which ITSG-33 controls it provides evidence for.
 
-DOCUMENT: {doc.get('filename', 'Unknown')}
-CONTENT:
-{doc.get('content', '')[:12000]}
+ DOCUMENT: {doc.get("filename", "Unknown")}
+ USER-SUBMITTED HINTS & SIGNIFICANCE:
+ {hint_block}
 
-EVIDENCE STRENGTH CLASSIFICATION (classify each piece of evidence by type):
-1. SYSTEM_GENERATED - Logs, audit records, config exports, IAM policy dumps, compliance script output (e.g., kubectl get, aws iam)
-2. INFRASTRUCTURE_AS_CODE - Terraform, Helm charts, Ansible playbooks, K8s manifests enforcing RBAC/policies
-3. AUTOMATED_TEST - CI pipeline output, security scan reports (SAST/DAST), CIS benchmark results
-4. CODE_ENFORCEMENT - Authorization middleware, input validation code, crypto usage in application logic
-5. SCREENSHOT - Admin console screenshots, RBAC settings in UI, configuration panels
-6. VIDEO_WALKTHROUGH - Demonstrative recordings, walkthroughs (non-auditable)
-7. NARRATIVE - Written descriptions, attestations, policy statements ("The system enforces X...")
+ CONTENT SUMMARY:
+ {doc.get("content", "")[:12000]}
 
-Rule: Prefer machine-verifiable artifacts (tiers 1-4) over human-curated ones (tiers 5-7).
+ EVIDENCE STRENGTH CLASSIFICATION (classify each piece of evidence by type):
+ 1. SYSTEM_GENERATED - Logs, audit records, config exports, IAM policy dumps, compliance script output
+ 2. INFRASTRUCTURE_AS_CODE - Terraform, Helm charts, Ansible playbooks, K8s manifests
+ 3. AUTOMATED_TEST - CI pipeline output, security scan reports, CIS benchmark results
+ 4. CODE_ENFORCEMENT - Authorization middleware, input validation code, crypto usage
+ 5. SCREENSHOT - Admin console screenshots, RBAC settings in UI, configuration panels
+ 6. VIDEO_WALKTHROUGH - Demonstrative recordings, walkthroughs (non-auditable)
+ 7. NARRATIVE - Written descriptions, attestations, policy statements
 
-ITSG-33 CONTROL FAMILIES TO CHECK:
-{control_list}
+ Rule: Prefer machine-verifiable artifacts (tiers 1-4) over human-curated ones (tiers 5-7).
 
-For each control that this document provides evidence for, identify:
-1. The control ID (e.g., AC-1, AU-2)
-2. What evidence this document provides
-3. Coverage: FULL (completely addresses), PARTIAL (some aspects), MENTIONS (references only)
-4. Evidence strength tier (1-7 from classification above)
-5. Evidence type category (SYSTEM_GENERATED, INFRASTRUCTURE_AS_CODE, etc.)
+ ITSG-33 CONTROL FAMILIES TO CHECK:
+ {control_list}
 
-Focus on finding REAL evidence of security controls being implemented, not just mentions.
+ For each control that this evidence provides proof for, identify:
+ 1. The control ID (e.g., AC-1, AU-2)
+ 2. What evidence this source provides
+ 3. Coverage: FULL (completely addresses), PARTIAL (some aspects), MENTIONS (references only)
+ 4. Evidence strength tier (1-7 from classification above)
+ 5. Evidence type category (SYSTEM_GENERATED, INFRASTRUCTURE_AS_CODE, etc.)
 
-Return as JSON:
-{{
-    "document_type": "type of document (policy, procedure, architecture, etc.)",
-    "document_purpose": "what this document is for",
-    "controls_addressed": {{
-        "CONTROL-ID": {{
-            "coverage": "FULL|PARTIAL|MENTIONS",
-            "evidence_strength_tier": 1-7,
-            "evidence_type_category": "SYSTEM_GENERATED|INFRASTRUCTURE_AS_CODE|AUTOMATED_TEST|CODE_ENFORCEMENT|SCREENSHOT|VIDEO_WALKTHROUGH|NARRATIVE",
-            "evidence_summary": "what evidence this document provides",
-            "relevant_excerpt": "key quote or section that proves this"
-        }}
-    }},
-    "key_security_topics": ["list of security topics covered"]
-}}
-"""
+ Focus on finding REAL evidence of security controls being implemented.
+ If user-submitted notes or hints are unsupported or contradicted by the content, note the gap.
+
+ Return as JSON:
+ {{
+     "document_type": "type of evidence (policy, log, video_frames, etc.)",
+     "document_purpose": "what this evidence demonstrates",
+     "controls_addressed": {{
+         "CONTROL-ID": {{
+             "coverage": "FULL|PARTIAL|MENTIONS",
+             "evidence_strength_tier": 1-7,
+             "evidence_type_category": "SYSTEM_GENERATED|...",
+             "evidence_summary": "what evidence this source provides",
+             "relevant_excerpt": "key quote, log line, or visual description"
+         }}
+     }},
+     "key_security_topics": ["list of security topics covered"]
+ }}
+ """
+
+        # Prepare multimodal content for Gemini
+        gemini_content = [prompt]
+
+        # Add keyframes if it's a video
+        if doc.get("type") == "video" and "keyframes" in doc:
+            for frame in doc["keyframes"]:
+                try:
+                    img = Image.open(frame["path"])
+                    gemini_content.append(img)
+                except Exception:
+                    pass
+
+        # Add image if it's an image
+        if doc.get("type") == "image" and "path" in doc:
+            try:
+                img = Image.open(doc["path"])
+                gemini_content.append(img)
+            except Exception:
+                pass
 
         try:
-            response = await self.gemini.generate_async(prompt)
+            response = await self.gemini.generate_async(gemini_content)
             json_start = response.find("{")
             json_end = response.rfind("}") + 1
             if json_start >= 0 and json_end > json_start:
@@ -509,33 +556,30 @@ Return as JSON:
                 else:
                     partial_coverage.append(control_entry)
             else:
-                no_coverage.append({
-                    "control_id": control_id,
-                    "control_name": control.get("name", ""),
-                    "family": control.get("family", ""),
-                    "questions": control.get("questions", []),
-                })
+                no_coverage.append(
+                    {
+                        "control_id": control_id,
+                        "control_name": control.get("name", ""),
+                        "family": control.get("family", ""),
+                        "questions": control.get("questions", []),
+                    }
+                )
 
         total = len(required_controls)
 
         # Traditional coverage percentage
         coverage_pct = (
-            (len(full_coverage) + len(partial_coverage) * 0.5) / total * 100
-            if total > 0
-            else 0
+            (len(full_coverage) + len(partial_coverage) * 0.5) / total * 100 if total > 0 else 0
         )
 
         # Quality score (strength-weighted)
         quality_score = (
-            (total_weighted_score / max_possible_score) * 100
-            if max_possible_score > 0
-            else 0
+            (total_weighted_score / max_possible_score) * 100 if max_possible_score > 0 else 0
         )
 
         # Count machine-verifiable vs human-curated evidence
         machine_verifiable_count = sum(
-            1 for c in full_coverage + partial_coverage
-            if c.get("is_machine_verifiable", False)
+            1 for c in full_coverage + partial_coverage if c.get("is_machine_verifiable", False)
         )
         human_curated_count = len(full_coverage) + len(partial_coverage) - machine_verifiable_count
 
@@ -578,33 +622,37 @@ Return as JSON:
         high_families = ["AC", "IA", "AU", "SC"]
         for ctrl in missing_controls:
             if ctrl.get("family") in high_families:
-                high_priority.append({
-                    "control_id": ctrl["control_id"],
-                    "control_name": ctrl["control_name"],
-                    "action": "Provide evidence or implement this control",
-                    "suggested_evidence": self._suggest_evidence(ctrl["control_id"]),
-                })
+                high_priority.append(
+                    {
+                        "control_id": ctrl["control_id"],
+                        "control_name": ctrl["control_name"],
+                        "action": "Provide evidence or implement this control",
+                        "suggested_evidence": self._suggest_evidence(ctrl["control_id"]),
+                    }
+                )
             elif ctrl.get("family") in ["CM", "SI", "IR"]:
-                medium_priority.append({
-                    "control_id": ctrl["control_id"],
-                    "control_name": ctrl["control_name"],
-                    "action": "Provide evidence or implement this control",
-                })
+                medium_priority.append(
+                    {
+                        "control_id": ctrl["control_id"],
+                        "control_name": ctrl["control_name"],
+                        "action": "Provide evidence or implement this control",
+                    }
+                )
             else:
-                low_priority.append({
-                    "control_id": ctrl["control_id"],
-                    "control_name": ctrl["control_name"],
-                    "action": "Provide evidence documentation",
-                })
+                low_priority.append(
+                    {
+                        "control_id": ctrl["control_id"],
+                        "control_name": ctrl["control_name"],
+                        "action": "Provide evidence documentation",
+                    }
+                )
 
         return {
             "high_priority": high_priority,
             "medium_priority": medium_priority,
             "low_priority": low_priority,
             "low_priority_count": len(low_priority),
-            "missing_by_family": {
-                fam: len(ctrls) for fam, ctrls in missing_by_family.items()
-            },
+            "missing_by_family": {fam: len(ctrls) for fam, ctrls in missing_by_family.items()},
             "next_steps": [
                 "Upload security policies covering Access Control (AC) family",
                 "Provide authentication and identity management documentation (IA)",
@@ -643,9 +691,9 @@ Return as JSON:
     ) -> Dict[str, Any]:
         """Reassess when a new document is added."""
         # Get required controls from previous assessment
-        profile = assessment_results.get("phases", {}).get(
-            "required_controls", {}
-        ).get("profile", 2)
+        profile = (
+            assessment_results.get("phases", {}).get("required_controls", {}).get("profile", 2)
+        )
         required_controls = self.get_controls_for_profile(profile)
 
         # Get applicable controls from previous assessment (or all if not available)
@@ -654,46 +702,50 @@ Return as JSON:
         not_applicable_controls = applicability.get("not_applicable_controls", [])
 
         # Analyze new document against applicable controls only
-        new_doc_analysis = await self._analyze_single_document(
-            new_document, applicable_controls
-        )
+        new_doc_analysis = await self._analyze_single_document(new_document, applicable_controls)
 
         # Merge with existing evidence
-        existing_evidence = assessment_results.get("phases", {}).get(
-            "evidence_analysis", {}
-        ).get("evidence_by_control", {})
+        existing_evidence = (
+            assessment_results.get("phases", {})
+            .get("evidence_analysis", {})
+            .get("evidence_by_control", {})
+        )
 
         for control_id, evidence in new_doc_analysis.get("controls_addressed", {}).items():
             if control_id not in existing_evidence:
                 existing_evidence[control_id] = []
-            existing_evidence[control_id].append({
-                "document": new_document.get("filename", "Unknown"),
-                "evidence": evidence,
-            })
+            existing_evidence[control_id].append(
+                {
+                    "document": new_document.get("filename", "Unknown"),
+                    "evidence": evidence,
+                }
+            )
 
         # Recalculate coverage based on applicable controls only
         evidence_analysis = {"evidence_by_control": existing_evidence}
         coverage = self._calculate_coverage(applicable_controls, evidence_analysis)
 
         # Preserve not_applicable and rejected_evidence from previous assessment
-        coverage["not_applicable"] = assessment_results.get("phases", {}).get(
-            "coverage", {}
-        ).get("not_applicable", not_applicable_controls)
+        coverage["not_applicable"] = (
+            assessment_results.get("phases", {})
+            .get("coverage", {})
+            .get("not_applicable", not_applicable_controls)
+        )
         coverage["controls_not_applicable"] = len(coverage["not_applicable"])
 
-        coverage["rejected_evidence"] = assessment_results.get("phases", {}).get(
-            "coverage", {}
-        ).get("rejected_evidence", [])
+        coverage["rejected_evidence"] = (
+            assessment_results.get("phases", {}).get("coverage", {}).get("rejected_evidence", [])
+        )
         coverage["controls_rejected_evidence"] = len(coverage.get("rejected_evidence", []))
 
         # Update recommendations
-        recommendations = await self._generate_recommendations(
-            coverage, applicable_controls
-        )
+        recommendations = await self._generate_recommendations(coverage, applicable_controls)
 
         # Update results
         assessment_results["phases"]["evidence_analysis"]["evidence_by_control"] = existing_evidence
-        assessment_results["phases"]["evidence_analysis"]["document_analyses"].append(new_doc_analysis)
+        assessment_results["phases"]["evidence_analysis"]["document_analyses"].append(
+            new_doc_analysis
+        )
         assessment_results["phases"]["coverage"] = coverage
         assessment_results["phases"]["recommendations"] = recommendations
         assessment_results["summary"] = {

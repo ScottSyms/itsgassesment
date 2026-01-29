@@ -14,7 +14,7 @@ class GeminiConfig(BaseModel):
     """Gemini configuration."""
 
     api_key: str
-    model_name: str = "gemini-2.0-flash-exp"
+    model_name: str = "gemini-2.0-flash"
     temperature: float = 0.7
     top_p: float = 0.95
     top_k: int = 40
@@ -51,9 +51,9 @@ class GeminiClient:
         response = self.model.generate_content(prompt, **kwargs)
         return response.text
 
-    async def generate_async(self, prompt: str, **kwargs) -> str:
+    async def generate_async(self, content: Any, **kwargs) -> str:
         """Async generate response from Gemini."""
-        response = await self.model.generate_content_async(prompt, **kwargs)
+        response = await self.model.generate_content_async(content, **kwargs)
         return response.text
 
     def chat(self, messages: List[Dict[str, str]]) -> str:

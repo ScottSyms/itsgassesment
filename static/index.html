@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" x-data="app()" x-init="init()">
+<html :lang="lang" x-data="app()" x-init="init()">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ITSG-33 Accreditation System</title>
+    <title x-text="t('app.title')">ITSG-33 Accreditation System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -54,6 +54,13 @@
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
+    <!-- Top Utility Bar -->
+    <div class="bg-gray-900 text-white text-[0.7rem] py-1.5 px-4 sm:px-6 lg:px-8 flex justify-end items-center space-x-4">
+        <button @click="setLang('en')" class="hover:text-blue-300 transition-all uppercase tracking-widest" :class="lang === 'en' ? 'font-bold text-blue-400' : 'text-gray-400'">English</button>
+        <span class="text-gray-700">|</span>
+        <button @click="setLang('fr')" class="hover:text-blue-300 transition-all uppercase tracking-widest" :class="lang === 'fr' ? 'font-bold text-blue-400' : 'text-gray-400'">Français</button>
+    </div>
+
     <!-- Navigation -->
     <nav class="gradient-bg text-white shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -62,15 +69,15 @@
                     <div class="flex-shrink-0 flex items-center">
                         <img src="/static/aip.png" alt="Logo" class="h-10 w-auto mr-3 rounded">
                         <div>
-                            <span class="font-bold text-xl">ITSG-33 Accreditation</span>
-                            <span class="text-xs text-blue-200 block">Security Assessment Platform</span>
+                            <span class="font-bold text-xl" x-text="t('app.name')">ITSG-33 Accreditation</span>
+                            <span class="text-xs text-blue-200 block" x-text="t('app.subtitle')">Security Assessment Platform</span>
                         </div>
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <span class="text-sm text-blue-200">
-                        <i class="fas fa-circle text-green-400 text-xs mr-1 pulse-dot"></i>
-                        System Operational
+                    <span class="text-sm text-blue-200 hidden md:inline-flex items-center bg-white/5 px-3 py-1 rounded-full border border-white/10">
+                        <i class="fas fa-circle text-green-400 text-[0.5rem] mr-2 pulse-dot"></i>
+                        <span x-text="t('app.system_operational')">System Operational</span>
                     </span>
                 </div>
             </div>
@@ -84,22 +91,22 @@
                 <button @click="currentTab = 'dashboard'"
                         :class="currentTab === 'dashboard' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                         class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
-                    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                    <i class="fas fa-tachometer-alt mr-2"></i><span x-text="t('nav.dashboard')">Dashboard</span>
                 </button>
                 <button @click="currentTab = 'new'"
                         :class="currentTab === 'new' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                         class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
-                    <i class="fas fa-plus-circle mr-2"></i>New Assessment
+                    <i class="fas fa-plus-circle mr-2"></i><span x-text="t('nav.new_assessment')">New Assessment</span>
                 </button>
                 <button @click="currentTab = 'assessments'"
                         :class="currentTab === 'assessments' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                         class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
-                    <i class="fas fa-list mr-2"></i>Assessments
+                    <i class="fas fa-list mr-2"></i><span x-text="t('nav.assessments')">Assessments</span>
                 </button>
                 <button @click="currentTab = 'controls'"
                         :class="currentTab === 'controls' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                         class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
-                    <i class="fas fa-lock mr-2"></i>Control Families
+                    <i class="fas fa-lock mr-2"></i><span x-text="t('nav.controls')">Control Families</span>
                 </button>
             </nav>
         </div>
@@ -114,7 +121,7 @@
                             <i class="fas fa-clipboard-check text-2xl"></i>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-500">Total Assessments</p>
+                            <p class="text-sm font-medium text-gray-500" x-text="t('stats.total_assessments')">Total Assessments</p>
                             <p class="text-2xl font-bold text-gray-900" x-text="assessments.length">0</p>
                         </div>
                     </div>
@@ -125,7 +132,7 @@
                             <i class="fas fa-check-circle text-2xl"></i>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-500">Completed</p>
+                            <p class="text-sm font-medium text-gray-500" x-text="t('stats.completed')">Completed</p>
                             <p class="text-2xl font-bold text-gray-900" x-text="assessments.filter(a => a.status === 'completed').length">0</p>
                         </div>
                     </div>
@@ -136,7 +143,7 @@
                             <i class="fas fa-spinner text-2xl"></i>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-500">In Progress</p>
+                            <p class="text-sm font-medium text-gray-500" x-text="t('stats.in_progress')">In Progress</p>
                             <p class="text-2xl font-bold text-gray-900" x-text="assessments.filter(a => a.status === 'in_progress' || a.status === 'running').length">0</p>
                         </div>
                     </div>
@@ -147,7 +154,7 @@
                             <i class="fas fa-shield-alt text-2xl"></i>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-500">Control Families</p>
+                            <p class="text-sm font-medium text-gray-500" x-text="t('stats.control_families')">Control Families</p>
                             <p class="text-2xl font-bold text-gray-900">17</p>
                         </div>
                     </div>
@@ -157,24 +164,24 @@
             <!-- Recent Assessments -->
             <div class="bg-white rounded-xl shadow-md p-6">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                    <i class="fas fa-history mr-2 text-gray-400"></i>Recent Assessments
+                    <i class="fas fa-history mr-2 text-gray-400"></i><span x-text="t('dashboard.recent_assessments')">Recent Assessments</span>
                 </h3>
                 <div x-show="assessments.length === 0" class="text-center py-8 text-gray-500">
                     <i class="fas fa-inbox text-4xl mb-3"></i>
-                    <p>No assessments yet. Create your first assessment to get started.</p>
+                    <p x-text="t('dashboard.empty_assessments')">No assessments yet. Create your first assessment to get started.</p>
                     <button @click="currentTab = 'new'" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                        <i class="fas fa-plus mr-2"></i>Create Assessment
+                        <i class="fas fa-plus mr-2"></i><span x-text="t('dashboard.create_assessment')">Create Assessment</span>
                     </button>
                 </div>
                 <div x-show="assessments.length > 0" class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead>
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" x-text="t('table.project')">Project</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" x-text="t('table.client')">Client</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" x-text="t('table.status')">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" x-text="t('table.created')">Created</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" x-text="t('table.actions')">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
@@ -186,12 +193,12 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" x-text="assessment.client_id"></td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <span :class="getStatusClass(assessment.status)" class="px-2 py-1 text-xs font-medium rounded-full" x-text="assessment.status"></span>
+                                        <span :class="getStatusClass(assessment.status)" class="px-2 py-1 text-xs font-medium rounded-full" x-text="getStatusLabel(assessment.status)"></span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" x-text="formatDate(assessment.created_at)"></td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                                         <button @click="viewAssessment(assessment.assessment_id)" class="text-blue-600 hover:text-blue-800 mr-3">
-                                            <i class="fas fa-eye"></i> View
+                                            <i class="fas fa-eye"></i> <span x-text="t('action.view')">View</span>
                                         </button>
                                     </td>
                                 </tr>
@@ -206,24 +213,24 @@
         <div x-show="currentTab === 'new'" x-cloak>
             <div class="bg-white rounded-xl shadow-md p-8 max-w-3xl mx-auto">
                 <h2 class="text-2xl font-bold text-gray-900 mb-6">
-                    <i class="fas fa-plus-circle mr-2 text-blue-600"></i>Create New Assessment
+                    <i class="fas fa-plus-circle mr-2 text-blue-600"></i><span x-text="t('assessment.new_title')">Create New Assessment</span>
                 </h2>
 
                 <!-- Step Indicator -->
                 <div class="flex items-center mb-8">
                     <div class="flex items-center">
                         <div :class="step >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'" class="w-8 h-8 rounded-full flex items-center justify-center font-bold">1</div>
-                        <span class="ml-2 text-sm font-medium" :class="step >= 1 ? 'text-blue-600' : 'text-gray-500'">Details</span>
+                        <span class="ml-2 text-sm font-medium" :class="step >= 1 ? 'text-blue-600' : 'text-gray-500'" x-text="t('step.details')">Details</span>
                     </div>
                     <div class="flex-1 h-1 mx-4" :class="step >= 2 ? 'bg-blue-600' : 'bg-gray-200'"></div>
                     <div class="flex items-center">
                         <div :class="step >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'" class="w-8 h-8 rounded-full flex items-center justify-center font-bold">2</div>
-                        <span class="ml-2 text-sm font-medium" :class="step >= 2 ? 'text-blue-600' : 'text-gray-500'">Documents</span>
+                        <span class="ml-2 text-sm font-medium" :class="step >= 2 ? 'text-blue-600' : 'text-gray-500'" x-text="t('step.documents')">Documents</span>
                     </div>
                     <div class="flex-1 h-1 mx-4" :class="step >= 3 ? 'bg-blue-600' : 'bg-gray-200'"></div>
                     <div class="flex items-center">
                         <div :class="step >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'" class="w-8 h-8 rounded-full flex items-center justify-center font-bold">3</div>
-                        <span class="ml-2 text-sm font-medium" :class="step >= 3 ? 'text-blue-600' : 'text-gray-500'">Run</span>
+                        <span class="ml-2 text-sm font-medium" :class="step >= 3 ? 'text-blue-600' : 'text-gray-500'" x-text="t('step.run')">Run</span>
                     </div>
                 </div>
 
@@ -231,29 +238,29 @@
                 <div x-show="step === 1">
                     <div class="space-y-6">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Client ID *</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2" x-text="t('form.client_id')">Client ID *</label>
                             <input type="text" x-model="newAssessment.client_id"
                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                                   placeholder="e.g., DEPT_001">
+                                   :placeholder="t('form.client_placeholder')">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Project Name *</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2" x-text="t('form.project_name')">Project Name *</label>
                             <input type="text" x-model="newAssessment.project_name"
                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                                   placeholder="e.g., Cloud Migration Project">
+                                   :placeholder="t('form.project_placeholder')">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Concept of Operations (CONOPS)</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2" x-text="t('form.conops')">Concept of Operations (CONOPS)</label>
                             <textarea x-model="newAssessment.conops" rows="5"
                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                                      placeholder="Describe the system purpose, data types processed, user base, and operational context..."></textarea>
+                                      :placeholder="t('form.conops_placeholder')"></textarea>
                         </div>
                         <div class="flex justify-end">
                             <button @click="createAssessment()"
                                     :disabled="!newAssessment.client_id || !newAssessment.project_name"
                                     :class="(!newAssessment.client_id || !newAssessment.project_name) ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'"
                                     class="px-6 py-3 text-white rounded-lg font-medium transition-colors">
-                                <i class="fas fa-arrow-right mr-2"></i>Continue to Documents
+                                <i class="fas fa-arrow-right mr-2"></i><span x-text="t('button.continue_documents')">Continue to Documents</span>
                             </button>
                         </div>
                     </div>
@@ -265,7 +272,7 @@
                         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
                             <p class="text-sm text-blue-800">
                                 <i class="fas fa-info-circle mr-2"></i>
-                                Upload security documentation including policies, procedures, architecture diagrams, and configuration evidence.
+                                <span x-text="t('docs.info')">Upload security documentation including policies, procedures, architecture diagrams, and configuration evidence.</span>
                             </p>
                         </div>
 
@@ -275,36 +282,61 @@
                              @dragleave.prevent="dragover = false"
                              @drop.prevent="handleDrop($event)"
                              :class="dragover ? 'border-blue-500 bg-blue-50' : ''">
-                            <input type="file" multiple @change="handleFiles($event)" class="hidden" id="fileInput" accept=".pdf,.docx,.doc,.txt,.png,.jpg,.jpeg">
+                            <input type="file" multiple @change="handleFiles($event)" class="hidden" id="fileInput" accept=".pdf,.docx,.doc,.txt,.md,.log,.png,.jpg,.jpeg">
                             <label for="fileInput" class="cursor-pointer">
                                 <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
-                                <p class="text-gray-600">Drag and drop files here, or <span class="text-blue-600 font-medium">browse</span></p>
-                                <p class="text-sm text-gray-400 mt-2">Supports PDF, DOCX, TXT, PNG, JPG</p>
+                                <p class="text-gray-600">
+                                    <span x-text="t('docs.drag_drop')">Drag and drop files here, or</span>
+                                    <span class="text-blue-600 font-medium" x-text="t('docs.browse')">browse</span>
+                                </p>
+                                <p class="text-sm text-gray-400 mt-2" x-text="t('docs.supports')">Supports PDF, DOCX, TXT, PNG, JPG</p>
                             </label>
                         </div>
 
-                        <!-- File List -->
+                        <!-- Pending Files List -->
+                        <div x-show="pendingFiles.length > 0" class="space-y-3">
+                            <h4 class="font-medium text-gray-700" x-text="t('docs.pending_files') || 'Pending Documents:'">Pending Documents:</h4>
+                            <template x-for="(pf, index) in pendingFiles" :key="index">
+                                <div class="flex flex-col bg-white border border-gray-200 rounded-lg p-3 shadow-sm space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-file-alt text-blue-500 mr-3"></i>
+                                            <span class="text-sm text-gray-800 font-medium" x-text="pf.filename"></span>
+                                        </div>
+                                        <button @click="pendingFiles.splice(index, 1)" class="text-gray-400 hover:text-red-500">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <input type="text" x-model="pf.significance_note" 
+                                           class="w-full text-xs px-3 py-2 border border-gray-200 rounded-md focus:ring-1 focus:ring-blue-500 bg-gray-50"
+                                           :placeholder="t('docs.significance_placeholder') || 'Optional: Tell the AI what is significant about this file...'">
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- Already Uploaded Files List -->
                         <div x-show="uploadedFiles.length > 0" class="space-y-2">
-                            <h4 class="font-medium text-gray-700">Uploaded Files:</h4>
+                            <h4 class="font-medium text-gray-500 text-sm" x-text="t('docs.uploaded_files')">Uploaded Files:</h4>
                             <template x-for="(file, index) in uploadedFiles" :key="index">
-                                <div class="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                                <div class="flex items-center justify-between bg-gray-50 rounded-lg p-2 border border-gray-100">
                                     <div class="flex items-center">
-                                        <i class="fas fa-file text-gray-400 mr-3"></i>
-                                        <span class="text-sm text-gray-700" x-text="file.filename"></span>
-                                        <span x-show="file.parsed" class="ml-2 text-xs text-green-600">
-                                            <i class="fas fa-check-circle"></i> Parsed
-                                        </span>
+                                        <i class="fas fa-check text-green-500 mr-3 text-xs"></i>
+                                        <span class="text-xs text-gray-600" x-text="file.filename"></span>
                                     </div>
                                 </div>
                             </template>
                         </div>
 
-                        <div class="flex justify-between">
+                        <div class="flex justify-between pt-4">
                             <button @click="step = 1" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors">
-                                <i class="fas fa-arrow-left mr-2"></i>Back
+                                <i class="fas fa-arrow-left mr-2"></i><span x-text="t('button.back')">Back</span>
                             </button>
-                            <button @click="step = 3" class="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
-                                <i class="fas fa-arrow-right mr-2"></i>Continue
+                            <button @click="uploadPendingFiles()" 
+                                    :disabled="pendingFiles.length === 0 && uploadedFiles.length === 0"
+                                    :class="(pendingFiles.length === 0 && uploadedFiles.length === 0) ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'"
+                                    class="px-6 py-3 text-white rounded-lg font-medium transition-colors">
+                                <span x-text="pendingFiles.length > 0 ? (t('button.upload_continue') || 'Upload & Continue') : t('button.continue')">Continue</span>
+                                <i class="fas fa-arrow-right ml-2"></i>
                             </button>
                         </div>
                     </div>
@@ -315,35 +347,35 @@
                     <div class="space-y-6">
                         <div class="bg-green-50 border border-green-200 rounded-lg p-6">
                             <h4 class="font-semibold text-green-800 mb-2">
-                                <i class="fas fa-check-circle mr-2"></i>Ready to Run Assessment
+                                <i class="fas fa-check-circle mr-2"></i><span x-text="t('run.ready_title')">Ready to Run Assessment</span>
                             </h4>
                             <div class="text-sm text-green-700 space-y-1">
-                                <p><strong>Assessment ID:</strong> <span x-text="currentAssessmentId"></span></p>
-                                <p><strong>Project:</strong> <span x-text="newAssessment.project_name"></span></p>
-                                <p><strong>Documents:</strong> <span x-text="uploadedFiles.length"></span> files uploaded</p>
+                                <p><strong x-text="t('run.assessment_id')">Assessment ID:</strong> <span x-text="currentAssessmentId"></span></p>
+                                <p><strong x-text="t('run.project')">Project:</strong> <span x-text="newAssessment.project_name"></span></p>
+                                <p><strong x-text="t('run.documents')">Documents:</strong> <span x-text="uploadedFiles.length"></span> <span x-text="t('run.files_uploaded')">files uploaded</span></p>
                             </div>
                         </div>
 
                         <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                             <p class="text-sm text-yellow-800">
                                 <i class="fas fa-exclamation-triangle mr-2"></i>
-                                The assessment will analyze your documents against all 17 ITSG-33 control families. This may take several minutes.
+                                <span x-text="t('run.warning')">The assessment will analyze your documents against all 17 ITSG-33 control families. This may take several minutes.</span>
                             </p>
                         </div>
 
                         <div class="flex justify-between">
                             <button @click="step = 2" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors">
-                                <i class="fas fa-arrow-left mr-2"></i>Back
+                                <i class="fas fa-arrow-left mr-2"></i><span x-text="t('button.back')">Back</span>
                             </button>
                             <button @click="runAssessment()"
                                     :disabled="isRunning"
                                     :class="isRunning ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'"
                                     class="px-6 py-3 text-white rounded-lg font-medium transition-colors">
                                 <template x-if="!isRunning">
-                                    <span><i class="fas fa-play mr-2"></i>Run Assessment</span>
+                                    <span><i class="fas fa-play mr-2"></i><span x-text="t('button.run_assessment')">Run Assessment</span></span>
                                 </template>
                                 <template x-if="isRunning">
-                                    <span><i class="fas fa-spinner fa-spin mr-2"></i>Running...</span>
+                                    <span><i class="fas fa-spinner fa-spin mr-2"></i><span x-text="t('button.running')">Running...</span></span>
                                 </template>
                             </button>
                         </div>
@@ -358,17 +390,17 @@
                 <div class="p-6 border-b border-gray-200">
                     <div class="flex items-center justify-between">
                         <h2 class="text-xl font-semibold text-gray-900">
-                            <i class="fas fa-list mr-2 text-gray-400"></i>All Assessments
+                            <i class="fas fa-list mr-2 text-gray-400"></i><span x-text="t('assessments.title')">All Assessments</span>
                         </h2>
                         <button @click="loadAssessments()" class="px-4 py-2 text-sm text-blue-600 hover:text-blue-800">
-                            <i class="fas fa-sync-alt mr-1"></i>Refresh
+                            <i class="fas fa-sync-alt mr-1"></i><span x-text="t('assessments.refresh')">Refresh</span>
                         </button>
                     </div>
                 </div>
 
                 <div x-show="assessments.length === 0" class="p-8 text-center text-gray-500">
                     <i class="fas fa-folder-open text-4xl mb-3"></i>
-                    <p>No assessments found.</p>
+                    <p x-text="t('assessments.empty')">No assessments found.</p>
                 </div>
 
                 <div x-show="assessments.length > 0" class="divide-y divide-gray-200">
@@ -378,7 +410,7 @@
                                 <div class="flex-1">
                                     <div class="flex items-center">
                                         <h3 class="text-lg font-medium text-gray-900" x-text="assessment.project_name"></h3>
-                                        <span :class="getStatusClass(assessment.status)" class="ml-3 px-2 py-1 text-xs font-medium rounded-full" x-text="assessment.status"></span>
+                                        <span :class="getStatusClass(assessment.status)" class="ml-3 px-2 py-1 text-xs font-medium rounded-full" x-text="getStatusLabel(assessment.status)"></span>
                                     </div>
                                     <div class="mt-1 text-sm text-gray-500">
                                         <span><i class="fas fa-building mr-1"></i><span x-text="assessment.client_id"></span></span>
@@ -391,27 +423,27 @@
                                 <div class="flex items-center space-x-2">
                                     <button @click="viewAssessment(assessment.assessment_id)"
                                             class="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm">
-                                        <i class="fas fa-eye mr-1"></i>View
+                                        <i class="fas fa-eye mr-1"></i><span x-text="t('action.view')">View</span>
                                     </button>
                                     <button x-show="assessment.status === 'created'"
                                             @click="selectAssessmentForRun(assessment)"
                                             class="px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm">
-                                        <i class="fas fa-play mr-1"></i>Run
+                                        <i class="fas fa-play mr-1"></i><span x-text="t('action.run')">Run</span>
                                     </button>
                                     <button x-show="assessment.status === 'completed'"
                                             @click="addDocumentsToAssessment(assessment)"
                                             class="px-3 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors text-sm">
-                                        <i class="fas fa-file-upload mr-1"></i>Add Docs
+                                        <i class="fas fa-file-upload mr-1"></i><span x-text="t('action.add_docs')">Add Docs</span>
                                     </button>
                                     <button x-show="assessment.status === 'completed'"
                                             @click="rerunAssessment(assessment.assessment_id)"
                                             class="px-3 py-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors text-sm">
-                                        <i class="fas fa-redo mr-1"></i>Rerun
+                                        <i class="fas fa-redo mr-1"></i><span x-text="t('action.rerun')">Rerun</span>
                                     </button>
                                     <button x-show="assessment.status === 'completed'"
                                             @click="viewHistory(assessment.assessment_id)"
                                             class="px-3 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm">
-                                        <i class="fas fa-history mr-1"></i>History
+                                        <i class="fas fa-history mr-1"></i><span x-text="t('action.history')">History</span>
                                     </button>
                                 </div>
                             </div>
@@ -425,7 +457,7 @@
         <div x-show="currentTab === 'controls'" x-cloak>
             <div class="bg-white rounded-xl shadow-md p-6">
                 <h2 class="text-xl font-semibold text-gray-900 mb-6">
-                    <i class="fas fa-lock mr-2 text-gray-400"></i>ITSG-33 Control Families
+                    <i class="fas fa-lock mr-2 text-gray-400"></i><span x-text="t('controls.title')">ITSG-33 Control Families</span>
                 </h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <template x-for="family in controlFamilies" :key="family.code">
@@ -435,8 +467,8 @@
                                     <span x-text="family.code"></span>
                                 </div>
                                 <div class="ml-4">
-                                    <h4 class="font-medium text-gray-900" x-text="family.name"></h4>
-                                    <p class="text-sm text-gray-500" x-text="family.code + ' Controls'"></p>
+                                    <h4 class="font-medium text-gray-900" x-text="getControlFamilyName(family.code)"></h4>
+                                    <p class="text-sm text-gray-500" x-text="getControlFamilyLabel(family.code)"></p>
                                 </div>
                             </div>
                         </div>
@@ -447,17 +479,17 @@
             <!-- Profiles -->
             <div class="bg-white rounded-xl shadow-md p-6 mt-6">
                 <h2 class="text-xl font-semibold text-gray-900 mb-6">
-                    <i class="fas fa-layer-group mr-2 text-gray-400"></i>Security Profiles
+                    <i class="fas fa-layer-group mr-2 text-gray-400"></i><span x-text="t('controls.profiles_title')">Security Profiles</span>
                 </h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <template x-for="profile in profiles" :key="profile.number">
                         <div class="border-2 rounded-lg p-6 text-center"
                              :class="profile.number === 1 ? 'border-green-300 bg-green-50' : profile.number === 2 ? 'border-yellow-300 bg-yellow-50' : 'border-red-300 bg-red-50'">
-                            <div class="text-3xl font-bold mb-2"
-                                 :class="profile.number === 1 ? 'text-green-600' : profile.number === 2 ? 'text-yellow-600' : 'text-red-600'"
-                                 x-text="'Profile ' + profile.number"></div>
-                            <div class="font-medium text-gray-900" x-text="profile.name.split(' - ')[1]"></div>
-                            <p class="text-sm text-gray-600 mt-2" x-text="profile.description"></p>
+                             <div class="text-3xl font-bold mb-2"
+                                  :class="profile.number === 1 ? 'text-green-600' : profile.number === 2 ? 'text-yellow-600' : 'text-red-600'"
+                                  x-text="formatProfileTitle(profile.number)"></div>
+                             <div class="font-medium text-gray-900" x-text="getProfileLabel(profile.number)"></div>
+                             <p class="text-sm text-gray-600 mt-2" x-text="getProfileDescription(profile.number)"></p>
                         </div>
                     </template>
                 </div>
@@ -475,17 +507,29 @@
                         <div class="flex items-center">
                             <img src="/static/aip.png" alt="Logo" class="h-8 w-auto mr-3 rounded">
                             <h3 class="text-xl font-semibold text-gray-900">
-                                Assessment Report
+                                <span x-text="t('report.assessment_report')">Assessment Report</span>
                             </h3>
                         </div>
-                        <div class="flex items-center space-x-2">
-                            <button @click="downloadMarkdown()" class="px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-sm" title="Download Markdown">
+                        <div class="flex items-center space-x-3">
+                            <div class="flex items-center bg-gray-50 rounded-lg border border-gray-200 p-0.5 mr-2">
+                                <button @click="reportLang = 'en'"
+                                        :class="reportLang === 'en' ? 'bg-white shadow-sm text-blue-600 ring-1 ring-gray-200' : 'text-gray-400 hover:text-gray-600'"
+                                        class="px-3 py-1.5 rounded-md text-xs font-bold transition-all uppercase">
+                                    en
+                                </button>
+                                <button @click="reportLang = 'fr'"
+                                        :class="reportLang === 'fr' ? 'bg-white shadow-sm text-blue-600 ring-1 ring-gray-200' : 'text-gray-400 hover:text-gray-600'"
+                                        class="px-3 py-1.5 rounded-md text-xs font-bold transition-all uppercase">
+                                    fr
+                                </button>
+                            </div>
+                            <button @click="downloadMarkdown()" class="px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-sm" :title="t('report.download_markdown')">
                                 <i class="fas fa-file-alt mr-1"></i>MD
                             </button>
-                            <button @click="downloadWord()" x-show="selectedAssessment?.status === 'completed'" class="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm" title="Download Word Document">
+                            <button @click="downloadWord()" x-show="selectedAssessment?.status === 'completed'" class="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm" :title="t('report.download_word')">
                                 <i class="fas fa-file-word mr-1"></i>Word
                             </button>
-                            <button @click="downloadPOAM()" x-show="selectedAssessment?.status === 'completed'" class="px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm" title="Download POA&M">
+                            <button @click="downloadPOAM()" x-show="selectedAssessment?.status === 'completed'" class="px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm" :title="t('report.download_poam')">
                                 <i class="fas fa-tasks mr-1"></i>POA&M
                             </button>
                             <button @click="showModal = false" class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
@@ -512,7 +556,7 @@
                 <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full mx-auto z-10 max-h-[80vh] overflow-hidden flex flex-col">
                     <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
                         <h3 class="text-xl font-semibold text-gray-900">
-                            <i class="fas fa-history mr-2 text-purple-600"></i>Assessment Run History
+                            <i class="fas fa-history mr-2 text-purple-600"></i><span x-text="t('history.title')">Assessment Run History</span>
                         </h3>
                         <button @click="showHistoryModal = false" class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
                             <i class="fas fa-times text-xl"></i>
@@ -523,50 +567,50 @@
                         <template x-if="assessmentHistory">
                             <div>
                                 <p class="text-sm text-gray-600 mb-4">
-                                    Total Runs: <strong x-text="assessmentHistory.total_runs"></strong>
+                                    <span x-text="t('history.total_runs')">Total Runs:</span> <strong x-text="assessmentHistory.total_runs"></strong>
                                 </p>
 
                                 <!-- Current Run -->
                                 <template x-if="assessmentHistory.current_run">
                                     <div class="mb-6">
-                                        <h4 class="font-semibold text-gray-800 mb-2">Current Run</h4>
+                                        <h4 class="font-semibold text-gray-800 mb-2" x-text="t('history.current_run')">Current Run</h4>
                                         <div class="bg-green-50 border border-green-200 rounded-lg p-4">
                                             <div class="flex justify-between items-start">
                                                 <div class="flex-1">
                                                     <div class="flex items-center justify-between mb-2">
-                                                        <span class="text-sm font-medium text-green-800">Run #<span x-text="assessmentHistory.current_run.run_id"></span></span>
-                                                        <span class="px-2 py-1 bg-green-200 text-green-800 text-xs font-medium rounded-full">Current</span>
+                                                        <span class="text-sm font-medium text-green-800"><span x-text="t('history.run_label')">Run</span> #<span x-text="assessmentHistory.current_run.run_id"></span></span>
+                                                        <span class="px-2 py-1 bg-green-200 text-green-800 text-xs font-medium rounded-full" x-text="t('history.current_badge')">Current</span>
                                                     </div>
                                                     <p class="text-xs text-green-600">
-                                                        Completed: <span x-text="formatDate(assessmentHistory.current_run.completed_at)"></span>
+                                                        <span x-text="t('history.completed')">Completed:</span> <span x-text="formatDate(assessmentHistory.current_run.completed_at)"></span>
                                                     </p>
                                                     <p class="text-xs text-green-600 mb-3">
-                                                        Documents: <span x-text="assessmentHistory.current_run.document_count"></span>
+                                                        <span x-text="t('history.documents')">Documents:</span> <span x-text="assessmentHistory.current_run.document_count"></span>
                                                     </p>
                                                     <!-- Controls Summary -->
                                                     <div class="bg-white rounded-lg p-3 border border-green-100">
-                                                        <p class="text-xs font-semibold text-gray-700 mb-2">Controls Summary</p>
+                                                        <p class="text-xs font-semibold text-gray-700 mb-2" x-text="t('history.controls_summary')">Controls Summary</p>
                                                         <div class="grid grid-cols-2 gap-2 text-xs">
                                                             <div>
-                                                                <span class="text-gray-500">Total Assessed:</span>
+                                                                <span class="text-gray-500" x-text="t('history.total_assessed')">Total Assessed:</span>
                                                                 <span class="font-medium text-gray-800" x-text="assessmentHistory.current_run.total_controls || 0"></span>
                                                             </div>
                                                             <div>
-                                                                <span class="text-gray-500">Full Evidence:</span>
+                                                                <span class="text-gray-500" x-text="t('history.full_evidence')">Full Evidence:</span>
                                                                 <span class="font-medium text-green-600" x-text="assessmentHistory.current_run.controls_with_evidence || 0"></span>
                                                             </div>
                                                             <div>
-                                                                <span class="text-gray-500">Partial:</span>
+                                                                <span class="text-gray-500" x-text="t('history.partial')">Partial:</span>
                                                                 <span class="font-medium text-yellow-600" x-text="assessmentHistory.current_run.controls_partial || 0"></span>
                                                             </div>
                                                             <div>
-                                                                <span class="text-gray-500">Missing:</span>
+                                                                <span class="text-gray-500" x-text="t('history.missing')">Missing:</span>
                                                                 <span class="font-medium text-red-600" x-text="assessmentHistory.current_run.controls_missing || 0"></span>
                                                             </div>
                                                         </div>
                                                         <div class="mt-2 pt-2 border-t border-green-100">
                                                             <div class="flex items-center justify-between">
-                                                                <span class="text-xs text-gray-500">Coverage:</span>
+                                                                <span class="text-xs text-gray-500" x-text="t('history.coverage')">Coverage:</span>
                                                                 <span class="text-sm font-bold" :class="assessmentHistory.current_run.coverage_percentage >= 80 ? 'text-green-600' : assessmentHistory.current_run.coverage_percentage >= 50 ? 'text-yellow-600' : 'text-red-600'" x-text="(assessmentHistory.current_run.coverage_percentage || 0) + '%'"></span>
                                                             </div>
                                                             <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1">
@@ -583,46 +627,46 @@
                                 <!-- Historical Runs -->
                                 <template x-if="assessmentHistory.history && assessmentHistory.history.length > 0">
                                     <div>
-                                        <h4 class="font-semibold text-gray-800 mb-2">Previous Runs</h4>
+                                        <h4 class="font-semibold text-gray-800 mb-2" x-text="t('history.previous_runs')">Previous Runs</h4>
                                         <div class="space-y-3">
                                             <template x-for="run in assessmentHistory.history" :key="run.run_id">
                                                 <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
                                                     <div class="flex justify-between items-start">
                                                         <div class="flex-1">
                                                             <div class="flex items-center justify-between mb-2">
-                                                                <span class="text-sm font-medium text-gray-800">Run #<span x-text="run.run_id"></span></span>
-                                                                <span class="px-2 py-1 bg-gray-200 text-gray-600 text-xs font-medium rounded-full">Archived</span>
+                                                                <span class="text-sm font-medium text-gray-800"><span x-text="t('history.run_label')">Run</span> #<span x-text="run.run_id"></span></span>
+                                                                <span class="px-2 py-1 bg-gray-200 text-gray-600 text-xs font-medium rounded-full" x-text="t('history.archived')">Archived</span>
                                                             </div>
                                                             <p class="text-xs text-gray-600">
-                                                                Completed: <span x-text="formatDate(run.completed_at)"></span>
+                                                                <span x-text="t('history.completed')">Completed:</span> <span x-text="formatDate(run.completed_at)"></span>
                                                             </p>
                                                             <p class="text-xs text-gray-600 mb-3">
-                                                                Documents: <span x-text="run.document_count"></span>
+                                                                <span x-text="t('history.documents')">Documents:</span> <span x-text="run.document_count"></span>
                                                             </p>
                                                             <!-- Controls Summary -->
                                                             <div class="bg-white rounded-lg p-3 border border-gray-100">
-                                                                <p class="text-xs font-semibold text-gray-700 mb-2">Controls Summary</p>
+                                                                <p class="text-xs font-semibold text-gray-700 mb-2" x-text="t('history.controls_summary')">Controls Summary</p>
                                                                 <div class="grid grid-cols-2 gap-2 text-xs">
                                                                     <div>
-                                                                        <span class="text-gray-500">Total Assessed:</span>
+                                                                        <span class="text-gray-500" x-text="t('history.total_assessed')">Total Assessed:</span>
                                                                         <span class="font-medium text-gray-800" x-text="run.total_controls || 0"></span>
                                                                     </div>
                                                                     <div>
-                                                                        <span class="text-gray-500">Full Evidence:</span>
+                                                                        <span class="text-gray-500" x-text="t('history.full_evidence')">Full Evidence:</span>
                                                                         <span class="font-medium text-green-600" x-text="run.controls_with_evidence || 0"></span>
                                                                     </div>
                                                                     <div>
-                                                                        <span class="text-gray-500">Partial:</span>
+                                                                        <span class="text-gray-500" x-text="t('history.partial')">Partial:</span>
                                                                         <span class="font-medium text-yellow-600" x-text="run.controls_partial || 0"></span>
                                                                     </div>
                                                                     <div>
-                                                                        <span class="text-gray-500">Missing:</span>
+                                                                        <span class="text-gray-500" x-text="t('history.missing')">Missing:</span>
                                                                         <span class="font-medium text-red-600" x-text="run.controls_missing || 0"></span>
                                                                     </div>
                                                                 </div>
                                                                 <div class="mt-2 pt-2 border-t border-gray-100">
                                                                     <div class="flex items-center justify-between">
-                                                                        <span class="text-xs text-gray-500">Coverage:</span>
+                                                                        <span class="text-xs text-gray-500" x-text="t('history.coverage')">Coverage:</span>
                                                                         <span class="text-sm font-bold" :class="run.coverage_percentage >= 80 ? 'text-green-600' : run.coverage_percentage >= 50 ? 'text-yellow-600' : 'text-red-600'" x-text="(run.coverage_percentage || 0) + '%'"></span>
                                                                     </div>
                                                                     <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1">
@@ -639,7 +683,7 @@
                                 </template>
 
                                 <template x-if="!assessmentHistory.history || assessmentHistory.history.length === 0">
-                                    <p class="text-gray-500 text-sm">No previous runs. This is the first assessment run.</p>
+                                    <p class="text-gray-500 text-sm" x-text="t('history.none')">No previous runs. This is the first assessment run.</p>
                                 </template>
                             </div>
                         </template>
@@ -656,7 +700,7 @@
                 <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full mx-auto z-10 max-h-[80vh] overflow-hidden flex flex-col">
                     <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
                         <h3 class="text-xl font-semibold text-gray-900">
-                            <i class="fas fa-file-upload mr-2 text-indigo-600"></i>Add Documents to Assessment
+                            <i class="fas fa-file-upload mr-2 text-indigo-600"></i><span x-text="t('add_docs.title')">Add Documents to Assessment</span>
                         </h3>
                         <button @click="closeAddDocsModal()" class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
                             <i class="fas fa-times text-xl"></i>
@@ -667,7 +711,7 @@
                         <template x-if="addDocsAssessment">
                             <div>
                                 <p class="text-sm text-gray-600 mb-4">
-                                    Adding documents to: <strong x-text="addDocsAssessment.project_name"></strong>
+                                    <span x-text="t('add_docs.adding_documents')">Adding documents to:</span> <strong x-text="addDocsAssessment.project_name"></strong>
                                 </p>
 
                                 <!-- Drop Zone -->
@@ -677,19 +721,19 @@
                                      @dragleave.prevent="dragover = false"
                                      @drop.prevent="handleAddDocsDrop($event)">
                                     <i class="fas fa-cloud-upload-alt text-4xl mb-4" :class="dragover ? 'text-indigo-500' : 'text-gray-400'"></i>
-                                    <p class="text-gray-600 mb-2">Drag & drop files here or</p>
+                                    <p class="text-gray-600 mb-2" x-text="t('add_docs.drag_drop')">Drag & drop files here or</p>
                                     <label class="inline-block px-4 py-2 bg-indigo-600 text-white rounded-lg cursor-pointer hover:bg-indigo-700 transition-colors">
-                                        <i class="fas fa-folder-open mr-2"></i>Browse Files
-                                        <input type="file" multiple accept=".pdf,.docx,.doc,.txt,.png,.jpg,.jpeg"
-                                               class="hidden" @change="handleAddDocsFiles($event)">
+                                        <i class="fas fa-folder-open mr-2"></i><span x-text="t('add_docs.browse')">Browse Files</span>
+                                        <input type="file" multiple accept=".pdf,.docx,.doc,.txt,.md,.log,.png,.jpg,.jpeg"
+                                                class="hidden" @change="handleAddDocsFiles($event)">
                                     </label>
-                                    <p class="text-xs text-gray-500 mt-3">Supported: PDF, DOCX, TXT, PNG, JPG</p>
+                                    <p class="text-xs text-gray-500 mt-3" x-text="t('add_docs.supported')">Supported: PDF, DOCX, TXT, PNG, JPG</p>
                                 </div>
 
                                 <!-- Uploaded Files List -->
                                 <template x-if="addDocsFiles.length > 0">
                                     <div class="mb-6">
-                                        <h4 class="font-semibold text-gray-800 mb-2">Uploaded Files</h4>
+                                        <h4 class="font-semibold text-gray-800 mb-2" x-text="t('add_docs.uploaded_files')">Uploaded Files</h4>
                                         <div class="space-y-2">
                                             <template x-for="file in addDocsFiles" :key="file.file_id">
                                                 <div class="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-3">
@@ -710,13 +754,13 @@
                     <div class="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end space-x-3 flex-shrink-0">
                         <button @click="closeAddDocsModal()"
                                 class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
-                            Cancel
+                            <span x-text="t('add_docs.cancel')">Cancel</span>
                         </button>
                         <button @click="finishAddDocsAndRerun()"
                                 :disabled="addDocsFiles.length === 0"
                                 :class="addDocsFiles.length === 0 ? 'bg-gray-300 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'"
                                 class="px-4 py-2 text-white rounded-lg transition-colors">
-                            <i class="fas fa-redo mr-2"></i>Add & Rerun Assessment
+                            <i class="fas fa-redo mr-2"></i><span x-text="t('add_docs.add_rerun')">Add & Rerun Assessment</span>
                         </button>
                     </div>
                 </div>
@@ -732,10 +776,10 @@
                     <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-xl">
                         <h3 class="text-xl font-semibold text-gray-900">
                             <template x-if="rejectAction === 'not_applicable'">
-                                <span><i class="fas fa-ban mr-2 text-blue-600"></i>Mark Not Applicable</span>
+                                <span><i class="fas fa-ban mr-2 text-blue-600"></i><span x-text="t('reject.not_applicable_title')">Mark Not Applicable</span></span>
                             </template>
                             <template x-if="rejectAction === 'reject_evidence'">
-                                <span><i class="fas fa-times-circle mr-2 text-orange-600"></i>Reject Evidence</span>
+                                <span><i class="fas fa-times-circle mr-2 text-orange-600"></i><span x-text="t('reject.reject_evidence_title')">Reject Evidence</span></span>
                             </template>
                         </h3>
                         <button @click="closeRejectModal()" class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
@@ -748,10 +792,10 @@
                             <div>
                                 <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
                                     <p class="text-sm text-gray-600 mb-2">
-                                        <strong>Control ID:</strong> <span class="font-mono text-gray-900" x-text="rejectingControl.control_id"></span>
+                                        <strong x-text="t('reject.control_id')">Control ID:</strong> <span class="font-mono text-gray-900" x-text="rejectingControl.control_id"></span>
                                     </p>
                                     <p class="text-sm text-gray-600">
-                                        <strong>Control Name:</strong> <span x-text="rejectingControl.control_name"></span>
+                                        <strong x-text="t('reject.control_name')">Control Name:</strong> <span x-text="rejectingControl.control_name"></span>
                                     </p>
                                 </div>
 
@@ -761,25 +805,25 @@
                                     <template x-if="rejectAction === 'not_applicable'">
                                         <p class="text-sm text-blue-800">
                                             <i class="fas fa-info-circle mr-1"></i>
-                                            This control will be marked as <strong>not applicable</strong> to this solution and excluded from coverage calculations.
+                                            <span x-text="t('reject.context_not_applicable')">This control will be marked as not applicable to this solution and excluded from coverage calculations.</span>
                                         </p>
                                     </template>
                                     <template x-if="rejectAction === 'reject_evidence'">
                                         <p class="text-sm text-orange-800">
                                             <i class="fas fa-info-circle mr-1"></i>
-                                            The evidence will be rejected as <strong>insufficient</strong>. The control remains applicable and will need better documentation.
+                                            <span x-text="t('reject.context_reject')">The evidence will be rejected as insufficient. The control remains applicable and will need better documentation.</span>
                                         </p>
                                     </template>
                                 </div>
 
                                 <div class="mb-4">
                                     <label class="block text-sm font-medium text-gray-700 mb-2">
-                                        Reason <span class="text-red-500">*</span>
+                                        <span x-text="t('reject.reason')">Reason</span> <span class="text-red-500">*</span>
                                     </label>
                                     <textarea x-model="rejectReason" rows="3"
                                               class="w-full px-4 py-3 border rounded-lg focus:ring-2 transition-colors"
                                               :class="rejectError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'"
-                                              :placeholder="rejectAction === 'not_applicable' ? 'e.g., This is a cloud-hosted solution with no on-premise infrastructure...' : 'e.g., The document references policies but does not provide implementation details...'"></textarea>
+                                              :placeholder="rejectAction === 'not_applicable' ? t('reject.placeholder_not_applicable') : t('reject.placeholder_reject')"></textarea>
                                     <p x-show="rejectError" class="mt-1 text-sm text-red-600" x-text="rejectError"></p>
                                 </div>
                             </div>
@@ -789,13 +833,13 @@
                     <div class="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end space-x-3 rounded-b-xl">
                         <button @click="closeRejectModal()"
                                 class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
-                            Cancel
+                            <span x-text="t('reject.cancel')">Cancel</span>
                         </button>
                         <button @click="confirmRejectAction()"
                                 class="px-4 py-2 text-white rounded-lg transition-colors"
                                 :class="rejectAction === 'not_applicable' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-orange-600 hover:bg-orange-700'">
                             <i :class="rejectAction === 'not_applicable' ? 'fas fa-ban mr-2' : 'fas fa-times-circle mr-2'"></i>
-                            <span x-text="rejectAction === 'not_applicable' ? 'Mark Not Applicable' : 'Reject Evidence'"></span>
+                            <span x-text="rejectAction === 'not_applicable' ? t('reject.mark_not_applicable') : t('reject.reject_evidence')"></span>
                         </button>
                     </div>
                 </div>
@@ -822,13 +866,508 @@
     <!-- Footer -->
     <footer class="bg-gray-100 border-t border-gray-200 mt-12">
         <div class="max-w-7xl mx-auto px-4 py-6 text-center text-sm text-gray-500">
-            <p>ITSG-33 Accreditation System &bull; Government of Canada IT Security Standard</p>
+            <p x-text="t('footer.text')">ITSG-33 Accreditation System &bull; Government of Canada IT Security Standard</p>
         </div>
     </footer>
 
     <script>
         function app() {
             return {
+                lang: 'en',
+                i18n: {
+                    en: {
+                        'app.title': 'ITSG-33 Accreditation System',
+                        'app.name': 'ITSG-33 Accreditation',
+                        'app.subtitle': 'Security Assessment Platform',
+                        'app.system_operational': 'System Operational',
+                        'nav.dashboard': 'Dashboard',
+                        'nav.new_assessment': 'New Assessment',
+                        'nav.assessments': 'Assessments',
+                        'nav.controls': 'Control Families',
+                        'stats.total_assessments': 'Total Assessments',
+                        'stats.completed': 'Completed',
+                        'stats.in_progress': 'In Progress',
+                        'stats.control_families': 'Control Families',
+                        'dashboard.recent_assessments': 'Recent Assessments',
+                        'dashboard.empty_assessments': 'No assessments yet. Create your first assessment to get started.',
+                        'dashboard.create_assessment': 'Create Assessment',
+                        'table.project': 'Project',
+                        'table.client': 'Client',
+                        'table.status': 'Status',
+                        'table.created': 'Created',
+                        'table.actions': 'Actions',
+                        'action.view': 'View',
+                        'action.run': 'Run',
+                        'action.add_docs': 'Add Docs',
+                        'action.rerun': 'Rerun',
+                        'action.history': 'History',
+                        'assessment.new_title': 'Create New Assessment',
+                        'step.details': 'Details',
+                        'step.documents': 'Documents',
+                        'step.run': 'Run',
+                        'form.client_id': 'Client ID *',
+                        'form.project_name': 'Project Name *',
+                        'form.conops': 'Concept of Operations (CONOPS)',
+                        'form.client_placeholder': 'e.g., DEPT_001',
+                        'form.project_placeholder': 'e.g., Cloud Migration Project',
+                        'form.conops_placeholder': 'Describe the system purpose, data types processed, user base, and operational context...',
+                        'button.continue_documents': 'Continue to Documents',
+                        'docs.info': 'Upload security documentation including policies, procedures, architecture diagrams, and configuration evidence.',
+                        'docs.drag_drop': 'Drag and drop files here, or',
+                        'docs.browse': 'browse',
+                        'docs.supports': 'Supports PDF, DOCX, TXT, MD, LOG, PNG, JPG, MP4, MOV',
+                        'docs.uploaded_files': 'Uploaded Files:',
+                        'docs.pending_files': 'Pending Documents:',
+                        'docs.significance_placeholder': 'Optional: Tell the AI why this file is significant...',
+                        'docs.parsed': 'Parsed',
+                        'button.back': 'Back',
+                        'button.continue': 'Continue',
+                        'button.upload_continue': 'Upload & Continue',
+                        'run.ready_title': 'Ready to Run Assessment',
+                        'run.assessment_id': 'Assessment ID:',
+                        'run.project': 'Project:',
+                        'run.documents': 'Documents:',
+                        'run.files_uploaded': 'files uploaded',
+                        'run.warning': 'The assessment will analyze your documents against all 17 ITSG-33 control families. This may take several minutes.',
+                        'button.run_assessment': 'Run Assessment',
+                        'button.running': 'Running...',
+                        'assessments.title': 'All Assessments',
+                        'assessments.refresh': 'Refresh',
+                        'assessments.empty': 'No assessments found.',
+                        'controls.title': 'ITSG-33 Control Families',
+                        'controls.controls_suffix': 'Controls',
+                        'controls.profiles_title': 'Security Profiles',
+                        'controls.profile_label': 'Profile',
+                        'history.title': 'Assessment Run History',
+                        'history.total_runs': 'Total Runs:',
+                        'history.current_run': 'Current Run',
+                        'history.run_label': 'Run',
+                        'history.current_badge': 'Current',
+                        'history.previous_runs': 'Previous Runs',
+                        'history.archived': 'Archived',
+                        'history.completed': 'Completed:',
+                        'history.documents': 'Documents:',
+                        'history.controls_summary': 'Controls Summary',
+                        'history.total_assessed': 'Total Assessed:',
+                        'history.full_evidence': 'Full Evidence:',
+                        'history.partial': 'Partial:',
+                        'history.missing': 'Missing:',
+                        'history.coverage': 'Coverage:',
+                        'history.none': 'No previous runs. This is the first assessment run.',
+                        'add_docs.title': 'Add Documents to Assessment',
+                        'add_docs.adding_documents': 'Adding documents to:',
+                        'add_docs.drag_drop': 'Drag & drop files here or',
+                        'add_docs.browse': 'Browse Files',
+                        'add_docs.supported': 'Supported: PDF, DOCX, TXT, MD, LOG, PNG, JPG',
+                        'add_docs.uploaded_files': 'Uploaded Files',
+                        'add_docs.cancel': 'Cancel',
+                        'add_docs.add_rerun': 'Add & Rerun Assessment',
+                        'reject.not_applicable_title': 'Mark Not Applicable',
+                        'reject.reject_evidence_title': 'Reject Evidence',
+                        'reject.control_id': 'Control ID:',
+                        'reject.control_name': 'Control Name:',
+                        'reject.context_not_applicable': 'This control will be marked as not applicable to this solution and excluded from coverage calculations.',
+                        'reject.context_reject': 'The evidence will be rejected as insufficient. The control remains applicable and will need better documentation.',
+                        'reject.reason': 'Reason',
+                        'reject.placeholder_not_applicable': 'e.g., This is a cloud-hosted solution with no on-premise infrastructure...',
+                        'reject.placeholder_reject': 'e.g., The document references policies but does not provide implementation details...',
+                        'reject.cancel': 'Cancel',
+                        'reject.mark_not_applicable': 'Mark Not Applicable',
+                        'reject.reject_evidence': 'Reject Evidence',
+                        'footer.text': 'ITSG-33 Accreditation System • Government of Canada IT Security Standard',
+                        'report.assessment_report': 'Assessment Report',
+                        'report.download_markdown': 'Download Markdown',
+                        'report.download_word': 'Download Word Document',
+                        'report.download_poam': 'Download POA&M',
+                        'report.report_lang': 'Report Language',
+                        'report.title': 'ITSG-33 Security Assessment Report',
+                        'report.executive_summary': 'Executive Summary',
+                        'report.assessment_id': 'Assessment ID',
+                        'report.field': 'Field',
+                        'report.value': 'Value',
+                        'report.metric': 'Metric',
+                        'report.project_name': 'Project Name',
+                        'report.client': 'Client',
+                        'report.status': 'Status',
+                        'report.report_date': 'Report Date',
+                        'report.documents_reviewed': 'Documents Reviewed',
+                        'report.unknown_project': 'Unknown Project',
+                        'report.unknown_client': 'Unknown Client',
+                        'report.assessment_status': 'Assessment Status',
+                        'report.created_message': 'This assessment has been created but not yet executed. Upload documents and run the assessment to generate results.',
+                        'report.next_steps': 'Next Steps',
+                        'report.next_steps_upload': 'Upload relevant security documentation (policies, procedures, configurations)',
+                        'report.next_steps_diagrams': 'Include architecture diagrams and network documentation',
+                        'report.next_steps_run': 'Run the assessment to analyze documents against ITSG-33 controls',
+                        'report.in_progress_title': 'Assessment In Progress',
+                        'report.in_progress_message': 'The assessment is currently running. Please check back shortly for results.',
+                        'report.in_progress_note': 'The system is analyzing your documents against all 17 ITSG-33 control families.',
+                        'report.about_title': 'About ITSG-33',
+                        'report.about_intro': 'ITSG-33 (IT Security Risk Management: A Lifecycle Approach) is the Government of Canada\'s framework for managing IT security risks. It defines security controls across 17 families:',
+                        'report.summary_title': 'Assessment Summary',
+                        'report.summary_full': 'Full Evidence',
+                        'report.summary_partial': 'Partial Evidence',
+                        'report.summary_missing': 'Needs Evidence',
+                        'report.summary_not_applicable': 'Not Applicable',
+                        'report.summary_coverage': 'Coverage',
+                        'report.summary_quality': 'Evidence Quality',
+                        'report.summary_applicable': 'Applicable',
+                        'report.security_profile': 'Security Profile',
+                        'report.attribute': 'Attribute',
+                        'report.total_controls_required': 'Total Controls Required',
+                        'report.system_analysis': 'System Analysis',
+                        'report.system_type': 'System Type',
+                        'report.data_classification': 'Data Classification',
+                        'report.confidentiality': 'Confidentiality',
+                        'report.integrity': 'Integrity',
+                        'report.availability': 'Availability',
+                        'report.recommended_profile': 'Recommended Profile',
+                        'report.rationale': 'Rationale',
+                        'report.required_controls_family': 'Required Controls by Family',
+                        'report.document_analysis': 'Document Analysis',
+                        'report.documents_analyzed': 'document(s) analyzed for security evidence:',
+                        'report.document_type': 'Document Type',
+                        'report.document_purpose': 'Purpose',
+                        'report.controls_addressed': 'Controls Addressed',
+                        'report.family': 'Family',
+                        'report.controls': 'Controls',
+                        'report.control_id': 'Control ID',
+                        'report.security_topics': 'Security Topics',
+                        'report.none_identified': 'None identified',
+                        'report.controls_addressed_title': 'Controls Addressed:',
+                        'report.control': 'Control',
+                        'report.coverage': 'Coverage',
+                        'report.coverage_full': 'FULL',
+                        'report.coverage_partial': 'PARTIAL',
+                        'report.coverage_none': 'NONE',
+                        'report.evidence': 'Evidence',
+                        'report.suggested_evidence': 'Suggested Evidence',
+                        'report.unknown': 'Unknown',
+                        'report.unknown_document': 'Unknown Document',
+                        'report.controls_full': 'Controls with Full Evidence',
+                        'report.controls_partial': 'Controls with Partial Evidence',
+                        'report.controls_missing': 'Controls Missing Evidence',
+                        'report.controls_missing_note': 'require evidence documentation:',
+                        'report.details_expand': 'Click to expand full list',
+                        'report.details_toggle': 'Click to expand/collapse',
+                        'report.details_show_all': 'Click to show all',
+                        'report.low_priority_controls': 'low-priority controls',
+                        'report.actions': 'Actions',
+                        'report.no_evidence_details': 'No evidence details',
+                        'report.mark_not_applicable': 'Mark as Not Applicable',
+                        'report.reject_evidence': 'Reject Evidence',
+                        'report.partial_note': 'These controls have some evidence but need additional documentation:',
+                        'report.missing_note': 'controls require evidence documentation:',
+                        'report.not_applicable_controls': 'Not Applicable Controls',
+                        'report.not_applicable_note': 'These controls do not apply to this solution (excluded from coverage):',
+                        'report.auto_determined': 'Auto-Determined',
+                        'report.auto_reason': 'Determined by system analysis based on technology/architecture:',
+                        'report.manual_marked': 'Manually Marked',
+                        'report.manual_reason': 'Marked by operator as not applicable:',
+                        'report.reason': 'Reason',
+                        'report.action': 'Action',
+                        'report.restore': 'Restore',
+                        'report.restore_tooltip': 'Restore to applicable',
+                        'report.auto_label': 'Auto',
+                        'report.manual_label': 'Manual',
+                        'report.no_reason': 'No reason provided',
+                        'report.no_rationale': 'No rationale provided.',
+                        'report.rejected_evidence': 'Rejected Evidence',
+                        'report.rejected_note': 'These controls are applicable but need better evidence:',
+                        'report.had': 'Had',
+                        'report.rejection_reason': 'Rejection Reason',
+                        'report.restore_evidence': 'Restore evidence',
+                        'report.recommendations': 'Recommendations',
+                        'report.address_first': 'Address these controls first:',
+                        'report.high_priority': 'High Priority',
+                        'report.medium_priority': 'Medium Priority',
+                        'report.low_priority': 'Low Priority',
+                        'report.low_priority_note': 'These controls should be addressed as part of continuous improvement:',
+                        'report.provide_documentation': 'Provide required documentation',
+                        'report.additional_low_priority': 'additional low-priority controls need attention.',
+                        'report.missing_by_family': 'Missing Controls by Family',
+                        'report.missing_controls': 'Missing Controls',
+                        'report.assessment_error': 'Assessment Error',
+                        'report.machine_verifiable': 'Machine-Verifiable',
+                        'report.human_curated': 'Human-Curated',
+                        'markdown.generated': '*Generated by ITSG-33 Accreditation System*',
+                        'toast.assessment_created': 'Assessment created successfully!',
+                        'toast.assessment_create_failed': 'Failed to create assessment',
+                        'toast.assessment_started': 'Assessment started! This may take a few minutes.',
+                        'toast.assessment_run_failed': 'Failed to run assessment',
+                        'toast.assessment_load_failed': 'Failed to load assessment details',
+                        'toast.markdown_downloaded': 'Markdown report downloaded!',
+                        'toast.word_downloaded': 'Word document downloaded!',
+                        'toast.word_download_failed': 'Failed to download Word document',
+                        'toast.poam_downloaded': 'POA&M document downloaded!',
+                        'toast.poam_download_failed': 'Failed to download POA&M',
+                        'toast.rerun_confirm': 'This will rerun the assessment with all current documents. Previous results will be saved to history. Continue?',
+                        'toast.rerun_started': 'Assessment rerun started. Previous runs:',
+                        'toast.rerun_failed': 'Failed to rerun assessment',
+                        'toast.history_failed': 'Failed to load history',
+                        'toast.upload_success': 'file(s) uploaded',
+                        'toast.upload_failed': 'Failed to upload files',
+                        'toast.reject_reason_required': 'Please provide a reason',
+                        'toast.reject_success_na': 'Control marked as not applicable',
+                        'toast.reject_success_reject': 'Evidence rejected',
+                        'toast.reject_failed': 'Failed:',
+                        'toast.restore_success': 'evidence restored. New coverage:',
+                        'toast.restore_failed': 'Failed to restore evidence:',
+                        'strength.system_generated': 'System-Generated',
+                        'strength.iac': 'IaC',
+                        'strength.automated_test': 'Automated Test',
+                        'strength.code': 'Code',
+                        'strength.screenshot': 'Screenshot',
+                        'strength.video': 'Video',
+                        'strength.narrative': 'Narrative'
+                    },
+                    fr: {
+                        'app.title': 'Système d\'accréditation ITSG-33',
+                        'app.name': 'Accréditation ITSG-33',
+                        'app.subtitle': 'Plateforme d\'évaluation de la sécurité',
+                        'app.system_operational': 'Système opérationnel',
+                        'nav.dashboard': 'Tableau de bord',
+                        'nav.new_assessment': 'Nouvelle évaluation',
+                        'nav.assessments': 'Évaluations',
+                        'nav.controls': 'Familles de mesures de sécurité',
+                        'stats.total_assessments': 'Total des évaluations',
+                        'stats.completed': 'Terminées',
+                        'stats.in_progress': 'En cours',
+                        'stats.control_families': 'Familles de mesures',
+                        'dashboard.recent_assessments': 'Évaluations récentes',
+                        'dashboard.empty_assessments': 'Aucune évaluation pour l\'instant. Créez votre première évaluation pour commencer.',
+                        'dashboard.create_assessment': 'Créer une évaluation',
+                        'table.project': 'Projet',
+                        'table.client': 'Client',
+                        'table.status': 'Statut',
+                        'table.created': 'Créé le',
+                        'table.actions': 'Actions',
+                        'action.view': 'Voir',
+                        'action.run': 'Lancer',
+                        'action.add_docs': 'Ajouter des documents',
+                        'action.rerun': 'Relancer',
+                        'action.history': 'Historique',
+                        'assessment.new_title': 'Créer une nouvelle évaluation',
+                        'step.details': 'Détails',
+                        'step.documents': 'Documents',
+                        'step.run': 'Exécuter',
+                        'form.client_id': 'ID client *',
+                        'form.project_name': 'Nom du projet *',
+                        'form.conops': 'Concept d\'opérations (CONOPS)',
+                        'form.client_placeholder': 'p. ex., DEPT_001',
+                        'form.project_placeholder': 'p. ex., Projet de migration infonuagique',
+                        'form.conops_placeholder': 'Décrivez la mission du système, les types de données traitées, la base d\'utilisateurs et le contexte opérationnel...',
+                        'button.continue_documents': 'Continuer vers les documents',
+                        'docs.info': 'Téléversez la documentation de sécurité, notamment les politiques, procédures, diagrammes d\'architecture et preuves de configuration.',
+                        'docs.drag_drop': 'Glissez-déposez des fichiers ici, ou',
+                        'docs.browse': 'parcourir',
+                        'docs.supports': 'Formats pris en charge : PDF, DOCX, TXT, MD, LOG, PNG, JPG, MP4, MOV',
+                        'docs.uploaded_files': 'Fichiers téléversés :',
+                        'docs.pending_files': 'Documents en attente :',
+                        'docs.significance_placeholder': 'Facultatif : Dites à l\'IA pourquoi ce fichier est important...',
+                        'docs.parsed': 'Analysé',
+                        'button.back': 'Retour',
+                        'button.continue': 'Continuer',
+                        'button.upload_continue': 'Téléverser et continuer',
+                        'run.ready_title': 'Prêt à lancer l\'évaluation',
+                        'run.assessment_id': 'ID de l\'évaluation :',
+                        'run.project': 'Projet :',
+                        'run.documents': 'Documents :',
+                        'run.files_uploaded': 'fichiers téléversés',
+                        'run.warning': 'L\'évaluation analysera vos documents par rapport aux 17 familles de mesures ITSG-33. Cela peut prendre plusieurs minutes.',
+                        'button.run_assessment': 'Lancer l\'évaluation',
+                        'button.running': 'En cours...',
+                        'assessments.title': 'Toutes les évaluations',
+                        'assessments.refresh': 'Actualiser',
+                        'assessments.empty': 'Aucune évaluation trouvée.',
+                        'controls.title': 'Familles de mesures de sécurité ITSG-33',
+                        'controls.controls_suffix': 'mesures',
+                        'controls.profiles_title': 'Profils de sécurité',
+                        'controls.profile_label': 'Profil',
+                        'history.title': 'Historique des exécutions d\'évaluation',
+                        'history.total_runs': 'Nombre total d\'exécutions :',
+                        'history.current_run': 'Exécution en cours',
+                        'history.run_label': 'Exécution',
+                        'history.current_badge': 'En cours',
+                        'history.previous_runs': 'Exécutions précédentes',
+                        'history.archived': 'Archivée',
+                        'history.completed': 'Terminé le :',
+                        'history.documents': 'Documents :',
+                        'history.controls_summary': 'Résumé des mesures',
+                        'history.total_assessed': 'Total évalué :',
+                        'history.full_evidence': 'Preuve complète :',
+                        'history.partial': 'Partielle :',
+                        'history.missing': 'Manquantes :',
+                        'history.coverage': 'Couverture :',
+                        'history.none': 'Aucune exécution précédente. Il s\'agit de la première exécution.',
+                        'add_docs.title': 'Ajouter des documents à l\'évaluation',
+                        'add_docs.adding_documents': 'Ajout de documents à :',
+                        'add_docs.drag_drop': 'Glissez-déposez des fichiers ici ou',
+                        'add_docs.browse': 'Parcourir les fichiers',
+                        'add_docs.supported': 'Formats pris en charge : PDF, DOCX, TXT, MD, LOG, PNG, JPG',
+                        'add_docs.uploaded_files': 'Fichiers téléversés',
+                        'add_docs.cancel': 'Annuler',
+                        'add_docs.add_rerun': 'Ajouter et relancer l\'évaluation',
+                        'reject.not_applicable_title': 'Marquer comme sans objet',
+                        'reject.reject_evidence_title': 'Rejeter la preuve',
+                        'reject.control_id': 'ID de la mesure :',
+                        'reject.control_name': 'Nom de la mesure :',
+                        'reject.context_not_applicable': 'Cette mesure sera marquée comme sans objet pour cette solution et exclue des calculs de couverture.',
+                        'reject.context_reject': 'La preuve sera rejetée comme insuffisante. La mesure demeure applicable et nécessitera une meilleure documentation.',
+                        'reject.reason': 'Justification',
+                        'reject.placeholder_not_applicable': 'p. ex., Cette solution est hébergée dans le nuage et n\'a aucune infrastructure sur site...',
+                        'reject.placeholder_reject': 'p. ex., Le document mentionne des politiques mais ne fournit pas de détails de mise en œuvre...',
+                        'reject.cancel': 'Annuler',
+                        'reject.mark_not_applicable': 'Marquer comme sans objet',
+                        'reject.reject_evidence': 'Rejeter la preuve',
+                        'footer.text': 'Système d\'accréditation ITSG-33 • Norme de sécurité informatique du gouvernement du Canada',
+                        'report.assessment_report': 'Rapport d\'évaluation',
+                        'report.download_markdown': 'Télécharger le Markdown',
+                        'report.download_word': 'Télécharger le document Word',
+                        'report.download_poam': 'Télécharger le POA&M',
+                        'report.report_lang': 'Langue du rapport',
+                        'report.title': 'Rapport d\'évaluation de la sécurité ITSG-33',
+                        'report.executive_summary': 'Résumé de direction',
+                        'report.assessment_id': 'ID de l\'évaluation',
+                        'report.field': 'Champ',
+                        'report.value': 'Valeur',
+                        'report.metric': 'Indicateur',
+                        'report.project_name': 'Nom du projet',
+                        'report.client': 'Client',
+                        'report.status': 'Statut',
+                        'report.report_date': 'Date du rapport',
+                        'report.documents_reviewed': 'Documents examinés',
+                        'report.unknown_project': 'Projet inconnu',
+                        'report.unknown_client': 'Client inconnu',
+                        'report.assessment_status': 'Statut de l\'évaluation',
+                        'report.created_message': 'Cette évaluation a été créée mais n\'a pas encore été exécutée. Téléversez des documents et lancez l\'évaluation pour générer des résultats.',
+                        'report.next_steps': 'Prochaines étapes',
+                        'report.next_steps_upload': 'Téléverser la documentation de sécurité pertinente (politiques, procédures, configurations)',
+                        'report.next_steps_diagrams': 'Inclure les diagrammes d\'architecture et la documentation réseau',
+                        'report.next_steps_run': 'Lancer l\'évaluation pour analyser les documents par rapport aux mesures ITSG-33',
+                        'report.in_progress_title': 'Évaluation en cours',
+                        'report.in_progress_message': 'L\'évaluation est en cours. Veuillez revenir bientôt pour les résultats.',
+                        'report.in_progress_note': 'Le système analyse vos documents par rapport aux 17 familles de mesures ITSG-33.',
+                        'report.about_title': 'À propos d\'ITSG-33',
+                        'report.about_intro': 'ITSG-33 (Gestion des risques liés à la sécurité des TI : une approche fondée sur le cycle de vie) est le cadre du gouvernement du Canada pour la gestion des risques de sécurité des TI. Il définit des mesures de sécurité réparties en 17 familles :',
+                        'report.summary_title': 'Résumé de l\'évaluation',
+                        'report.summary_full': 'Preuve complète',
+                        'report.summary_partial': 'Preuve partielle',
+                        'report.summary_missing': 'Preuves manquantes',
+                        'report.summary_not_applicable': 'Sans objet',
+                        'report.summary_coverage': 'Couverture',
+                        'report.summary_quality': 'Qualité des preuves',
+                        'report.summary_applicable': 'Applicables',
+                        'report.security_profile': 'Profil de sécurité',
+                        'report.attribute': 'Attribut',
+                        'report.total_controls_required': 'Total des mesures requises',
+                        'report.system_analysis': 'Analyse du système',
+                        'report.system_type': 'Type de système',
+                        'report.data_classification': 'Classification des données',
+                        'report.confidentiality': 'Confidentialité',
+                        'report.integrity': 'Intégrité',
+                        'report.availability': 'Disponibilité',
+                        'report.recommended_profile': 'Profil recommandé',
+                        'report.rationale': 'Justification',
+                        'report.required_controls_family': 'Mesures requises par famille',
+                        'report.document_analysis': 'Analyse des documents',
+                        'report.documents_analyzed': 'document(s) analysé(s) pour les preuves de sécurité :',
+                        'report.document_type': 'Type de document',
+                        'report.document_purpose': 'Objectif',
+                        'report.controls_addressed': 'Mesures couvertes',
+                        'report.family': 'Famille',
+                        'report.controls': 'Mesures',
+                        'report.control_id': 'ID de la mesure',
+                        'report.security_topics': 'Sujets de sécurité',
+                        'report.none_identified': 'Aucun élément identifié',
+                        'report.controls_addressed_title': 'Mesures couvertes :',
+                        'report.control': 'Mesure',
+                        'report.coverage': 'Couverture',
+                        'report.coverage_full': 'COMPLÈTE',
+                        'report.coverage_partial': 'PARTIELLE',
+                        'report.coverage_none': 'AUCUNE',
+                        'report.evidence': 'Preuve',
+                        'report.suggested_evidence': 'Preuve suggérée',
+                        'report.unknown': 'Inconnu',
+                        'report.unknown_document': 'Document inconnu',
+                        'report.controls_full': 'Mesures avec preuve complète',
+                        'report.controls_partial': 'Mesures avec preuve partielle',
+                        'report.controls_missing': 'Mesures sans preuve',
+                        'report.controls_missing_note': 'nécessitent une preuve :',
+                        'report.details_expand': 'Cliquer pour afficher la liste complète',
+                        'report.details_toggle': 'Cliquer pour développer/réduire',
+                        'report.details_show_all': 'Cliquer pour afficher les',
+                        'report.low_priority_controls': 'mesures de priorité faible',
+                        'report.actions': 'Actions',
+                        'report.no_evidence_details': 'Aucun détail de preuve',
+                        'report.mark_not_applicable': 'Marquer comme sans objet',
+                        'report.reject_evidence': 'Rejeter la preuve',
+                        'report.partial_note': 'Ces mesures ont des preuves partielles mais nécessitent une documentation supplémentaire :',
+                        'report.missing_note': 'mesures nécessitent une preuve :',
+                        'report.not_applicable_controls': 'Mesures sans objet',
+                        'report.not_applicable_note': 'Ces mesures ne s\'appliquent pas à cette solution (exclues de la couverture) :',
+                        'report.auto_determined': 'Déterminées automatiquement',
+                        'report.auto_reason': 'Déterminées par l\'analyse du système selon la technologie/l\'architecture :',
+                        'report.manual_marked': 'Marquées manuellement',
+                        'report.manual_reason': 'Marquées par l\'opérateur comme sans objet :',
+                        'report.reason': 'Justification',
+                        'report.action': 'Action',
+                        'report.restore': 'Restaurer',
+                        'report.restore_tooltip': 'Réactiver comme applicable',
+                        'report.auto_label': 'Auto',
+                        'report.manual_label': 'Manuel',
+                        'report.no_reason': 'Aucune justification fournie',
+                        'report.no_rationale': 'Aucune justification fournie.',
+                        'report.rejected_evidence': 'Preuve rejetée',
+                        'report.rejected_note': 'Ces mesures sont applicables mais nécessitent de meilleures preuves :',
+                        'report.had': 'Avait',
+                        'report.rejection_reason': 'Motif du rejet',
+                        'report.restore_evidence': 'Restaurer la preuve',
+                        'report.recommendations': 'Recommandations',
+                        'report.address_first': 'Traiter ces mesures en priorité :',
+                        'report.high_priority': 'Priorité élevée',
+                        'report.medium_priority': 'Priorité moyenne',
+                        'report.low_priority': 'Priorité faible',
+                        'report.low_priority_note': 'Ces mesures doivent être traitées dans le cadre de l\'amélioration continue :',
+                        'report.provide_documentation': 'Fournir la documentation requise',
+                        'report.additional_low_priority': 'autres mesures de priorité faible requièrent une attention.',
+                        'report.missing_by_family': 'Mesures manquantes par famille',
+                        'report.missing_controls': 'Mesures manquantes',
+                        'report.assessment_error': 'Erreur d\'évaluation',
+                        'report.machine_verifiable': 'Vérifiable par machine',
+                        'report.human_curated': 'Validé par un humain',
+                        'markdown.generated': '*Généré par le système d\'accréditation ITSG-33*',
+                        'toast.assessment_created': 'Évaluation créée avec succès !',
+                        'toast.assessment_create_failed': 'Échec de la création de l\'évaluation',
+                        'toast.assessment_started': 'Évaluation lancée ! Cela peut prendre plusieurs minutes.',
+                        'toast.assessment_run_failed': 'Échec du lancement de l\'évaluation',
+                        'toast.assessment_load_failed': 'Impossible de charger les détails de l\'évaluation',
+                        'toast.markdown_downloaded': 'Rapport Markdown téléchargé !',
+                        'toast.word_downloaded': 'Document Word téléchargé !',
+                        'toast.word_download_failed': 'Échec du téléchargement du document Word',
+                        'toast.poam_downloaded': 'Document POA&M téléchargé !',
+                        'toast.poam_download_failed': 'Échec du téléchargement du POA&M',
+                        'toast.rerun_confirm': 'Cette action relancera l\'évaluation avec tous les documents actuels. Les résultats précédents seront enregistrés dans l\'historique. Continuer ?',
+                        'toast.rerun_started': 'Relance de l\'évaluation démarrée. Exécutions précédentes :',
+                        'toast.rerun_failed': 'Échec de la relance de l\'évaluation',
+                        'toast.history_failed': 'Échec du chargement de l\'historique',
+                        'toast.upload_success': 'fichier(s) téléversé(s)',
+                        'toast.upload_failed': 'Échec du téléversement des fichiers',
+                        'toast.reject_reason_required': 'Veuillez fournir une justification',
+                        'toast.reject_success_na': 'Mesure marquée comme sans objet',
+                        'toast.reject_success_reject': 'Preuve rejetée',
+                        'toast.reject_failed': 'Échec :',
+                        'toast.restore_success': 'preuve restaurée. Nouvelle couverture :',
+                        'toast.restore_failed': 'Échec de la restauration de la preuve :',
+                        'strength.system_generated': 'Généré par le système',
+                        'strength.iac': 'IaC',
+                        'strength.automated_test': 'Test automatisé',
+                        'strength.code': 'Code',
+                        'strength.screenshot': 'Capture d\'écran',
+                        'strength.video': 'Vidéo',
+                        'strength.narrative': 'Narratif'
+                    }
+                },
                 currentTab: 'dashboard',
                 step: 1,
                 assessments: [],
@@ -840,7 +1379,9 @@
                     conops: ''
                 },
                 currentAssessmentId: null,
+                reportLang: 'en',
                 uploadedFiles: [],
+                pendingFiles: [],
                 selectedAssessment: null,
                 assessmentResults: null,
                 showModal: false,
@@ -859,6 +1400,18 @@
                 rejectError: '',
 
                 async init() {
+                    const savedLang = localStorage.getItem('itsg33-lang');
+                    if (savedLang === 'en' || savedLang === 'fr') {
+                        this.lang = savedLang;
+                    }
+                    this.updateLanguage();
+                    this.$watch('lang', (value) => {
+                        localStorage.setItem('itsg33-lang', value);
+                        this.updateLanguage();
+                        this.loadControlFamilies();
+                        this.loadProfiles();
+                    });
+
                     await this.loadAssessments();
                     await this.loadControlFamilies();
                     await this.loadProfiles();
@@ -891,7 +1444,7 @@
 
                 async loadControlFamilies() {
                     try {
-                        const response = await fetch('/api/v1/controls/families');
+                        const response = await fetch(`/api/v1/controls/families?lang=${this.lang}`);
                         const data = await response.json();
                         this.controlFamilies = data.families || [];
                     } catch (error) {
@@ -901,12 +1454,123 @@
 
                 async loadProfiles() {
                     try {
-                        const response = await fetch('/api/v1/profiles');
+                        const response = await fetch(`/api/v1/profiles?lang=${this.lang}`);
                         const data = await response.json();
                         this.profiles = data.profiles || [];
                     } catch (error) {
                         console.error('Failed to load profiles:', error);
                     }
+                },
+
+                setLang(lang) {
+                    this.lang = lang;
+                    this.reportLang = lang;
+                },
+
+                updateLanguage() {
+                    document.title = this.t('app.title');
+                    document.documentElement.lang = this.lang;
+                },
+
+                t(key) {
+                    const current = this.i18n[this.lang] || {};
+                    return current[key] || this.i18n.en[key] || key;
+                },
+
+                getControlFamilyName(code) {
+                    const families = {
+                        AC: { en: 'Access Control', fr: 'Contrôle d\'accès' },
+                        AT: { en: 'Awareness and Training', fr: 'Sensibilisation et formation' },
+                        AU: { en: 'Audit and Accountability', fr: 'Audit et responsabilité' },
+                        CA: { en: 'Assessment, Authorization, and Monitoring', fr: 'Évaluation, autorisation et surveillance' },
+                        CM: { en: 'Configuration Management', fr: 'Gestion de configuration' },
+                        CP: { en: 'Contingency Planning', fr: 'Planification des mesures d\'urgence' },
+                        IA: { en: 'Identification and Authentication', fr: 'Identification et authentification' },
+                        IR: { en: 'Incident Response', fr: 'Intervention en cas d\'incident' },
+                        MA: { en: 'Maintenance', fr: 'Maintenance' },
+                        MP: { en: 'Media Protection', fr: 'Protection des supports' },
+                        PE: { en: 'Physical and Environmental Protection', fr: 'Protection physique et environnementale' },
+                        PL: { en: 'Planning', fr: 'Planification' },
+                        PS: { en: 'Personnel Security', fr: 'Sécurité du personnel' },
+                        RA: { en: 'Risk Assessment', fr: 'Évaluation des risques' },
+                        SA: { en: 'System and Services Acquisition', fr: 'Acquisition de systèmes et de services' },
+                        SC: { en: 'System and Communications Protection', fr: 'Protection des systèmes et des communications' },
+                        SI: { en: 'System and Information Integrity', fr: 'Intégrité des systèmes et de l\'information' }
+                    };
+                    return families[code]?.[this.lang] || families[code]?.en || code;
+                },
+
+                getControlFamilyLabel(code) {
+                    if (this.lang === 'fr') {
+                        return `${this.t('controls.controls_suffix')} ${code}`;
+                    }
+                    return `${code} ${this.t('controls.controls_suffix')}`;
+                },
+
+                getProfileLabel(number) {
+                    const labels = {
+                        1: { en: 'Low Impact', fr: 'Impact faible' },
+                        2: { en: 'Moderate Impact', fr: 'Impact modéré' },
+                        3: { en: 'High Impact', fr: 'Impact élevé' }
+                    };
+                    return labels[number]?.[this.lang] || labels[number]?.en || '';
+                },
+
+                getProfileDescription(number) {
+                    const descriptions = {
+                        1: {
+                            en: 'Baseline controls for low-impact systems.',
+                            fr: 'Mesures de base pour les systèmes à impact faible.'
+                        },
+                        2: {
+                            en: 'Enhanced controls for moderate-impact systems.',
+                            fr: 'Mesures renforcées pour les systèmes à impact modéré.'
+                        },
+                        3: {
+                            en: 'Comprehensive controls for high-impact systems.',
+                            fr: 'Mesures complètes pour les systèmes à impact élevé.'
+                        }
+                    };
+                    return descriptions[number]?.[this.lang] || descriptions[number]?.en || '';
+                },
+
+                formatProfileTitle(number) {
+                    return `${this.t('controls.profile_label')} ${number}`;
+                },
+
+                getStatusLabel(status) {
+                    const labels = {
+                        created: { en: 'created', fr: 'créée' },
+                        in_progress: { en: 'in progress', fr: 'en cours' },
+                        running: { en: 'running', fr: 'en cours' },
+                        completed: { en: 'completed', fr: 'terminée' },
+                        error: { en: 'error', fr: 'erreur' }
+                    };
+                    return labels[status]?.[this.lang] || labels[status]?.en || status;
+                },
+
+                formatDocumentsReviewed(documents, diagrams) {
+                    if (this.lang === 'fr') {
+                        return `${documents} documents, ${diagrams} diagrammes`;
+                    }
+                    return `${documents} documents, ${diagrams} diagrams`;
+                },
+
+                formatUploadMessage(count) {
+                    return `${count} ${this.t('toast.upload_success')}`;
+                },
+
+                getCoverageLabel(coverage) {
+                    if (coverage === 'FULL') {
+                        return this.t('report.coverage_full');
+                    }
+                    if (coverage === 'PARTIAL') {
+                        return this.t('report.coverage_partial');
+                    }
+                    if (coverage === 'NONE') {
+                        return this.t('report.coverage_none');
+                    }
+                    return coverage || this.t('report.unknown');
                 },
 
                 async createAssessment() {
@@ -919,29 +1583,47 @@
                         const data = await response.json();
                         this.currentAssessmentId = data.assessment_id;
                         this.step = 2;
-                        this.showToast('Assessment created successfully!', 'success');
+                        this.showToast(this.t('toast.assessment_created'), 'success');
                         await this.loadAssessments();
                     } catch (error) {
-                        this.showToast('Failed to create assessment', 'error');
+                        this.showToast(this.t('toast.assessment_create_failed'), 'error');
                     }
                 },
 
                 handleFiles(event) {
-                    this.uploadFiles(event.target.files);
+                    const newFiles = Array.from(event.target.files).map(file => ({
+                        file: file,
+                        filename: file.name,
+                        significance_note: ''
+                    }));
+                    this.pendingFiles = [...this.pendingFiles, ...newFiles];
                 },
 
                 handleDrop(event) {
                     this.dragover = false;
-                    this.uploadFiles(event.dataTransfer.files);
+                    const newFiles = Array.from(event.dataTransfer.files).map(file => ({
+                        file: file,
+                        filename: file.name,
+                        significance_note: ''
+                    }));
+                    this.pendingFiles = [...this.pendingFiles, ...newFiles];
                 },
 
-                async uploadFiles(files) {
-                    if (!this.currentAssessmentId) return;
+                async uploadPendingFiles() {
+                    if (!this.currentAssessmentId || this.pendingFiles.length === 0) return;
 
                     const formData = new FormData();
-                    for (const file of files) {
-                        formData.append('files', file);
+                    const metadata = [];
+
+                    for (const pf of this.pendingFiles) {
+                        formData.append('files', pf.file);
+                        metadata.push({
+                            filename: pf.filename,
+                            significance_note: pf.significance_note
+                        });
                     }
+
+                    formData.append('metadata', JSON.stringify(metadata));
 
                     try {
                         const response = await fetch(`/api/v1/assessment/${this.currentAssessmentId}/upload`, {
@@ -950,9 +1632,11 @@
                         });
                         const data = await response.json();
                         this.uploadedFiles = [...this.uploadedFiles, ...data.uploaded_files];
-                        this.showToast(`${data.successful} file(s) uploaded`, 'success');
+                        this.pendingFiles = [];
+                        this.showToast(this.formatUploadMessage(data.successful), 'success');
+                        this.step = 3;
                     } catch (error) {
-                        this.showToast('Failed to upload files', 'error');
+                        this.showToast(this.t('toast.upload_failed'), 'error');
                     }
                 },
 
@@ -965,7 +1649,7 @@
                             method: 'POST'
                         });
                         const data = await response.json();
-                        this.showToast('Assessment started! This may take a few minutes.', 'success');
+                        this.showToast(this.t('toast.assessment_started'), 'success');
 
                         this.step = 1;
                         this.newAssessment = { client_id: '', project_name: '', conops: '' };
@@ -974,7 +1658,7 @@
                         this.currentTab = 'assessments';
                         await this.loadAssessments();
                     } catch (error) {
-                        this.showToast('Failed to run assessment', 'error');
+                        this.showToast(this.t('toast.assessment_run_failed'), 'error');
                     } finally {
                         this.isRunning = false;
                     }
@@ -998,9 +1682,10 @@
                             this.assessmentResults = null;
                         }
 
+                        this.reportLang = this.lang;
                         this.showModal = true;
                     } catch (error) {
-                        this.showToast('Failed to load assessment details', 'error');
+                        this.showToast(this.t('toast.assessment_load_failed'), 'error');
                     }
                 },
 
@@ -1017,19 +1702,20 @@
 
                     const a = this.selectedAssessment;
                     const r = this.assessmentResults;
-                    const date = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' });
+                    const locale = this.lang === 'fr' ? 'fr-CA' : 'en-CA';
+                    const date = new Date().toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' });
 
                     let html = `
-                        <h1>ITSG-33 Security Assessment Report</h1>
+                        <h1>${this.t('report.title')}</h1>
 
-                        <h2>Executive Summary</h2>
+                        <h2>${this.t('report.executive_summary')}</h2>
                         <table>
-                            <tr><th style="width:200px">Assessment ID</th><td><code>${a.assessment_id || 'N/A'}</code></td></tr>
-                            <tr><th>Project Name</th><td><strong>${this.getProjectName()}</strong></td></tr>
-                            <tr><th>Client</th><td>${this.getClientId()}</td></tr>
-                            <tr><th>Status</th><td><span class="${this.getStatusCssClass(a.status)}">${a.status || 'Unknown'}</span></td></tr>
-                            <tr><th>Report Date</th><td>${date}</td></tr>
-                            <tr><th>Documents Reviewed</th><td>${a.document_count || 0} documents, ${a.diagram_count || 0} diagrams</td></tr>
+                            <tr><th style="width:200px">${this.t('report.assessment_id')}</th><td><code>${a.assessment_id || 'N/A'}</code></td></tr>
+                            <tr><th>${this.t('report.project_name')}</th><td><strong>${this.getProjectName()}</strong></td></tr>
+                            <tr><th>${this.t('report.client')}</th><td>${this.getClientId()}</td></tr>
+                            <tr><th>${this.t('report.status')}</th><td><span class="${this.getStatusCssClass(a.status)}">${this.getStatusLabel(a.status) || this.t('report.unknown')}</span></td></tr>
+                            <tr><th>${this.t('report.report_date')}</th><td>${date}</td></tr>
+                            <tr><th>${this.t('report.documents_reviewed')}</th><td>${this.formatDocumentsReviewed(a.document_count || 0, a.diagram_count || 0)}</td></tr>
                         </table>
                     `;
 
@@ -1037,45 +1723,45 @@
                         html += this.renderCompletedResults(r);
                     } else if (a.status === 'created') {
                         html += `
-                            <h2>Assessment Status</h2>
-                            <p>This assessment has been created but not yet executed. Upload documents and run the assessment to generate results.</p>
+                            <h2>${this.t('report.assessment_status')}</h2>
+                            <p>${this.t('report.created_message')}</p>
 
-                            <h3>Next Steps</h3>
+                            <h3>${this.t('report.next_steps')}</h3>
                             <ul>
-                                <li>Upload relevant security documentation (policies, procedures, configurations)</li>
-                                <li>Include architecture diagrams and network documentation</li>
-                                <li>Run the assessment to analyze documents against ITSG-33 controls</li>
+                                <li>${this.t('report.next_steps_upload')}</li>
+                                <li>${this.t('report.next_steps_diagrams')}</li>
+                                <li>${this.t('report.next_steps_run')}</li>
                             </ul>
                         `;
                     } else if (a.status === 'in_progress' || a.status === 'running') {
                         html += `
-                            <h2>Assessment In Progress</h2>
-                            <p>The assessment is currently running. Please check back shortly for results.</p>
-                            <p>The system is analyzing your documents against all 17 ITSG-33 control families.</p>
+                            <h2>${this.t('report.in_progress_title')}</h2>
+                            <p>${this.t('report.in_progress_message')}</p>
+                            <p>${this.t('report.in_progress_note')}</p>
                         `;
                     }
 
                     html += `
-                        <h2>About ITSG-33</h2>
-                        <p>ITSG-33 (IT Security Risk Management: A Lifecycle Approach) is the Government of Canada's framework for managing IT security risks. It defines security controls across 17 families:</p>
+                        <h2>${this.t('report.about_title')}</h2>
+                        <p>${this.t('report.about_intro')}</p>
                         <ul>
-                            <li><strong>AC</strong> - Access Control</li>
-                            <li><strong>AT</strong> - Awareness and Training</li>
-                            <li><strong>AU</strong> - Audit and Accountability</li>
-                            <li><strong>CA</strong> - Assessment, Authorization, and Monitoring</li>
-                            <li><strong>CM</strong> - Configuration Management</li>
-                            <li><strong>CP</strong> - Contingency Planning</li>
-                            <li><strong>IA</strong> - Identification and Authentication</li>
-                            <li><strong>IR</strong> - Incident Response</li>
-                            <li><strong>MA</strong> - Maintenance</li>
-                            <li><strong>MP</strong> - Media Protection</li>
-                            <li><strong>PE</strong> - Physical and Environmental Protection</li>
-                            <li><strong>PL</strong> - Planning</li>
-                            <li><strong>PS</strong> - Personnel Security</li>
-                            <li><strong>RA</strong> - Risk Assessment</li>
-                            <li><strong>SA</strong> - System and Services Acquisition</li>
-                            <li><strong>SC</strong> - System and Communications Protection</li>
-                            <li><strong>SI</strong> - System and Information Integrity</li>
+                            <li><strong>AC</strong> - ${this.getControlFamilyName('AC')}</li>
+                            <li><strong>AT</strong> - ${this.getControlFamilyName('AT')}</li>
+                            <li><strong>AU</strong> - ${this.getControlFamilyName('AU')}</li>
+                            <li><strong>CA</strong> - ${this.getControlFamilyName('CA')}</li>
+                            <li><strong>CM</strong> - ${this.getControlFamilyName('CM')}</li>
+                            <li><strong>CP</strong> - ${this.getControlFamilyName('CP')}</li>
+                            <li><strong>IA</strong> - ${this.getControlFamilyName('IA')}</li>
+                            <li><strong>IR</strong> - ${this.getControlFamilyName('IR')}</li>
+                            <li><strong>MA</strong> - ${this.getControlFamilyName('MA')}</li>
+                            <li><strong>MP</strong> - ${this.getControlFamilyName('MP')}</li>
+                            <li><strong>PE</strong> - ${this.getControlFamilyName('PE')}</li>
+                            <li><strong>PL</strong> - ${this.getControlFamilyName('PL')}</li>
+                            <li><strong>PS</strong> - ${this.getControlFamilyName('PS')}</li>
+                            <li><strong>RA</strong> - ${this.getControlFamilyName('RA')}</li>
+                            <li><strong>SA</strong> - ${this.getControlFamilyName('SA')}</li>
+                            <li><strong>SC</strong> - ${this.getControlFamilyName('SC')}</li>
+                            <li><strong>SI</strong> - ${this.getControlFamilyName('SI')}</li>
                         </ul>
                     `;
 
@@ -1098,48 +1784,48 @@
                         const manualNACount = notApplicableList.filter(c => c.auto_determined === false).length;
                         const rejectedEvidenceCount = rejectedEvidenceList.length;
                         html += `
-                            <h2>Assessment Summary</h2>
+                            <h2>${this.t('report.summary_title')}</h2>
                             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1rem">
                                 <div style="background:#f0fdf4;padding:1rem;border-radius:0.5rem;text-align:center">
                                     <div style="font-size:2rem;font-weight:bold;color:#059669">${s.controls_with_evidence || 0}</div>
-                                    <div style="font-size:0.875rem;color:#166534">Full Evidence</div>
+                                    <div style="font-size:0.875rem;color:#166534">${this.t('report.summary_full')}</div>
                                 </div>
                                 <div style="background:#fef9c3;padding:1rem;border-radius:0.5rem;text-align:center">
                                     <div style="font-size:2rem;font-weight:bold;color:#d97706">${s.controls_partial || 0}</div>
-                                    <div style="font-size:0.875rem;color:#92400e">Partial Evidence</div>
+                                    <div style="font-size:0.875rem;color:#92400e">${this.t('report.summary_partial')}</div>
                                 </div>
                                 <div style="background:#fee2e2;padding:1rem;border-radius:0.5rem;text-align:center">
                                     <div style="font-size:2rem;font-weight:bold;color:#dc2626">${(s.controls_missing || 0) + rejectedEvidenceCount}</div>
-                                    <div style="font-size:0.875rem;color:#991b1b">Needs Evidence</div>
+                                    <div style="font-size:0.875rem;color:#991b1b">${this.t('report.summary_missing')}</div>
                                 </div>
                             </div>
                             <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:1.5rem">
                                 <div style="background:#dbeafe;padding:0.75rem;border-radius:0.5rem;text-align:center">
                                     <div style="font-size:1.5rem;font-weight:bold;color:#1e40af">${notApplicableCount}</div>
-                                    <div style="font-size:0.75rem;color:#3b82f6">Not Applicable</div>
-                                    <div style="font-size:0.65rem;color:#6b7280;margin-top:2px"><i class="fas fa-robot"></i> ${autoNACount} auto / <i class="fas fa-user"></i> ${manualNACount} manual</div>
+                                    <div style="font-size:0.75rem;color:#3b82f6">${this.t('report.summary_not_applicable')}</div>
+                                    <div style="font-size:0.65rem;color:#6b7280;margin-top:2px"><i class="fas fa-robot"></i> ${autoNACount} ${this.t('report.auto_label')} / <i class="fas fa-user"></i> ${manualNACount} ${this.t('report.manual_label')}</div>
                                 </div>
                                 <div style="background:#fef3c7;padding:0.75rem;border-radius:0.5rem;text-align:center">
                                     <div style="font-size:1.5rem;font-weight:bold;color:#92400e">${rejectedEvidenceCount}</div>
-                                    <div style="font-size:0.75rem;color:#d97706">Evidence Rejected</div>
+                                    <div style="font-size:0.75rem;color:#d97706">${this.t('report.rejected_evidence')}</div>
                                 </div>
                                 <div style="background:#f3f4f6;padding:0.75rem;border-radius:0.5rem;text-align:center">
                                     <div style="font-size:1.5rem;font-weight:bold;color:${coverageColor}">${coveragePct}%</div>
-                                    <div style="font-size:0.75rem;color:#6b7280">Coverage</div>
+                                    <div style="font-size:0.75rem;color:#6b7280">${this.t('report.summary_coverage')}</div>
                                 </div>
                                 <div style="background:#e0f2fe;padding:0.75rem;border-radius:0.5rem;text-align:center">
                                     <div style="font-size:1.5rem;font-weight:bold;color:#0369a1">${s.quality_score || 0}%</div>
-                                    <div style="font-size:0.75rem;color:#0284c7">Evidence Quality</div>
+                                    <div style="font-size:0.75rem;color:#0284c7">${this.t('report.summary_quality')}</div>
                                     <div style="font-size:0.65rem;color:#6b7280;margin-top:2px"><i class="fas fa-robot"></i> ${s.machine_verifiable_count || 0} / <i class="fas fa-user"></i> ${s.human_curated_count || 0}</div>
                                 </div>
                                 <div style="background:#e0e7ff;padding:0.75rem;border-radius:0.5rem;text-align:center">
                                     <div style="font-size:1.5rem;font-weight:bold;color:#4338ca">${s.applicable_controls || (s.total_controls - notApplicableCount)}</div>
-                                    <div style="font-size:0.75rem;color:#6366f1">Applicable</div>
+                                    <div style="font-size:0.75rem;color:#6366f1">${this.t('report.summary_applicable')}</div>
                                 </div>
                             </div>
                             <table>
-                                <tr><th style="width:200px">Security Profile</th><td><strong>Profile ${s.profile || 2}</strong> (${s.profile === 1 ? 'Low' : s.profile === 3 ? 'High' : 'Moderate'} Impact)</td></tr>
-                                <tr><th>Total Controls Required</th><td>${s.total_controls || 0}</td></tr>
+                                <tr><th style="width:200px">${this.t('report.security_profile')}</th><td><strong>${this.formatProfileTitle(s.profile || 2)}</strong> (${this.getProfileLabel(s.profile || 2)})</td></tr>
+                                <tr><th>${this.t('report.total_controls_required')}</th><td>${s.total_controls || 0}</td></tr>
                             </table>
                         `;
                     }
@@ -1149,17 +1835,17 @@
                         if (r.phases.system_analysis) {
                             const sa = r.phases.system_analysis;
                             html += `
-                                <h2>System Analysis</h2>
+                                <h2>${this.t('report.system_analysis')}</h2>
                                 <table>
-                                    <tr><th style="width:200px">System Type</th><td>${sa.system_type || 'Unknown'}</td></tr>
-                                    <tr><th>Data Classification</th><td>${sa.data_classification || 'Unknown'}</td></tr>
-                                    <tr><th>Confidentiality</th><td>${sa.confidentiality || 'Unknown'}</td></tr>
-                                    <tr><th>Integrity</th><td>${sa.integrity || 'Unknown'}</td></tr>
-                                    <tr><th>Availability</th><td>${sa.availability || 'Unknown'}</td></tr>
-                                    <tr><th>Recommended Profile</th><td><strong>Profile ${sa.recommended_profile || 2}</strong></td></tr>
+                                    <tr><th style="width:200px">${this.t('report.system_type')}</th><td>${sa.system_type || this.t('report.unknown')}</td></tr>
+                                    <tr><th>${this.t('report.data_classification')}</th><td>${sa.data_classification || this.t('report.unknown')}</td></tr>
+                                    <tr><th>${this.t('report.confidentiality')}</th><td>${sa.confidentiality || this.t('report.unknown')}</td></tr>
+                                    <tr><th>${this.t('report.integrity')}</th><td>${sa.integrity || this.t('report.unknown')}</td></tr>
+                                    <tr><th>${this.t('report.availability')}</th><td>${sa.availability || this.t('report.unknown')}</td></tr>
+                                    <tr><th>${this.t('report.recommended_profile')}</th><td><strong>${this.formatProfileTitle(sa.recommended_profile || 2)}</strong></td></tr>
                                 </table>
-                                <h3>Rationale</h3>
-                                <p>${sa.rationale || 'No rationale provided.'}</p>
+                                <h3>${this.t('report.rationale')}</h3>
+                                <p>${sa.rationale || this.t('report.no_rationale')}</p>
                             `;
                         }
 
@@ -1167,12 +1853,12 @@
                         if (r.phases.required_controls && r.phases.required_controls.controls_by_family) {
                             const cbf = r.phases.required_controls.controls_by_family;
                             html += `
-                                <h2>Required Controls by Family</h2>
+                                <h2>${this.t('report.required_controls_family')}</h2>
                                 <table>
-                                    <tr><th>Family</th><th>Controls</th></tr>
+                                    <tr><th>${this.t('report.family')}</th><th>${this.t('report.controls')}</th></tr>
                             `;
                             for (const [family, controls] of Object.entries(cbf)) {
-                                html += `<tr><td><strong>${family}</strong></td><td>${controls.length} controls</td></tr>`;
+                                html += `<tr><td><strong>${this.getControlFamilyName(family)}</strong></td><td>${controls.length} ${this.t('controls.controls_suffix')}</td></tr>`;
                             }
                             html += `</table>`;
                         }
@@ -1181,27 +1867,27 @@
                         if (r.phases.evidence_analysis && r.phases.evidence_analysis.document_analyses) {
                             const docs = r.phases.evidence_analysis.document_analyses;
                             html += `
-                                <h2>Document Analysis</h2>
-                                <p>${docs.length} document(s) analyzed for security evidence:</p>
+                                <h2>${this.t('report.document_analysis')}</h2>
+                                <p>${docs.length} ${this.t('report.documents_analyzed')}</p>
                             `;
 
                             for (const doc of docs) {
                                 const controlCount = Object.keys(doc.controls_addressed || {}).length;
                                 html += `
-                                    <h3>${doc.filename || 'Unknown Document'}</h3>
+                                    <h3>${doc.filename || this.t('report.unknown_document')}</h3>
                                     <table>
-                                        <tr><th style="width:200px">Document Type</th><td>${doc.document_type || 'Unknown'}</td></tr>
-                                        <tr><th>Purpose</th><td>${doc.document_purpose || 'Unknown'}</td></tr>
-                                        <tr><th>Controls Addressed</th><td>${controlCount} control(s)</td></tr>
-                                        <tr><th>Security Topics</th><td>${(doc.key_security_topics || []).join(', ') || 'None identified'}</td></tr>
+                                        <tr><th style="width:200px">${this.t('report.document_type')}</th><td>${doc.document_type || this.t('report.unknown')}</td></tr>
+                                        <tr><th>${this.t('report.document_purpose')}</th><td>${doc.document_purpose || this.t('report.unknown')}</td></tr>
+                                        <tr><th>${this.t('report.controls_addressed')}</th><td>${controlCount} ${this.t('report.controls')}</td></tr>
+                                        <tr><th>${this.t('report.security_topics')}</th><td>${(doc.key_security_topics || []).join(', ') || this.t('report.none_identified')}</td></tr>
                                     </table>
                                 `;
 
                                 if (controlCount > 0) {
-                                    html += `<h4>Controls Addressed:</h4><table><tr><th>Control</th><th>Coverage</th><th>Evidence</th></tr>`;
+                                    html += `<h4>${this.t('report.controls_addressed_title')}</h4><table><tr><th>${this.t('report.control')}</th><th>${this.t('report.coverage')}</th><th>${this.t('report.evidence')}</th></tr>`;
                                     for (const [ctrlId, evidence] of Object.entries(doc.controls_addressed)) {
                                         const coverageClass = evidence.coverage === 'FULL' ? 'status-implemented' : evidence.coverage === 'PARTIAL' ? 'status-partial' : 'status-not-implemented';
-                                        html += `<tr><td><strong>${ctrlId}</strong></td><td class="${coverageClass}">${evidence.coverage || 'Unknown'}</td><td>${evidence.evidence_summary || ''}</td></tr>`;
+                                        html += `<tr><td><strong>${ctrlId}</strong></td><td class="${coverageClass}">${this.getCoverageLabel(evidence.coverage)}</td><td>${evidence.evidence_summary || ''}</td></tr>`;
                                     }
                                     html += `</table>`;
                                 }
@@ -1215,10 +1901,10 @@
                             // Controls with full evidence
                             if (cov.full_coverage && cov.full_coverage.length > 0) {
                                 html += `
-                                    <h2>Controls with Full Evidence (${cov.full_coverage.length})</h2>
+                                    <h2>${this.t('report.controls_full')} (${cov.full_coverage.length})</h2>
                                     <details>
-                                        <summary style="cursor:pointer;color:#059669;font-weight:500;margin-bottom:10px;">Click to expand full list</summary>
-                                        <table><tr><th style="width:120px">Control</th><th>Evidence</th><th style="width:140px">Actions</th></tr>
+                                        <summary style="cursor:pointer;color:#059669;font-weight:500;margin-bottom:10px;">${this.t('report.details_expand')}</summary>
+                                        <table><tr><th style="width:120px">${this.t('report.control')}</th><th>${this.t('report.evidence')}</th><th style="width:140px">${this.t('report.actions')}</th></tr>
                                 `;
                                 for (const ctrl of cov.full_coverage) {
                                     const evidenceItems = ctrl.evidence || [];
@@ -1232,9 +1918,9 @@
                                         evidenceHtml += `
                                             <div style="margin-bottom:0.75rem;padding-bottom:0.75rem;border-bottom:1px solid #e5e7eb">
                                                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:0.25rem">
-                                                    <span style="font-size:0.75rem;color:#059669;font-weight:500"><i class="fas fa-file-alt"></i> ${ev.document || 'Unknown'}</span>
+                                                    <span style="font-size:0.75rem;color:#059669;font-weight:500"><i class="fas fa-file-alt"></i> ${ev.document || this.t('report.unknown')}</span>
                                                     <span class="strength-badge strength-${strengthTier}">${strengthLabel}</span>
-                                                    ${isMachineVerifiable ? '<span class="machine-verifiable-badge"><i class="fas fa-robot"></i> Machine-Verifiable</span>' : '<span class="human-curated-badge"><i class="fas fa-user"></i> Human-Curated</span>'}
+                                                    ${isMachineVerifiable ? `<span class="machine-verifiable-badge"><i class="fas fa-robot"></i> ${this.t('report.machine_verifiable')}</span>` : `<span class="human-curated-badge"><i class="fas fa-user"></i> ${this.t('report.human_curated')}</span>`}
                                                 </div>
                                                 <p style="margin:0 0 0.5rem 0;font-size:0.875rem">${summary}</p>
                                                 ${excerpt ? `<blockquote style="margin:0;padding:0.5rem;background:#f0fdf4;border-left:3px solid #059669;font-style:italic;font-size:0.85rem">"${excerpt}"</blockquote>` : ''}
@@ -1245,10 +1931,10 @@
                                     html += `
                                         <tr>
                                             <td style="vertical-align:top"><strong>${ctrl.control_id}</strong><br><small style="color:#666">${ctrl.control_name}</small></td>
-                                            <td>${evidenceHtml || '<em style="color:#9ca3af">No evidence details</em>'}</td>
+                                            <td>${evidenceHtml || `<em style="color:#9ca3af">${this.t('report.no_evidence_details')}</em>`}</td>
                                             <td style="vertical-align:top">
-                                                <button onclick="window.dispatchEvent(new CustomEvent('mark-not-applicable', {detail: ${ctrlJson}}))" style="background:#dbeafe;color:#1e40af;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.7rem;margin-bottom:4px;display:block;width:100%" title="Mark as Not Applicable"><i class="fas fa-ban"></i> N/A</button>
-                                                <button onclick="window.dispatchEvent(new CustomEvent('reject-evidence', {detail: ${ctrlJson}}))" style="background:#fef3c7;color:#92400e;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.7rem;display:block;width:100%" title="Reject Evidence"><i class="fas fa-times-circle"></i> Reject Evidence</button>
+                                                <button onclick="window.dispatchEvent(new CustomEvent('mark-not-applicable', {detail: ${ctrlJson}}))" style="background:#dbeafe;color:#1e40af;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.7rem;margin-bottom:4px;display:block;width:100%" title="${this.t('report.mark_not_applicable')}"><i class="fas fa-ban"></i> ${this.lang === 'fr' ? 'S.O.' : 'N/A'}</button>
+                                                <button onclick="window.dispatchEvent(new CustomEvent('reject-evidence', {detail: ${ctrlJson}}))" style="background:#fef3c7;color:#92400e;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.7rem;display:block;width:100%" title="${this.t('report.reject_evidence')}"><i class="fas fa-times-circle"></i> ${this.t('report.reject_evidence')}</button>
                                             </td>
                                         </tr>
                                     `;
@@ -1259,11 +1945,11 @@
                             // Controls with partial evidence
                             if (cov.partial_coverage && cov.partial_coverage.length > 0) {
                                 html += `
-                                    <h2>Controls with Partial Evidence (${cov.partial_coverage.length})</h2>
-                                    <p style="color:#d97706">These controls have some evidence but need additional documentation:</p>
+                                    <h2>${this.t('report.controls_partial')} (${cov.partial_coverage.length})</h2>
+                                    <p style="color:#d97706">${this.t('report.partial_note')}</p>
                                     <details open>
-                                        <summary style="cursor:pointer;color:#d97706;font-weight:500;margin-bottom:10px;">Click to expand/collapse</summary>
-                                        <table><tr><th style="width:120px">Control</th><th>Evidence</th><th style="width:140px">Actions</th></tr>
+                                        <summary style="cursor:pointer;color:#d97706;font-weight:500;margin-bottom:10px;">${this.t('report.details_toggle')}</summary>
+                                        <table><tr><th style="width:120px">${this.t('report.control')}</th><th>${this.t('report.evidence')}</th><th style="width:140px">${this.t('report.actions')}</th></tr>
                                 `;
                                 for (const ctrl of cov.partial_coverage) {
                                     const evidenceItems = ctrl.evidence || [];
@@ -1277,9 +1963,9 @@
                                         evidenceHtml += `
                                             <div style="margin-bottom:0.75rem;padding-bottom:0.75rem;border-bottom:1px solid #e5e7eb">
                                                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:0.25rem">
-                                                    <span style="font-size:0.75rem;color:#d97706;font-weight:500"><i class="fas fa-file-alt"></i> ${ev.document || 'Unknown'}</span>
+                                                    <span style="font-size:0.75rem;color:#d97706;font-weight:500"><i class="fas fa-file-alt"></i> ${ev.document || this.t('report.unknown')}</span>
                                                     <span class="strength-badge strength-${strengthTier}">${strengthLabel}</span>
-                                                    ${isMachineVerifiable ? '<span class="machine-verifiable-badge"><i class="fas fa-robot"></i> Machine-Verifiable</span>' : '<span class="human-curated-badge"><i class="fas fa-user"></i> Human-Curated</span>'}
+                                                    ${isMachineVerifiable ? `<span class="machine-verifiable-badge"><i class="fas fa-robot"></i> ${this.t('report.machine_verifiable')}</span>` : `<span class="human-curated-badge"><i class="fas fa-user"></i> ${this.t('report.human_curated')}</span>`}
                                                 </div>
                                                 <p style="margin:0 0 0.5rem 0;font-size:0.875rem">${summary}</p>
                                                 ${excerpt ? `<blockquote style="margin:0;padding:0.5rem;background:#fef9c3;border-left:3px solid #d97706;font-style:italic;font-size:0.85rem">"${excerpt}"</blockquote>` : ''}
@@ -1290,10 +1976,10 @@
                                     html += `
                                         <tr>
                                             <td style="vertical-align:top"><strong>${ctrl.control_id}</strong><br><small style="color:#666">${ctrl.control_name}</small></td>
-                                            <td>${evidenceHtml || '<em style="color:#9ca3af">No evidence details</em>'}</td>
+                                            <td>${evidenceHtml || `<em style="color:#9ca3af">${this.t('report.no_evidence_details')}</em>`}</td>
                                             <td style="vertical-align:top">
-                                                <button onclick="window.dispatchEvent(new CustomEvent('mark-not-applicable', {detail: ${ctrlJson}}))" style="background:#dbeafe;color:#1e40af;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.7rem;margin-bottom:4px;display:block;width:100%" title="Mark as Not Applicable"><i class="fas fa-ban"></i> N/A</button>
-                                                <button onclick="window.dispatchEvent(new CustomEvent('reject-evidence', {detail: ${ctrlJson}}))" style="background:#fef3c7;color:#92400e;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.7rem;display:block;width:100%" title="Reject Evidence"><i class="fas fa-times-circle"></i> Reject Evidence</button>
+                                                <button onclick="window.dispatchEvent(new CustomEvent('mark-not-applicable', {detail: ${ctrlJson}}))" style="background:#dbeafe;color:#1e40af;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.7rem;margin-bottom:4px;display:block;width:100%" title="${this.t('report.mark_not_applicable')}"><i class="fas fa-ban"></i> ${this.lang === 'fr' ? 'S.O.' : 'N/A'}</button>
+                                                <button onclick="window.dispatchEvent(new CustomEvent('reject-evidence', {detail: ${ctrlJson}}))" style="background:#fef3c7;color:#92400e;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.7rem;display:block;width:100%" title="${this.t('report.reject_evidence')}"><i class="fas fa-times-circle"></i> ${this.t('report.reject_evidence')}</button>
                                             </td>
                                         </tr>
                                     `;
@@ -1304,15 +1990,15 @@
                             // Controls missing evidence
                             if (cov.no_coverage && cov.no_coverage.length > 0) {
                                 html += `
-                                    <h2>Controls Missing Evidence (${cov.no_coverage.length})</h2>
-                                    <p style="color:#dc2626"><strong>${cov.no_coverage.length} controls</strong> require evidence documentation:</p>
+                                    <h2>${this.t('report.controls_missing')} (${cov.no_coverage.length})</h2>
+                                    <p style="color:#dc2626"><strong>${cov.no_coverage.length} ${this.t('report.controls')}</strong> ${this.t('report.controls_missing_note')}</p>
                                     <details open>
-                                        <summary style="cursor:pointer;color:#dc2626;font-weight:500;margin-bottom:10px;">Click to expand/collapse full list</summary>
-                                        <table><tr><th style="width:100px">Control ID</th><th>Control Name</th><th style="width:60px">Family</th><th style="width:80px">Action</th></tr>
+                                        <summary style="cursor:pointer;color:#dc2626;font-weight:500;margin-bottom:10px;">${this.t('report.details_toggle')}</summary>
+                                        <table><tr><th style="width:100px">${this.t('report.control_id')}</th><th>${this.t('report.control')}</th><th style="width:60px">${this.t('report.family')}</th><th style="width:80px">${this.t('report.action')}</th></tr>
                                 `;
                                 for (const ctrl of cov.no_coverage) {
                                     const ctrlJson = JSON.stringify(ctrl).replace(/"/g, '&quot;');
-                                    html += `<tr><td><strong>${ctrl.control_id}</strong></td><td>${ctrl.control_name}</td><td>${ctrl.family}</td><td><button onclick="window.dispatchEvent(new CustomEvent('mark-not-applicable', {detail: ${ctrlJson}}))" style="background:#dbeafe;color:#1e40af;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.7rem" title="Mark as Not Applicable"><i class="fas fa-ban"></i> N/A</button></td></tr>`;
+                                    html += `<tr><td><strong>${ctrl.control_id}</strong></td><td>${ctrl.control_name}</td><td>${this.getControlFamilyName(ctrl.family)}</td><td><button onclick="window.dispatchEvent(new CustomEvent('mark-not-applicable', {detail: ${ctrlJson}}))" style="background:#dbeafe;color:#1e40af;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.7rem" title="${this.t('report.mark_not_applicable')}"><i class="fas fa-ban"></i> ${this.lang === 'fr' ? 'S.O.' : 'N/A'}</button></td></tr>`;
                                 }
                                 html += `</table></details>`;
                             }
@@ -1325,26 +2011,26 @@
                                 const manualNA = notApplicable.filter(c => c.auto_determined === false);
 
                                 html += `
-                                    <h2>Not Applicable Controls (${notApplicable.length})</h2>
-                                    <p style="color:#3b82f6">These controls do not apply to this solution (excluded from coverage):</p>
+                                    <h2>${this.t('report.not_applicable_controls')} (${notApplicable.length})</h2>
+                                    <p style="color:#3b82f6">${this.t('report.not_applicable_note')}</p>
                                 `;
 
                                 // Auto-determined section
                                 if (autoNA.length > 0) {
                                     html += `
-                                        <h3 style="font-size:1rem;color:#6366f1;margin-top:1rem"><i class="fas fa-robot"></i> Auto-Determined (${autoNA.length})</h3>
-                                        <p style="font-size:0.875rem;color:#6b7280;margin-bottom:0.5rem">Determined by system analysis based on technology/architecture:</p>
+                                        <h3 style="font-size:1rem;color:#6366f1;margin-top:1rem"><i class="fas fa-robot"></i> ${this.t('report.auto_determined')} (${autoNA.length})</h3>
+                                        <p style="font-size:0.875rem;color:#6b7280;margin-bottom:0.5rem">${this.t('report.auto_reason')}</p>
                                         <details>
-                                            <summary style="cursor:pointer;color:#6366f1;font-weight:500;margin-bottom:10px;">Click to expand/collapse</summary>
-                                            <table><tr><th style="width:120px">Control</th><th>Reason</th><th style="width:80px">Action</th></tr>
+                                            <summary style="cursor:pointer;color:#6366f1;font-weight:500;margin-bottom:10px;">${this.t('report.details_toggle')}</summary>
+                                            <table><tr><th style="width:120px">${this.t('report.control')}</th><th>${this.t('report.reason')}</th><th style="width:80px">${this.t('report.action')}</th></tr>
                                     `;
                                     for (const ctrl of autoNA) {
                                         html += `
                                             <tr>
                                                 <td><strong>${ctrl.control_id}</strong><br><small style="color:#666">${ctrl.control_name}</small></td>
-                                                <td><span style="display:inline-block;background:#e0e7ff;color:#4338ca;padding:2px 6px;border-radius:4px;font-size:0.7rem;margin-bottom:4px"><i class="fas fa-robot"></i> Auto</span><br>${ctrl.not_applicable_reason || '<em style="color:#9ca3af">No reason provided</em>'}</td>
+                                                <td><span style="display:inline-block;background:#e0e7ff;color:#4338ca;padding:2px 6px;border-radius:4px;font-size:0.7rem;margin-bottom:4px"><i class="fas fa-robot"></i> ${this.t('report.auto_label')}</span><br>${ctrl.not_applicable_reason || `<em style="color:#9ca3af">${this.t('report.no_reason')}</em>`}</td>
                                                 <td>
-                                                    <button onclick="window.dispatchEvent(new CustomEvent('restore-control', {detail: '${ctrl.control_id}'}))" style="background:#dcfce7;color:#166534;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem" title="Override - mark as applicable"><i class="fas fa-undo"></i> Restore</button>
+                                                    <button onclick="window.dispatchEvent(new CustomEvent('restore-control', {detail: '${ctrl.control_id}'}))" style="background:#dcfce7;color:#166534;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem" title="${this.t('report.restore_tooltip')}"><i class="fas fa-undo"></i> ${this.t('report.restore')}</button>
                                                 </td>
                                             </tr>
                                         `;
@@ -1355,19 +2041,19 @@
                                 // Manually marked section
                                 if (manualNA.length > 0) {
                                     html += `
-                                        <h3 style="font-size:1rem;color:#3b82f6;margin-top:1rem"><i class="fas fa-user"></i> Manually Marked (${manualNA.length})</h3>
-                                        <p style="font-size:0.875rem;color:#6b7280;margin-bottom:0.5rem">Marked by operator as not applicable:</p>
+                                        <h3 style="font-size:1rem;color:#3b82f6;margin-top:1rem"><i class="fas fa-user"></i> ${this.t('report.manual_marked')} (${manualNA.length})</h3>
+                                        <p style="font-size:0.875rem;color:#6b7280;margin-bottom:0.5rem">${this.t('report.manual_reason')}</p>
                                         <details open>
-                                            <summary style="cursor:pointer;color:#3b82f6;font-weight:500;margin-bottom:10px;">Click to expand/collapse</summary>
-                                            <table><tr><th style="width:120px">Control</th><th>Reason</th><th style="width:80px">Action</th></tr>
+                                            <summary style="cursor:pointer;color:#3b82f6;font-weight:500;margin-bottom:10px;">${this.t('report.details_toggle')}</summary>
+                                            <table><tr><th style="width:120px">${this.t('report.control')}</th><th>${this.t('report.reason')}</th><th style="width:80px">${this.t('report.action')}</th></tr>
                                     `;
                                     for (const ctrl of manualNA) {
                                         html += `
                                             <tr>
                                                 <td><strong>${ctrl.control_id}</strong><br><small style="color:#666">${ctrl.control_name}</small></td>
-                                                <td><span style="display:inline-block;background:#dbeafe;color:#1e40af;padding:2px 6px;border-radius:4px;font-size:0.7rem;margin-bottom:4px"><i class="fas fa-user"></i> Manual</span><br>${ctrl.not_applicable_reason || '<em style="color:#9ca3af">No reason provided</em>'}</td>
+                                                <td><span style="display:inline-block;background:#dbeafe;color:#1e40af;padding:2px 6px;border-radius:4px;font-size:0.7rem;margin-bottom:4px"><i class="fas fa-user"></i> ${this.t('report.manual_label')}</span><br>${ctrl.not_applicable_reason || `<em style="color:#9ca3af">${this.t('report.no_reason')}</em>`}</td>
                                                 <td>
-                                                    <button onclick="window.dispatchEvent(new CustomEvent('restore-control', {detail: '${ctrl.control_id}'}))" style="background:#dcfce7;color:#166534;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem" title="Restore to applicable"><i class="fas fa-undo"></i> Restore</button>
+                                                    <button onclick="window.dispatchEvent(new CustomEvent('restore-control', {detail: '${ctrl.control_id}'}))" style="background:#dcfce7;color:#166534;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem" title="${this.t('report.restore_tooltip')}"><i class="fas fa-undo"></i> ${this.t('report.restore')}</button>
                                                 </td>
                                             </tr>
                                         `;
@@ -1380,22 +2066,22 @@
                             const rejectedEvidence = cov.rejected_evidence || [];
                             if (rejectedEvidence.length > 0) {
                                 html += `
-                                    <h2>Rejected Evidence (${rejectedEvidence.length})</h2>
-                                    <p style="color:#d97706">These controls are applicable but need better evidence:</p>
+                                    <h2>${this.t('report.rejected_evidence')} (${rejectedEvidence.length})</h2>
+                                    <p style="color:#d97706">${this.t('report.rejected_note')}</p>
                                     <details open>
-                                        <summary style="cursor:pointer;color:#d97706;font-weight:500;margin-bottom:10px;">Click to expand/collapse</summary>
-                                        <table><tr><th style="width:120px">Control</th><th style="width:80px">Had</th><th>Rejection Reason</th><th style="width:80px">Action</th></tr>
+                                        <summary style="cursor:pointer;color:#d97706;font-weight:500;margin-bottom:10px;">${this.t('report.details_toggle')}</summary>
+                                        <table><tr><th style="width:120px">${this.t('report.control')}</th><th style="width:80px">${this.t('report.had')}</th><th>${this.t('report.rejection_reason')}</th><th style="width:80px">${this.t('report.action')}</th></tr>
                                 `;
                                 for (const ctrl of rejectedEvidence) {
-                                    const originalStatus = ctrl.rejected_from === 'full_coverage' ? 'Full' : 'Partial';
+                                    const originalStatus = ctrl.rejected_from === 'full_coverage' ? this.t('report.summary_full') : this.t('report.summary_partial');
                                     const statusColor = ctrl.rejected_from === 'full_coverage' ? '#059669' : '#d97706';
                                     html += `
                                         <tr>
                                             <td><strong>${ctrl.control_id}</strong><br><small style="color:#666">${ctrl.control_name}</small></td>
                                             <td><span style="color:${statusColor}">${originalStatus}</span></td>
-                                            <td>${ctrl.rejection_reason || '<em style="color:#9ca3af">No reason provided</em>'}</td>
+                                            <td>${ctrl.rejection_reason || `<em style="color:#9ca3af">${this.t('report.no_reason')}</em>`}</td>
                                             <td>
-                                                <button onclick="window.dispatchEvent(new CustomEvent('restore-control', {detail: '${ctrl.control_id}'}))" style="background:#dcfce7;color:#166534;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem" title="Restore evidence"><i class="fas fa-undo"></i> Restore</button>
+                                                <button onclick="window.dispatchEvent(new CustomEvent('restore-control', {detail: '${ctrl.control_id}'}))" style="background:#dcfce7;color:#166534;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem" title="${this.t('report.restore_evidence')}"><i class="fas fa-undo"></i> ${this.t('report.restore')}</button>
                                             </td>
                                         </tr>
                                     `;
@@ -1407,13 +2093,13 @@
                         // Recommendations
                         if (r.phases.recommendations) {
                             const rec = r.phases.recommendations;
-                            html += `<h2>Recommendations</h2>`;
+                            html += `<h2>${this.t('report.recommendations')}</h2>`;
 
                             if (rec.high_priority && rec.high_priority.length > 0) {
                                 html += `
-                                    <h3><span class="severity-critical">High Priority</span></h3>
-                                    <p>Address these controls first:</p>
-                                    <table><tr><th>Control</th><th>Action</th><th>Suggested Evidence</th></tr>
+                                    <h3><span class="severity-critical">${this.t('report.high_priority')}</span></h3>
+                                    <p>${this.t('report.address_first')}</p>
+                                    <table><tr><th>${this.t('report.control')}</th><th>${this.t('report.action')}</th><th>${this.t('report.suggested_evidence')}</th></tr>
                                 `;
                                 for (const item of rec.high_priority) {
                                     html += `<tr><td><strong>${item.control_id}</strong></td><td>${item.action || ''}</td><td>${item.suggested_evidence || ''}</td></tr>`;
@@ -1423,8 +2109,8 @@
 
                             if (rec.medium_priority && rec.medium_priority.length > 0) {
                                 html += `
-                                    <h3><span class="severity-high">Medium Priority</span></h3>
-                                    <table><tr><th>Control</th><th>Action</th></tr>
+                                    <h3><span class="severity-high">${this.t('report.medium_priority')}</span></h3>
+                                    <table><tr><th>${this.t('report.control')}</th><th>${this.t('report.action')}</th></tr>
                                 `;
                                 for (const item of rec.medium_priority) {
                                     html += `<tr><td><strong>${item.control_id}</strong></td><td>${item.action || ''}</td></tr>`;
@@ -1434,22 +2120,22 @@
 
                             if (rec.low_priority && rec.low_priority.length > 0) {
                                 html += `
-                                    <h3><span style="background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:4px;">Low Priority (${rec.low_priority.length})</span></h3>
-                                    <p>These controls should be addressed as part of continuous improvement:</p>
+                                    <h3><span style="background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:4px;">${this.t('report.low_priority')} (${rec.low_priority.length})</span></h3>
+                                    <p>${this.t('report.low_priority_note')}</p>
                                     <details>
-                                        <summary style="cursor:pointer;color:#065f46;font-weight:500;margin-bottom:10px;">Click to show all ${rec.low_priority.length} low-priority controls</summary>
-                                        <table><tr><th>Control</th><th>Action</th></tr>
+                                        <summary style="cursor:pointer;color:#065f46;font-weight:500;margin-bottom:10px;">${this.t('report.details_show_all')} ${rec.low_priority.length} ${this.t('report.low_priority_controls')}</summary>
+                                        <table><tr><th>${this.t('report.control')}</th><th>${this.t('report.action')}</th></tr>
                                 `;
                                 for (const item of rec.low_priority) {
-                                    html += `<tr><td><strong>${item.control_id}</strong></td><td>${item.action || 'Provide required documentation'}</td></tr>`;
+                                    html += `<tr><td><strong>${item.control_id}</strong></td><td>${item.action || this.t('report.provide_documentation')}</td></tr>`;
                                 }
                                 html += `</table></details>`;
                             } else if (rec.low_priority_count > 0) {
-                                html += `<p><strong>${rec.low_priority_count}</strong> additional low-priority controls need attention.</p>`;
+                                html += `<p><strong>${rec.low_priority_count}</strong> ${this.t('report.additional_low_priority')}</p>`;
                             }
 
                             if (rec.next_steps && rec.next_steps.length > 0) {
-                                html += `<h3>Next Steps</h3><ul>`;
+                                html += `<h3>${this.t('report.next_steps')}</h3><ul>`;
                                 for (const step of rec.next_steps) {
                                     html += `<li>${step}</li>`;
                                 }
@@ -1457,9 +2143,9 @@
                             }
 
                             if (rec.missing_by_family) {
-                                html += `<h3>Missing Controls by Family</h3><table><tr><th>Family</th><th>Missing Controls</th></tr>`;
+                                html += `<h3>${this.t('report.missing_by_family')}</h3><table><tr><th>${this.t('report.family')}</th><th>${this.t('report.missing_controls')}</th></tr>`;
                                 for (const [family, count] of Object.entries(rec.missing_by_family)) {
-                                    html += `<tr><td><strong>${family}</strong></td><td>${count}</td></tr>`;
+                                    html += `<tr><td><strong>${this.getControlFamilyName(family)}</strong></td><td>${count}</td></tr>`;
                                 }
                                 html += `</table>`;
                             }
@@ -1469,7 +2155,7 @@
                     // Handle error
                     if (r.error) {
                         html += `
-                            <h2 style="color:#dc2626">Assessment Error</h2>
+                            <h2 style="color:#dc2626">${this.t('report.assessment_error')}</h2>
                             <p>${r.error}</p>
                         `;
                     }
@@ -1482,7 +2168,7 @@
                         return this.selectedAssessment.project_name;
                     }
                     const match = this.assessments.find(a => a.assessment_id === this.selectedAssessment?.assessment_id);
-                    return match?.project_name || 'Unknown Project';
+                    return match?.project_name || this.t('report.unknown_project');
                 },
 
                 getClientId() {
@@ -1490,7 +2176,7 @@
                         return this.selectedAssessment.client_id;
                     }
                     const match = this.assessments.find(a => a.assessment_id === this.selectedAssessment?.assessment_id);
-                    return match?.client_id || 'Unknown Client';
+                    return match?.client_id || this.t('report.unknown_client');
                 },
 
                 getStatusCssClass(status) {
@@ -1509,20 +2195,21 @@
 
                     const a = this.selectedAssessment;
                     const r = this.assessmentResults;
-                    const date = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' });
+                    const locale = this.lang === 'fr' ? 'fr-CA' : 'en-CA';
+                    const date = new Date().toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' });
 
-                    let md = `# ITSG-33 Security Assessment Report
+                    let md = `# ${this.t('report.title')}
 
-## Executive Summary
+## ${this.t('report.executive_summary')}
 
-| Field | Value |
+| ${this.t('report.field')} | ${this.t('report.value')} |
 |-------|-------|
-| Assessment ID | \`${a.assessment_id || 'N/A'}\` |
-| Project Name | **${this.getProjectName()}** |
-| Client | ${this.getClientId()} |
-| Status | ${a.status || 'Unknown'} |
-| Report Date | ${date} |
-| Documents Reviewed | ${a.document_count || 0} documents, ${a.diagram_count || 0} diagrams |
+| ${this.t('report.assessment_id')} | \`${a.assessment_id || 'N/A'}\` |
+| ${this.t('report.project_name')} | **${this.getProjectName()}** |
+| ${this.t('report.client')} | ${this.getClientId()} |
+| ${this.t('report.status')} | ${this.getStatusLabel(a.status) || this.t('report.unknown')} |
+| ${this.t('report.report_date')} | ${date} |
+| ${this.t('report.documents_reviewed')} | ${this.formatDocumentsReviewed(a.document_count || 0, a.diagram_count || 0)} |
 
 `;
 
@@ -1530,16 +2217,16 @@
                         // Summary
                         if (r.summary) {
                             const s = r.summary;
-                            md += `## Assessment Summary
+                            md += `## ${this.t('report.summary_title')}
 
-| Metric | Value |
+| ${this.t('report.metric')} | ${this.t('report.value')} |
 |--------|-------|
-| Security Profile | Profile ${s.profile || 2} |
-| Total Controls Required | ${s.total_controls || 0} |
-| Controls with Full Evidence | ${s.controls_with_evidence || 0} |
-| Controls with Partial Evidence | ${s.controls_partial || 0} |
-| Controls Missing Evidence | ${s.controls_missing || 0} |
-| **Coverage Percentage** | **${s.coverage_percentage || 0}%** |
+| ${this.t('report.security_profile')} | ${this.formatProfileTitle(s.profile || 2)} |
+| ${this.t('report.total_controls_required')} | ${s.total_controls || 0} |
+| ${this.t('report.summary_full')} | ${s.controls_with_evidence || 0} |
+| ${this.t('report.summary_partial')} | ${s.controls_partial || 0} |
+| ${this.t('report.controls_missing')} | ${s.controls_missing || 0} |
+| **${this.t('report.summary_coverage')}** | **${s.coverage_percentage || 0}%** |
 
 `;
                         }
@@ -1548,20 +2235,20 @@
                             // System Analysis
                             if (r.phases.system_analysis) {
                                 const sa = r.phases.system_analysis;
-                                md += `## System Analysis
+                                md += `## ${this.t('report.system_analysis')}
 
-| Attribute | Value |
+| ${this.t('report.attribute')} | ${this.t('report.value')} |
 |-----------|-------|
-| System Type | ${sa.system_type || 'Unknown'} |
-| Data Classification | ${sa.data_classification || 'Unknown'} |
-| Confidentiality | ${sa.confidentiality || 'Unknown'} |
-| Integrity | ${sa.integrity || 'Unknown'} |
-| Availability | ${sa.availability || 'Unknown'} |
-| Recommended Profile | Profile ${sa.recommended_profile || 2} |
+| ${this.t('report.system_type')} | ${sa.system_type || this.t('report.unknown')} |
+| ${this.t('report.data_classification')} | ${sa.data_classification || this.t('report.unknown')} |
+| ${this.t('report.confidentiality')} | ${sa.confidentiality || this.t('report.unknown')} |
+| ${this.t('report.integrity')} | ${sa.integrity || this.t('report.unknown')} |
+| ${this.t('report.availability')} | ${sa.availability || this.t('report.unknown')} |
+| ${this.t('report.recommended_profile')} | ${this.formatProfileTitle(sa.recommended_profile || 2)} |
 
-### Rationale
+### ${this.t('report.rationale')}
 
-${sa.rationale || 'No rationale provided.'}
+${sa.rationale || this.t('report.no_rationale')}
 
 `;
                             }
@@ -1571,41 +2258,41 @@ ${sa.rationale || 'No rationale provided.'}
                                 const cov = r.phases.coverage;
 
                                 if (cov.full_coverage && cov.full_coverage.length > 0) {
-                                    md += `## Controls with Full Evidence
+                                    md += `## ${this.t('report.controls_full')}
 
-| Control ID | Control Name | Family |
+| ${this.t('report.control_id')} | ${this.t('report.control')} | ${this.t('report.family')} |
 |------------|--------------|--------|
 `;
                                     for (const ctrl of cov.full_coverage) {
-                                        md += `| ${ctrl.control_id} | ${ctrl.control_name} | ${ctrl.family} |\n`;
+                                        md += `| ${ctrl.control_id} | ${ctrl.control_name} | ${this.getControlFamilyName(ctrl.family)} |\n`;
                                     }
                                     md += '\n';
                                 }
 
                                 if (cov.partial_coverage && cov.partial_coverage.length > 0) {
-                                    md += `## Controls with Partial Evidence (${cov.partial_coverage.length})
+                                    md += `## ${this.t('report.controls_partial')} (${cov.partial_coverage.length})
 
-These controls have some evidence but need additional documentation:
+${this.t('report.partial_note')}
 
-| Control ID | Control Name | Family |
+| ${this.t('report.control_id')} | ${this.t('report.control')} | ${this.t('report.family')} |
 |------------|--------------|--------|
 `;
                                     for (const ctrl of cov.partial_coverage) {
-                                        md += `| ${ctrl.control_id} | ${ctrl.control_name} | ${ctrl.family} |\n`;
+                                        md += `| ${ctrl.control_id} | ${ctrl.control_name} | ${this.getControlFamilyName(ctrl.family)} |\n`;
                                     }
                                     md += '\n';
                                 }
 
                                 if (cov.no_coverage && cov.no_coverage.length > 0) {
-                                    md += `## Controls Missing Evidence (${cov.no_coverage.length})
+                                    md += `## ${this.t('report.controls_missing')} (${cov.no_coverage.length})
 
-**${cov.no_coverage.length} controls** require evidence documentation:
+**${cov.no_coverage.length} ${this.t('report.controls')}** ${this.t('report.controls_missing_note')}
 
-| Control ID | Control Name | Family |
+| ${this.t('report.control_id')} | ${this.t('report.control')} | ${this.t('report.family')} |
 |------------|--------------|--------|
 `;
                                     for (const ctrl of cov.no_coverage) {
-                                        md += `| ${ctrl.control_id} | ${ctrl.control_name} | ${ctrl.family} |\n`;
+                                        md += `| ${ctrl.control_id} | ${ctrl.control_name} | ${this.getControlFamilyName(ctrl.family)} |\n`;
                                     }
                                     md += '\n';
                                 }
@@ -1614,13 +2301,13 @@ These controls have some evidence but need additional documentation:
                             // Recommendations
                             if (r.phases.recommendations) {
                                 const rec = r.phases.recommendations;
-                                md += `## Recommendations
+                                md += `## ${this.t('report.recommendations')}
 
 `;
                                 if (rec.high_priority && rec.high_priority.length > 0) {
-                                    md += `### High Priority (${rec.high_priority.length})
+                                    md += `### ${this.t('report.high_priority')} (${rec.high_priority.length})
 
-| Control | Action | Suggested Evidence |
+| ${this.t('report.control')} | ${this.t('report.action')} | ${this.t('report.suggested_evidence')} |
 |---------|--------|-------------------|
 `;
                                     for (const item of rec.high_priority) {
@@ -1630,9 +2317,9 @@ These controls have some evidence but need additional documentation:
                                 }
 
                                 if (rec.medium_priority && rec.medium_priority.length > 0) {
-                                    md += `### Medium Priority (${rec.medium_priority.length})
+                                    md += `### ${this.t('report.medium_priority')} (${rec.medium_priority.length})
 
-| Control | Action |
+| ${this.t('report.control')} | ${this.t('report.action')} |
 |---------|--------|
 `;
                                     for (const item of rec.medium_priority) {
@@ -1642,9 +2329,9 @@ These controls have some evidence but need additional documentation:
                                 }
 
                                 if (rec.low_priority && rec.low_priority.length > 0) {
-                                    md += `### Low Priority (${rec.low_priority.length})
+                                    md += `### ${this.t('report.low_priority')} (${rec.low_priority.length})
 
-| Control | Action |
+| ${this.t('report.control')} | ${this.t('report.action')} |
 |---------|--------|
 `;
                                     for (const item of rec.low_priority) {
@@ -1654,7 +2341,7 @@ These controls have some evidence but need additional documentation:
                                 }
 
                                 if (rec.next_steps && rec.next_steps.length > 0) {
-                                    md += `### Next Steps
+                                    md += `### ${this.t('report.next_steps')}
 
 `;
                                     for (const step of rec.next_steps) {
@@ -1665,22 +2352,22 @@ These controls have some evidence but need additional documentation:
                             }
                         }
                     } else if (a.status === 'created') {
-                        md += `## Assessment Status
+                        md += `## ${this.t('report.assessment_status')}
 
-This assessment has been created but not yet executed. Upload documents and run the assessment to generate results.
+${this.t('report.created_message')}
 
-### Next Steps
+### ${this.t('report.next_steps')}
 
-- Upload relevant security documentation (policies, procedures, configurations)
-- Include architecture diagrams and network documentation
-- Run the assessment to analyze documents against ITSG-33 controls
+- ${this.t('report.next_steps_upload')}
+- ${this.t('report.next_steps_diagrams')}
+- ${this.t('report.next_steps_run')}
 
 `;
                     }
 
                     md += `---
 
-*Generated by ITSG-33 Accreditation System*
+${this.t('markdown.generated')}
 `;
 
                     return md;
@@ -1696,14 +2383,14 @@ This assessment has been created but not yet executed. Upload documents and run 
                     a.download = `ITSG33_Assessment_${projectName}_${new Date().toISOString().split('T')[0]}.md`;
                     a.click();
                     URL.revokeObjectURL(url);
-                    this.showToast('Markdown report downloaded!', 'success');
+                        this.showToast(this.t('toast.markdown_downloaded'), 'success');
                 },
 
                 async downloadWord() {
                     if (!this.selectedAssessment) return;
                     const assessmentId = this.selectedAssessment.assessment_id;
                     try {
-                        const response = await fetch(`/api/v1/assessment/${assessmentId}/download/word`);
+                        const response = await fetch(`/api/v1/assessment/${assessmentId}/download/word?lang=${this.reportLang}`);
                         if (!response.ok) throw new Error('Download failed');
                         const blob = await response.blob();
                         const url = URL.createObjectURL(blob);
@@ -1712,9 +2399,9 @@ This assessment has been created but not yet executed. Upload documents and run 
                         a.download = `ITSG33_Assessment_${this.getProjectName().replace(/[^a-zA-Z0-9]/g, '_')}.docx`;
                         a.click();
                         URL.revokeObjectURL(url);
-                        this.showToast('Word document downloaded!', 'success');
+                        this.showToast(this.t('toast.word_downloaded'), 'success');
                     } catch (error) {
-                        this.showToast('Failed to download Word document', 'error');
+                        this.showToast(this.t('toast.word_download_failed'), 'error');
                     }
                 },
 
@@ -1722,7 +2409,7 @@ This assessment has been created but not yet executed. Upload documents and run 
                     if (!this.selectedAssessment) return;
                     const assessmentId = this.selectedAssessment.assessment_id;
                     try {
-                        const response = await fetch(`/api/v1/assessment/${assessmentId}/download/poam`);
+                        const response = await fetch(`/api/v1/assessment/${assessmentId}/download/poam?lang=${this.reportLang}`);
                         if (!response.ok) throw new Error('Download failed');
                         const blob = await response.blob();
                         const url = URL.createObjectURL(blob);
@@ -1731,14 +2418,14 @@ This assessment has been created but not yet executed. Upload documents and run 
                         a.download = `POAM_${this.getProjectName().replace(/[^a-zA-Z0-9]/g, '_')}.docx`;
                         a.click();
                         URL.revokeObjectURL(url);
-                        this.showToast('POA&M document downloaded!', 'success');
+                        this.showToast(this.t('toast.poam_downloaded'), 'success');
                     } catch (error) {
-                        this.showToast('Failed to download POA&M', 'error');
+                        this.showToast(this.t('toast.poam_download_failed'), 'error');
                     }
                 },
 
                 async rerunAssessment(assessmentId) {
-                    if (!confirm('This will rerun the assessment with all current documents. Previous results will be saved to history. Continue?')) {
+                    if (!confirm(this.t('toast.rerun_confirm'))) {
                         return;
                     }
                     try {
@@ -1746,10 +2433,10 @@ This assessment has been created but not yet executed. Upload documents and run 
                             method: 'POST'
                         });
                         const data = await response.json();
-                        this.showToast(`Assessment rerun started. Previous runs: ${data.previous_runs}`, 'success');
+                        this.showToast(`${this.t('toast.rerun_started')} ${data.previous_runs}`, 'success');
                         await this.loadAssessments();
                     } catch (error) {
-                        this.showToast('Failed to rerun assessment', 'error');
+                        this.showToast(this.t('toast.rerun_failed'), 'error');
                     }
                 },
 
@@ -1760,7 +2447,7 @@ This assessment has been created but not yet executed. Upload documents and run 
                         this.assessmentHistory = data;
                         this.showHistoryModal = true;
                     } catch (error) {
-                        this.showToast('Failed to load history', 'error');
+                        this.showToast(this.t('toast.history_failed'), 'error');
                     }
                 },
 
@@ -1794,9 +2481,9 @@ This assessment has been created but not yet executed. Upload documents and run 
                         });
                         const data = await response.json();
                         this.addDocsFiles = [...this.addDocsFiles, ...data.uploaded_files];
-                        this.showToast(`${data.successful} file(s) uploaded`, 'success');
+                        this.showToast(this.formatUploadMessage(data.successful), 'success');
                     } catch (error) {
-                        this.showToast('Failed to upload files', 'error');
+                        this.showToast(this.t('toast.upload_failed'), 'error');
                     }
                 },
 
@@ -1829,7 +2516,8 @@ This assessment has been created but not yet executed. Upload documents and run 
 
                 formatDate(dateString) {
                     if (!dateString) return 'N/A';
-                    return new Date(dateString).toLocaleDateString('en-US', {
+                    const locale = this.lang === 'fr' ? 'fr-CA' : 'en-CA';
+                    return new Date(dateString).toLocaleDateString(locale, {
                         year: 'numeric',
                         month: 'short',
                         day: 'numeric'
@@ -1857,7 +2545,7 @@ This assessment has been created but not yet executed. Upload documents and run 
 
                     // Validate reason is provided
                     if (!this.rejectReason.trim()) {
-                        this.rejectError = 'Please provide a reason';
+                        this.rejectError = this.t('toast.reject_reason_required');
                         return;
                     }
                     this.rejectError = '';
@@ -1882,14 +2570,14 @@ This assessment has been created but not yet executed. Upload documents and run 
 
                         const data = await response.json();
                         const message = this.rejectAction === 'not_applicable'
-                            ? `Control ${controlId} marked as not applicable`
-                            : `Evidence for ${controlId} rejected`;
-                        this.showToast(`${message}. Coverage: ${data.new_coverage_percentage}%`, 'success');
+                            ? `${this.t('toast.reject_success_na')} (${controlId})`
+                            : `${this.t('toast.reject_success_reject')} (${controlId})`;
+                        this.showToast(`${message}. ${this.t('history.coverage')} ${data.new_coverage_percentage}%`, 'success');
 
                         await this.viewAssessment(assessmentId);
                         this.closeRejectModal();
                     } catch (error) {
-                        this.showToast(`Failed: ${error.message}`, 'error');
+                        this.showToast(`${this.t('toast.reject_failed')} ${error.message}`, 'error');
                     }
                 },
 
@@ -1909,26 +2597,26 @@ This assessment has been created but not yet executed. Upload documents and run 
                         }
 
                         const data = await response.json();
-                        this.showToast(`Control ${controlId} evidence restored. New coverage: ${data.new_coverage_percentage}%`, 'success');
+                        this.showToast(`${controlId} ${this.t('toast.restore_success')} ${data.new_coverage_percentage}%`, 'success');
 
                         // Refresh the assessment results
                         await this.viewAssessment(assessmentId);
                     } catch (error) {
-                        this.showToast(`Failed to restore evidence: ${error.message}`, 'error');
+                        this.showToast(`${this.t('toast.restore_failed')} ${error.message}`, 'error');
                     }
                 },
 
                 getStrengthLabel(tier) {
                     const labels = {
-                        1: 'System-Generated',
-                        2: 'IaC',
-                        3: 'Automated Test',
-                        4: 'Code',
-                        5: 'Screenshot',
-                        6: 'Video',
-                        7: 'Narrative'
+                        1: this.t('strength.system_generated'),
+                        2: this.t('strength.iac'),
+                        3: this.t('strength.automated_test'),
+                        4: this.t('strength.code'),
+                        5: this.t('strength.screenshot'),
+                        6: this.t('strength.video'),
+                        7: this.t('strength.narrative')
                     };
-                    return labels[tier] || 'Unknown';
+                    return labels[tier] || this.t('report.unknown');
                 },
 
                 getStrengthScore(tier) {

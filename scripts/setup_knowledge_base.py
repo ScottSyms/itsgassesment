@@ -27,12 +27,27 @@ def load_controls_from_excel(excel_path: Path) -> list:
 
     # Define control families to look for
     control_families = [
-        "AC", "AT", "AU", "CA", "CM", "CP", "IA", "IR",
-        "MA", "MP", "PE", "PL", "PS", "RA", "SA", "SC", "SI"
+        "AC",
+        "AT",
+        "AU",
+        "CA",
+        "CM",
+        "CP",
+        "IA",
+        "IR",
+        "MA",
+        "MP",
+        "PE",
+        "PL",
+        "PS",
+        "RA",
+        "SA",
+        "SC",
+        "SI",
     ]
 
     # Pattern to match control IDs like AC-1, AU-2, etc.
-    control_id_pattern = re.compile(r'^([A-Z]{2})-(\d+)')
+    control_id_pattern = re.compile(r"^([A-Z]{2})-(\d+)")
 
     for sheet_name in workbook.sheetnames:
         sheet = workbook[sheet_name]
@@ -161,14 +176,16 @@ def create_default_controls() -> list:
     ]
 
     for ctrl_id, name, profile in ac_controls:
-        controls.append({
-            "id": ctrl_id,
-            "family": "AC",
-            "name": name,
-            "description": f"{name} - Establishes requirements for {name.lower()}.",
-            "profile": profile,
-            "questions": [f"Is {name.lower()} implemented?"]
-        })
+        controls.append(
+            {
+                "id": ctrl_id,
+                "family": "AC",
+                "name": name,
+                "description": f"{name} - Establishes requirements for {name.lower()}.",
+                "profile": profile,
+                "questions": [f"Is {name.lower()} implemented?"],
+            }
+        )
 
     # Audit and Accountability (AU)
     au_controls = [
@@ -186,117 +203,151 @@ def create_default_controls() -> list:
     ]
 
     for ctrl_id, name, profile in au_controls:
-        controls.append({
-            "id": ctrl_id,
-            "family": "AU",
-            "name": name,
-            "description": f"{name} - {name} requirements.",
-            "profile": profile,
-            "questions": [f"Is {name.lower()} implemented?"]
-        })
+        controls.append(
+            {
+                "id": ctrl_id,
+                "family": "AU",
+                "name": name,
+                "description": f"{name} - {name} requirements.",
+                "profile": profile,
+                "questions": [f"Is {name.lower()} implemented?"],
+            }
+        )
 
     # Add more families...
     families = {
-        "AT": [("AT-1", "Security Awareness and Training Policy", 1),
-               ("AT-2", "Security Awareness Training", 1),
-               ("AT-3", "Role-Based Security Training", 1)],
-        "CA": [("CA-1", "Security Assessment and Authorization Policy", 1),
-               ("CA-2", "Security Assessments", 1),
-               ("CA-3", "System Interconnections", 1),
-               ("CA-5", "Plan of Action and Milestones", 1),
-               ("CA-6", "Security Authorization", 1),
-               ("CA-7", "Continuous Monitoring", 1)],
-        "CM": [("CM-1", "Configuration Management Policy", 1),
-               ("CM-2", "Baseline Configuration", 1),
-               ("CM-3", "Configuration Change Control", 2),
-               ("CM-4", "Security Impact Analysis", 1),
-               ("CM-5", "Access Restrictions for Change", 1),
-               ("CM-6", "Configuration Settings", 1),
-               ("CM-7", "Least Functionality", 1),
-               ("CM-8", "Information System Component Inventory", 1)],
-        "CP": [("CP-1", "Contingency Planning Policy", 1),
-               ("CP-2", "Contingency Plan", 1),
-               ("CP-3", "Contingency Training", 1),
-               ("CP-4", "Contingency Plan Testing", 1),
-               ("CP-9", "Information System Backup", 1),
-               ("CP-10", "Information System Recovery and Reconstitution", 1)],
-        "IA": [("IA-1", "Identification and Authentication Policy", 1),
-               ("IA-2", "Identification and Authentication (Organizational Users)", 1),
-               ("IA-4", "Identifier Management", 1),
-               ("IA-5", "Authenticator Management", 1),
-               ("IA-6", "Authenticator Feedback", 1),
-               ("IA-7", "Cryptographic Module Authentication", 1),
-               ("IA-8", "Identification and Authentication (Non-Organizational Users)", 1)],
-        "IR": [("IR-1", "Incident Response Policy", 1),
-               ("IR-2", "Incident Response Training", 1),
-               ("IR-4", "Incident Handling", 1),
-               ("IR-5", "Incident Monitoring", 1),
-               ("IR-6", "Incident Reporting", 1),
-               ("IR-7", "Incident Response Assistance", 1),
-               ("IR-8", "Incident Response Plan", 1)],
-        "MA": [("MA-1", "System Maintenance Policy", 1),
-               ("MA-2", "Controlled Maintenance", 1),
-               ("MA-3", "Maintenance Tools", 1),
-               ("MA-4", "Nonlocal Maintenance", 1),
-               ("MA-5", "Maintenance Personnel", 1)],
-        "MP": [("MP-1", "Media Protection Policy", 1),
-               ("MP-2", "Media Access", 1),
-               ("MP-6", "Media Sanitization", 1),
-               ("MP-7", "Media Use", 1)],
-        "PE": [("PE-1", "Physical and Environmental Protection Policy", 1),
-               ("PE-2", "Physical Access Authorizations", 1),
-               ("PE-3", "Physical Access Control", 1),
-               ("PE-6", "Monitoring Physical Access", 1),
-               ("PE-8", "Visitor Access Records", 1)],
-        "PL": [("PL-1", "Security Planning Policy", 1),
-               ("PL-2", "System Security Plan", 1),
-               ("PL-4", "Rules of Behavior", 1)],
-        "PS": [("PS-1", "Personnel Security Policy", 1),
-               ("PS-2", "Position Risk Designation", 1),
-               ("PS-3", "Personnel Screening", 1),
-               ("PS-4", "Personnel Termination", 1),
-               ("PS-5", "Personnel Transfer", 1),
-               ("PS-6", "Access Agreements", 1),
-               ("PS-7", "Third-Party Personnel Security", 1),
-               ("PS-8", "Personnel Sanctions", 1)],
-        "RA": [("RA-1", "Risk Assessment Policy", 1),
-               ("RA-2", "Security Categorization", 1),
-               ("RA-3", "Risk Assessment", 1),
-               ("RA-5", "Vulnerability Scanning", 1)],
-        "SA": [("SA-1", "System and Services Acquisition Policy", 1),
-               ("SA-2", "Allocation of Resources", 1),
-               ("SA-3", "System Development Life Cycle", 1),
-               ("SA-4", "Acquisition Process", 1),
-               ("SA-5", "Information System Documentation", 1),
-               ("SA-8", "Security Engineering Principles", 1),
-               ("SA-9", "External Information System Services", 1)],
-        "SC": [("SC-1", "System and Communications Protection Policy", 1),
-               ("SC-5", "Denial of Service Protection", 1),
-               ("SC-7", "Boundary Protection", 1),
-               ("SC-12", "Cryptographic Key Establishment and Management", 1),
-               ("SC-13", "Cryptographic Protection", 1),
-               ("SC-15", "Collaborative Computing Devices", 1),
-               ("SC-20", "Secure Name/Address Resolution Service", 1),
-               ("SC-21", "Secure Name/Address Resolution Service (Recursive)", 1),
-               ("SC-22", "Architecture for Name/Address Resolution Service", 1)],
-        "SI": [("SI-1", "System and Information Integrity Policy", 1),
-               ("SI-2", "Flaw Remediation", 1),
-               ("SI-3", "Malicious Code Protection", 1),
-               ("SI-4", "Information System Monitoring", 1),
-               ("SI-5", "Security Alerts and Advisories", 1),
-               ("SI-12", "Information Handling and Retention", 1)],
+        "AT": [
+            ("AT-1", "Security Awareness and Training Policy", 1),
+            ("AT-2", "Security Awareness Training", 1),
+            ("AT-3", "Role-Based Security Training", 1),
+        ],
+        "CA": [
+            ("CA-1", "Security Assessment and Authorization Policy", 1),
+            ("CA-2", "Security Assessments", 1),
+            ("CA-3", "System Interconnections", 1),
+            ("CA-5", "Plan of Action and Milestones", 1),
+            ("CA-6", "Security Authorization", 1),
+            ("CA-7", "Continuous Monitoring", 1),
+        ],
+        "CM": [
+            ("CM-1", "Configuration Management Policy", 1),
+            ("CM-2", "Baseline Configuration", 1),
+            ("CM-3", "Configuration Change Control", 2),
+            ("CM-4", "Security Impact Analysis", 1),
+            ("CM-5", "Access Restrictions for Change", 1),
+            ("CM-6", "Configuration Settings", 1),
+            ("CM-7", "Least Functionality", 1),
+            ("CM-8", "Information System Component Inventory", 1),
+        ],
+        "CP": [
+            ("CP-1", "Contingency Planning Policy", 1),
+            ("CP-2", "Contingency Plan", 1),
+            ("CP-3", "Contingency Training", 1),
+            ("CP-4", "Contingency Plan Testing", 1),
+            ("CP-9", "Information System Backup", 1),
+            ("CP-10", "Information System Recovery and Reconstitution", 1),
+        ],
+        "IA": [
+            ("IA-1", "Identification and Authentication Policy", 1),
+            ("IA-2", "Identification and Authentication (Organizational Users)", 1),
+            ("IA-4", "Identifier Management", 1),
+            ("IA-5", "Authenticator Management", 1),
+            ("IA-6", "Authenticator Feedback", 1),
+            ("IA-7", "Cryptographic Module Authentication", 1),
+            ("IA-8", "Identification and Authentication (Non-Organizational Users)", 1),
+        ],
+        "IR": [
+            ("IR-1", "Incident Response Policy", 1),
+            ("IR-2", "Incident Response Training", 1),
+            ("IR-4", "Incident Handling", 1),
+            ("IR-5", "Incident Monitoring", 1),
+            ("IR-6", "Incident Reporting", 1),
+            ("IR-7", "Incident Response Assistance", 1),
+            ("IR-8", "Incident Response Plan", 1),
+        ],
+        "MA": [
+            ("MA-1", "System Maintenance Policy", 1),
+            ("MA-2", "Controlled Maintenance", 1),
+            ("MA-3", "Maintenance Tools", 1),
+            ("MA-4", "Nonlocal Maintenance", 1),
+            ("MA-5", "Maintenance Personnel", 1),
+        ],
+        "MP": [
+            ("MP-1", "Media Protection Policy", 1),
+            ("MP-2", "Media Access", 1),
+            ("MP-6", "Media Sanitization", 1),
+            ("MP-7", "Media Use", 1),
+        ],
+        "PE": [
+            ("PE-1", "Physical and Environmental Protection Policy", 1),
+            ("PE-2", "Physical Access Authorizations", 1),
+            ("PE-3", "Physical Access Control", 1),
+            ("PE-6", "Monitoring Physical Access", 1),
+            ("PE-8", "Visitor Access Records", 1),
+        ],
+        "PL": [
+            ("PL-1", "Security Planning Policy", 1),
+            ("PL-2", "System Security Plan", 1),
+            ("PL-4", "Rules of Behavior", 1),
+        ],
+        "PS": [
+            ("PS-1", "Personnel Security Policy", 1),
+            ("PS-2", "Position Risk Designation", 1),
+            ("PS-3", "Personnel Screening", 1),
+            ("PS-4", "Personnel Termination", 1),
+            ("PS-5", "Personnel Transfer", 1),
+            ("PS-6", "Access Agreements", 1),
+            ("PS-7", "Third-Party Personnel Security", 1),
+            ("PS-8", "Personnel Sanctions", 1),
+        ],
+        "RA": [
+            ("RA-1", "Risk Assessment Policy", 1),
+            ("RA-2", "Security Categorization", 1),
+            ("RA-3", "Risk Assessment", 1),
+            ("RA-5", "Vulnerability Scanning", 1),
+        ],
+        "SA": [
+            ("SA-1", "System and Services Acquisition Policy", 1),
+            ("SA-2", "Allocation of Resources", 1),
+            ("SA-3", "System Development Life Cycle", 1),
+            ("SA-4", "Acquisition Process", 1),
+            ("SA-5", "Information System Documentation", 1),
+            ("SA-8", "Security Engineering Principles", 1),
+            ("SA-9", "External Information System Services", 1),
+        ],
+        "SC": [
+            ("SC-1", "System and Communications Protection Policy", 1),
+            ("SC-5", "Denial of Service Protection", 1),
+            ("SC-7", "Boundary Protection", 1),
+            ("SC-12", "Cryptographic Key Establishment and Management", 1),
+            ("SC-13", "Cryptographic Protection", 1),
+            ("SC-15", "Collaborative Computing Devices", 1),
+            ("SC-20", "Secure Name/Address Resolution Service", 1),
+            ("SC-21", "Secure Name/Address Resolution Service (Recursive)", 1),
+            ("SC-22", "Architecture for Name/Address Resolution Service", 1),
+        ],
+        "SI": [
+            ("SI-1", "System and Information Integrity Policy", 1),
+            ("SI-2", "Flaw Remediation", 1),
+            ("SI-3", "Malicious Code Protection", 1),
+            ("SI-4", "Information System Monitoring", 1),
+            ("SI-5", "Security Alerts and Advisories", 1),
+            ("SI-12", "Information Handling and Retention", 1),
+        ],
     }
 
     for family, family_controls in families.items():
         for ctrl_id, name, profile in family_controls:
-            controls.append({
-                "id": ctrl_id,
-                "family": family,
-                "name": name,
-                "description": f"{name} - Establishes requirements for {name.lower()}.",
-                "profile": profile,
-                "questions": [f"Is {name.lower()} implemented?"]
-            })
+            controls.append(
+                {
+                    "id": ctrl_id,
+                    "family": family,
+                    "name": name,
+                    "description": f"{name} - Establishes requirements for {name.lower()}.",
+                    "profile": profile,
+                    "questions": [f"Is {name.lower()} implemented?"],
+                }
+            )
 
     return controls
 
@@ -305,10 +356,7 @@ def initialize_vector_db(controls: list, persist_dir: str = "./chroma_db"):
     """Initialize ChromaDB with ITSG-33 controls."""
     print(f"Initializing ChromaDB at: {persist_dir}")
 
-    client = chromadb.Client(Settings(
-        persist_directory=persist_dir,
-        anonymized_telemetry=False
-    ))
+    client = chromadb.Client(Settings(persist_directory=persist_dir, anonymized_telemetry=False))
 
     # Delete existing collection if exists
     try:
@@ -318,8 +366,7 @@ def initialize_vector_db(controls: list, persist_dir: str = "./chroma_db"):
         pass
 
     collection = client.create_collection(
-        name="itsg33_controls",
-        metadata={"description": "ITSG-33 security controls catalog"}
+        name="itsg33_controls", metadata={"description": "ITSG-33 security controls catalog"}
     )
 
     print(f"Adding {len(controls)} controls to vector database...")
@@ -327,25 +374,45 @@ def initialize_vector_db(controls: list, persist_dir: str = "./chroma_db"):
     # Add controls in batches
     batch_size = 100
     for i in range(0, len(controls), batch_size):
-        batch = controls[i:i + batch_size]
+        batch = controls[i : i + batch_size]
 
-        ids = [c["id"] for c in batch]
-        documents = [f"{c['name']}. {c['description']}" for c in batch]
-        metadatas = [
-            {
-                "family": c["family"],
-                "profile": c["profile"],
-                "name": c["name"],
-                "questions": json.dumps(c.get("questions", []))
-            }
-            for c in batch
-        ]
+        ids = []
+        documents = []
+        metadatas = []
 
-        collection.add(
-            ids=ids,
-            documents=documents,
-            metadatas=metadatas
-        )
+        for c in batch:
+            # Index English version
+            ids.append(f"{c['id']}_en")
+            documents.append(
+                f"{c.get('name_en', c.get('name'))}. {c.get('description_en', c.get('description'))}"
+            )
+            metadatas.append(
+                {
+                    "id": c["id"],
+                    "family": c["family"],
+                    "profile": c["profile"],
+                    "lang": "en",
+                    "name": c.get("name_en", c.get("name")),
+                    "questions": json.dumps(c.get("questions_en", c.get("questions", []))),
+                }
+            )
+
+            # Index French version if available
+            if "name_fr" in c:
+                ids.append(f"{c['id']}_fr")
+                documents.append(f"{c['name_fr']}. {c['description_fr']}")
+                metadatas.append(
+                    {
+                        "id": c["id"],
+                        "family": c["family"],
+                        "profile": c["profile"],
+                        "lang": "fr",
+                        "name": c["name_fr"],
+                        "questions": json.dumps(c.get("questions_fr", [])),
+                    }
+                )
+
+        collection.add(ids=ids, documents=documents, metadatas=metadatas)
 
         print(f"Added batch {i // batch_size + 1}: {len(batch)} controls")
 
@@ -374,10 +441,17 @@ def main():
     if excel_path.exists():
         controls = load_controls_from_excel(excel_path)
 
-    # If no controls from Excel, try JSON
+    # If no controls from Excel, try bilingual JSON first, then standard JSON
     if not controls:
-        json_path = data_dir / "itsg33_controls.json"
-        controls = load_controls_from_json(json_path)
+        bilingual_path = data_dir / "itsg33_controls_bilingual.json"
+        if bilingual_path.exists():
+            controls = load_controls_from_json(bilingual_path)
+            print(f"Loaded {len(controls)} bilingual controls from JSON")
+        else:
+            json_path = data_dir / "itsg33_controls.json"
+            controls = load_controls_from_json(json_path)
+            if controls:
+                print(f"Loaded {len(controls)} controls from standard JSON")
 
     # If still no controls, create defaults
     if not controls:
@@ -397,19 +471,19 @@ def main():
             "number": 1,
             "name": "Profile 1 - Low",
             "description": "For systems with low sensitivity data and low impact",
-            "control_count": len([c for c in controls if c["profile"] <= 1])
+            "control_count": len([c for c in controls if c["profile"] <= 1]),
         },
         {
             "number": 2,
             "name": "Profile 2 - Moderate",
             "description": "For systems with moderate sensitivity data",
-            "control_count": len([c for c in controls if c["profile"] <= 2])
+            "control_count": len([c for c in controls if c["profile"] <= 2]),
         },
         {
             "number": 3,
             "name": "Profile 3 - High",
             "description": "For systems with high sensitivity data or critical operations",
-            "control_count": len(controls)
+            "control_count": len(controls),
         },
     ]
 

@@ -3,6 +3,8 @@
 import asyncio
 import sys
 import argparse
+import json
+from typing import Optional
 from pathlib import Path
 import httpx
 
@@ -11,7 +13,7 @@ async def create_assessment(
     base_url: str,
     client_id: str,
     project_name: str,
-    conops_text: str = None,
+    conops_text: Optional[str] = None,
 ) -> str:
     """Create a new assessment."""
     async with httpx.AsyncClient(timeout=60.0) as client:
@@ -32,6 +34,7 @@ async def upload_documents(
     base_url: str,
     assessment_id: str,
     file_paths: list[Path],
+    metadata: Optional[str] = None,
 ) -> dict:
     """Upload documents to assessment."""
     async with httpx.AsyncClient(timeout=120.0) as client:
@@ -43,9 +46,14 @@ async def upload_documents(
         if not files:
             return {"error": "No valid files to upload"}
 
+        data = {}
+        if metadata:
+            data["metadata"] = metadata
+
         response = await client.post(
             f"{base_url}/assessment/{assessment_id}/upload",
             files=files,
+            data=data,
         )
 
         # Close file handles
@@ -59,9 +67,7 @@ async def upload_documents(
 async def run_assessment(base_url: str, assessment_id: str) -> dict:
     """Start assessment execution."""
     async with httpx.AsyncClient(timeout=30.0) as client:
-        response = await client.post(
-            f"{base_url}/assessment/{assessment_id}/run"
-        )
+        response = await client.post(f"{base_url}/assessment/{assessment_id}/run")
         response.raise_for_status()
         return response.json()
 
@@ -69,9 +75,7 @@ async def run_assessment(base_url: str, assessment_id: str) -> dict:
 async def get_status(base_url: str, assessment_id: str) -> dict:
     """Get assessment status."""
     async with httpx.AsyncClient(timeout=30.0) as client:
-        response = await client.get(
-            f"{base_url}/assessment/{assessment_id}/status"
-        )
+        response = await client.get(f"{base_url}/assessment/{assessment_id}/status")
         response.raise_for_status()
         return response.json()
 
@@ -79,9 +83,7 @@ async def get_status(base_url: str, assessment_id: str) -> dict:
 async def get_results(base_url: str, assessment_id: str) -> dict:
     """Get assessment results."""
     async with httpx.AsyncClient(timeout=60.0) as client:
-        response = await client.get(
-            f"{base_url}/assessment/{assessment_id}/results"
-        )
+        response = await client.get(f"{base_url}/assessment/{assessment_id}/results")
         response.raise_for_status()
         return response.json()
 
@@ -138,10 +140,29 @@ async def main_async(args):
     print(f"Assessment ID: {assessment_id}")
 
     # Upload documents
+    metadata_payload = None
+    if args.metadata:
+        metadata_path = Path(args.metadata)
+        if metadata_path.exists():
+            metadata_payload = metadata_path.read_text()
+            print(f"Loaded metadata from: {args.metadata}")
+        else:
+            metadata_payload = args.metadata
+
+        try:
+            json.loads(metadata_payload)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"Invalid metadata JSON: {exc}")
+
     if args.documents:
         print(f"\nUploading {len(args.documents)} documents...")
         doc_paths = [Path(d) for d in args.documents]
-        upload_result = await upload_documents(base_url, assessment_id, doc_paths)
+        upload_result = await upload_documents(
+            base_url,
+            assessment_id,
+            doc_paths,
+            metadata=metadata_payload,
+        )
         print(f"Uploaded: {upload_result.get('successful', 0)} files")
 
     # Run assessment
@@ -208,13 +229,19 @@ Examples:
         help="Project name",
     )
     parser.add_argument(
-        "-c", "--conops",
+        "-c",
+        "--conops",
         help="Path to CONOPS document",
     )
     parser.add_argument(
-        "-d", "--documents",
+        "-d",
+        "--documents",
         nargs="+",
         help="Paths to documents to upload",
+    )
+    parser.add_argument(
+        "--metadata",
+        help="Metadata JSON string or path to JSON file for uploads",
     )
     parser.add_argument(
         "--host",

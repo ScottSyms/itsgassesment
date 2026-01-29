@@ -14,10 +14,7 @@ class StorageManager:
     """Manages storage of assessment data and uploaded files."""
 
     def __init__(
-        self,
-        upload_dir: str = "./uploads",
-        output_dir: str = "./outputs",
-        data_dir: str = "./data"
+        self, upload_dir: str = "./uploads", output_dir: str = "./outputs", data_dir: str = "./data"
     ):
         """Initialize storage manager."""
         self.upload_dir = Path(upload_dir)
@@ -33,11 +30,7 @@ class StorageManager:
         self._assessments: Dict[str, Dict[str, Any]] = {}
 
     async def create_assessment(
-        self,
-        assessment_id: str,
-        client_id: str,
-        project_name: str,
-        conops: Optional[str] = None
+        self, assessment_id: str, client_id: str, project_name: str, conops: Optional[str] = None
     ) -> Dict[str, Any]:
         """Create new assessment record."""
         assessment = {
@@ -81,8 +74,13 @@ class StorageManager:
 
         return None
 
-    async def save_upload(self, assessment_id: str, file: UploadFile) -> Path:
-        """Save uploaded file."""
+    async def save_upload(
+        self,
+        assessment_id: str,
+        file: UploadFile,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> Path:
+        """Save uploaded file using streaming to handle large files."""
         assessment_dir = self.upload_dir / assessment_id
         assessment_dir.mkdir(parents=True, exist_ok=True)
 
@@ -91,10 +89,12 @@ class StorageManager:
         safe_filename = f"{file_id}_{file.filename}"
         file_path = assessment_dir / safe_filename
 
-        # Save file
-        content = await file.read()
+        # Save file using chunks to avoid memory issues with large files
+        file_size = 0
         async with aiofiles.open(file_path, "wb") as f:
-            await f.write(content)
+            while chunk := await file.read(1024 * 1024):  # 1MB chunks
+                await f.write(chunk)
+                file_size += len(chunk)
 
         # Update assessment record
         if assessment_id in self._assessments:
@@ -104,20 +104,24 @@ class StorageManager:
                 "saved_as": safe_filename,
                 "path": str(file_path),
                 "content_type": file.content_type,
-                "size": len(content),
-                "uploaded_at": datetime.utcnow().isoformat()
+                "size": file_size,
+                "uploaded_at": datetime.utcnow().isoformat(),
+                "user_metadata": metadata or {},
+                "significance_note": (metadata or {}).get("significance_note"),
             }
 
             # Categorize as document or diagram
             if file.content_type and file.content_type.startswith("image/"):
                 self._assessments[assessment_id]["diagrams"].append(file_record)
+            elif file.content_type and file.content_type.startswith("video/"):
+                # We can add a 'videos' list or keep them in documents for now
+                if "videos" not in self._assessments[assessment_id]:
+                    self._assessments[assessment_id]["videos"] = []
+                self._assessments[assessment_id]["videos"].append(file_record)
             else:
                 self._assessments[assessment_id]["documents"].append(file_record)
 
-            await self._save_assessment_metadata(
-                assessment_id,
-                self._assessments[assessment_id]
-            )
+            await self._save_assessment_metadata(assessment_id, self._assessments[assessment_id])
 
         return file_path
 
@@ -135,11 +139,15 @@ class StorageManager:
             return assessment.get("diagrams", [])
         return []
 
+    async def get_videos(self, assessment_id: str) -> List[Dict[str, Any]]:
+        """Get all videos for an assessment."""
+        assessment = await self.get_assessment(assessment_id)
+        if assessment:
+            return assessment.get("videos", [])
+        return []
+
     async def store_results(
-        self,
-        assessment_id: str,
-        results: Dict[str, Any],
-        preserve_history: bool = True
+        self, assessment_id: str, results: Dict[str, Any], preserve_history: bool = True
     ) -> None:
         """Store assessment results, optionally preserving history."""
         if assessment_id in self._assessments:
@@ -161,10 +169,7 @@ class StorageManager:
             self._assessments[assessment_id]["status"] = "completed"
             self._assessments[assessment_id]["updated_at"] = now
 
-            await self._save_assessment_metadata(
-                assessment_id,
-                self._assessments[assessment_id]
-            )
+            await self._save_assessment_metadata(assessment_id, self._assessments[assessment_id])
 
             # Save results to separate file
             results_path = self.output_dir / f"{assessment_id}_results.json"
@@ -201,7 +206,8 @@ class StorageManager:
                 "created_at": assessment.get("created_at"),
                 "updated_at": assessment.get("updated_at"),
                 "document_count": len(assessment.get("documents", [])),
-                "diagram_count": len(assessment.get("diagrams", []))
+                "diagram_count": len(assessment.get("diagrams", [])),
+                "video_count": len(assessment.get("videos", [])),
             }
         return None
 
@@ -215,14 +221,12 @@ class StorageManager:
                 "client_id": assessment.get("client_id"),
                 "status": assessment.get("status"),
                 "results": assessment.get("results"),
-                "generated_at": assessment.get("updated_at")
+                "generated_at": assessment.get("updated_at"),
             }
         return None
 
     async def _save_assessment_metadata(
-        self,
-        assessment_id: str,
-        assessment: Dict[str, Any]
+        self, assessment_id: str, assessment: Dict[str, Any]
     ) -> None:
         """Save assessment metadata to disk."""
         metadata_path = self.upload_dir / assessment_id / "metadata.json"
@@ -235,13 +239,15 @@ class StorageManager:
 
         # Check in-memory cache
         for assessment_id, assessment in self._assessments.items():
-            assessments.append({
-                "assessment_id": assessment_id,
-                "project_name": assessment.get("project_name"),
-                "client_id": assessment.get("client_id"),
-                "status": assessment.get("status"),
-                "created_at": assessment.get("created_at")
-            })
+            assessments.append(
+                {
+                    "assessment_id": assessment_id,
+                    "project_name": assessment.get("project_name"),
+                    "client_id": assessment.get("client_id"),
+                    "status": assessment.get("status"),
+                    "created_at": assessment.get("created_at"),
+                }
+            )
 
         # Also check disk for any not in memory
         if self.upload_dir.exists():
@@ -252,12 +258,14 @@ class StorageManager:
                         async with aiofiles.open(metadata_path, "r") as f:
                             content = await f.read()
                             assessment = json.loads(content)
-                            assessments.append({
-                                "assessment_id": item.name,
-                                "project_name": assessment.get("project_name"),
-                                "client_id": assessment.get("client_id"),
-                                "status": assessment.get("status"),
-                                "created_at": assessment.get("created_at")
-                            })
+                            assessments.append(
+                                {
+                                    "assessment_id": item.name,
+                                    "project_name": assessment.get("project_name"),
+                                    "client_id": assessment.get("client_id"),
+                                    "status": assessment.get("status"),
+                                    "created_at": assessment.get("created_at"),
+                                }
+                            )
 
         return assessments

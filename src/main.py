@@ -1,12 +1,13 @@
 """FastAPI application for ITSG-33 Accreditation System."""
 
 import os
+import json
 import uuid
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 
-from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks
+from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -43,11 +44,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from src.utils.localizer import Localizer
+
 # Initialize components
 coordinator = ITSG33Coordinator()
 doc_parser = DocumentParser()
 storage = StorageManager()
 word_generator = WordReportGenerator()
+localizer = Localizer()
 
 
 # Request/Response Models
@@ -76,6 +80,7 @@ class StatusResponse(BaseModel):
     updated_at: Optional[str] = None
     document_count: int = 0
     diagram_count: int = 0
+    video_count: int = 0
 
 
 # Endpoints
@@ -85,7 +90,8 @@ async def root():
     index_file = STATIC_DIR / "index.html"
     if index_file.exists():
         return FileResponse(index_file)
-    return HTMLResponse(content="""
+    return HTMLResponse(
+        content="""
         <html>
             <head><title>ITSG-33 Accreditation System</title></head>
             <body>
@@ -93,7 +99,8 @@ async def root():
                 <p>Dashboard not found. API available at <a href="/docs">/docs</a></p>
             </body>
         </html>
-    """)
+    """
+    )
 
 
 @app.get("/api/v1/info")
@@ -146,8 +153,9 @@ async def create_assessment(request: AssessmentRequest):
 @app.post("/api/v1/assessment/{assessment_id}/upload")
 async def upload_documents(
     assessment_id: str,
+    background_tasks: BackgroundTasks,
     files: List[UploadFile] = File(...),
-    background_tasks: BackgroundTasks = None,
+    metadata: Optional[str] = Form(None),
 ):
     """Upload documents for assessment."""
     # Verify assessment exists
@@ -157,10 +165,39 @@ async def upload_documents(
 
     uploaded_files = []
     new_documents = []
+    metadata_map: Dict[str, Dict[str, Any]] = {}
+
+    if metadata:
+        try:
+            raw_metadata = json.loads(metadata)
+        except json.JSONDecodeError as exc:
+            raise HTTPException(status_code=400, detail=f"Invalid metadata JSON: {exc}")
+
+        if isinstance(raw_metadata, list):
+            for item in raw_metadata:
+                if isinstance(item, dict):
+                    filename_value = item.get("filename")
+                    if isinstance(filename_value, str) and filename_value:
+                        metadata_map[filename_value] = item
+        elif isinstance(raw_metadata, dict):
+            if "files" in raw_metadata and isinstance(raw_metadata["files"], list):
+                for item in raw_metadata["files"]:
+                    if isinstance(item, dict):
+                        filename_value = item.get("filename")
+                        if isinstance(filename_value, str) and filename_value:
+                            metadata_map[filename_value] = item
+            else:
+                for key, value in raw_metadata.items():
+                    if isinstance(key, str) and key and isinstance(value, dict):
+                        metadata_map[key] = {"filename": key, **value}
+        else:
+            raise HTTPException(status_code=400, detail="Metadata must be a JSON object or array")
 
     for file in files:
         try:
-            file_path = await storage.save_upload(assessment_id, file)
+            filename = file.filename or ""
+            user_metadata = metadata_map.get(filename, {})
+            file_path = await storage.save_upload(assessment_id, file, metadata=user_metadata)
 
             # Parse document
             parsed_content = await doc_parser.parse(file_path)
@@ -170,20 +207,43 @@ async def upload_documents(
                 "path": str(file_path),
                 "content_type": file.content_type,
                 "parsed": parsed_content is not None,
-                "type": "diagram" if file.content_type and file.content_type.startswith("image/") else "document",
+                "type": "diagram"
+                if file.content_type and file.content_type.startswith("image/")
+                else (
+                    "video"
+                    if file.content_type and file.content_type.startswith("video/")
+                    else "document"
+                ),
+                "user_metadata": user_metadata,
             }
 
-            if parsed_content and "full_text" in parsed_content:
-                file_info["content"] = parsed_content["full_text"]
+            if parsed_content:
+                if "full_text" in parsed_content:
+                    file_info["content"] = parsed_content["full_text"]
+                if "type" in parsed_content:
+                    file_info["document_type"] = parsed_content.get("type")
+                if "keyframes" in parsed_content:
+                    file_info["keyframes"] = parsed_content.get("keyframes")
+
+                if user_metadata.get("declared_type"):
+                    file_info["declared_type"] = user_metadata.get("declared_type")
+                if user_metadata.get("control_ids"):
+                    file_info["user_control_hints"] = user_metadata.get("control_ids")
+                if user_metadata.get("explanation") or user_metadata.get("significance_note"):
+                    file_info["user_explanation"] = user_metadata.get(
+                        "explanation"
+                    ) or user_metadata.get("significance_note")
                 new_documents.append(file_info)
 
             uploaded_files.append(file_info)
         except Exception as e:
-            uploaded_files.append({
-                "filename": file.filename,
-                "error": str(e),
-                "parsed": False,
-            })
+            uploaded_files.append(
+                {
+                    "filename": file.filename,
+                    "error": str(e),
+                    "parsed": False,
+                }
+            )
 
     # If assessment has existing results and new documents were added, trigger reassessment
     if assessment.get("results") and new_documents and background_tasks:
@@ -246,6 +306,7 @@ async def run_assessment_task(assessment_id: str):
 
     documents = await storage.get_documents(assessment_id)
     diagrams = await storage.get_diagrams(assessment_id)
+    videos = await storage.get_videos(assessment_id)
 
     # Parse documents to get content
     parsed_docs = []
@@ -254,13 +315,36 @@ async def run_assessment_task(assessment_id: str):
             parsed = await doc_parser.parse(Path(doc["path"]))
             if parsed:
                 doc["content"] = parsed.get("full_text", "")
+                doc["document_type"] = parsed.get("type")
+        user_metadata = doc.get("user_metadata", {})
+        if user_metadata:
+            doc["declared_type"] = user_metadata.get("declared_type")
+            doc["user_control_hints"] = user_metadata.get("control_ids")
+            doc["user_explanation"] = user_metadata.get("explanation") or user_metadata.get(
+                "significance_note"
+            )
         parsed_docs.append(doc)
+
+    # Parse videos to get keyframes
+    parsed_videos = []
+    for video in videos:
+        if "path" in video:
+            parsed = await doc_parser.parse(Path(video["path"]))
+            if parsed:
+                video.update(parsed)
+        user_metadata = video.get("user_metadata", {})
+        if user_metadata:
+            video["user_explanation"] = user_metadata.get("explanation") or user_metadata.get(
+                "significance_note"
+            )
+        parsed_videos.append(video)
 
     # Run assessment
     result = await coordinator.run_assessment(
         conops=assessment_data.get("conops", ""),
         documents=parsed_docs,
         diagrams=diagrams,
+        videos=parsed_videos,
         client_id=assessment_data["client_id"],
     )
 
@@ -358,53 +442,103 @@ async def delete_assessment(assessment_id: str):
     }
 
 
-# Control Families endpoint
 @app.get("/api/v1/controls/families")
-async def get_control_families():
+async def get_control_families(lang: str = "en"):
     """Get list of ITSG-33 control families."""
-    return {
-        "families": [
-            {"code": "AC", "name": "Access Control"},
-            {"code": "AT", "name": "Awareness and Training"},
-            {"code": "AU", "name": "Audit and Accountability"},
-            {"code": "CA", "name": "Assessment, Authorization, and Monitoring"},
-            {"code": "CM", "name": "Configuration Management"},
-            {"code": "CP", "name": "Contingency Planning"},
-            {"code": "IA", "name": "Identification and Authentication"},
-            {"code": "IR", "name": "Incident Response"},
-            {"code": "MA", "name": "Maintenance"},
-            {"code": "MP", "name": "Media Protection"},
-            {"code": "PE", "name": "Physical and Environmental Protection"},
-            {"code": "PL", "name": "Planning"},
-            {"code": "PS", "name": "Personnel Security"},
-            {"code": "RA", "name": "Risk Assessment"},
-            {"code": "SA", "name": "System and Services Acquisition"},
-            {"code": "SC", "name": "System and Communications Protection"},
-            {"code": "SI", "name": "System and Information Integrity"},
-        ]
-    }
+    families = [
+        {"code": "AC", "en": "Access Control", "fr": "Contrôle d'accès"},
+        {"code": "AT", "en": "Awareness and Training", "fr": "Sensibilisation et formation"},
+        {"code": "AU", "en": "Audit and Accountability", "fr": "Audit et responsabilité"},
+        {
+            "code": "CA",
+            "en": "Assessment, Authorization, and Monitoring",
+            "fr": "Évaluation, autorisation et surveillance",
+        },
+        {"code": "CM", "en": "Configuration Management", "fr": "Gestion de configuration"},
+        {"code": "CP", "en": "Contingency Planning", "fr": "Planification des mesures d'urgence"},
+        {
+            "code": "IA",
+            "en": "Identification and Authentication",
+            "fr": "Identification et authentification",
+        },
+        {"code": "IR", "en": "Incident Response", "fr": "Intervention en cas d'incident"},
+        {"code": "MA", "en": "Maintenance", "fr": "Maintenance"},
+        {"code": "MP", "en": "Media Protection", "fr": "Protection des supports"},
+        {
+            "code": "PE",
+            "en": "Physical and Environmental Protection",
+            "fr": "Protection physique et environnementale",
+        },
+        {"code": "PL", "en": "Planning", "fr": "Planification"},
+        {"code": "PS", "en": "Personnel Security", "fr": "Sécurité du personnel"},
+        {"code": "RA", "en": "Risk Assessment", "fr": "Évaluation des risques"},
+        {
+            "code": "SA",
+            "en": "System and Services Acquisition",
+            "fr": "Acquisition de systèmes et de services",
+        },
+        {
+            "code": "SC",
+            "en": "System and Communications Protection",
+            "fr": "Protection des systèmes et des communications",
+        },
+        {
+            "code": "SI",
+            "en": "System and Information Integrity",
+            "fr": "Intégrité des systèmes et de l'information",
+        },
+    ]
+
+    return {"families": [{"code": f["code"], "name": f.get(lang, f["en"])} for f in families]}
 
 
 @app.get("/api/v1/profiles")
-async def get_profiles():
+async def get_profiles(lang: str = "en"):
     """Get ITSG-33 profile information."""
+    profiles = [
+        {
+            "number": 1,
+            "en": {
+                "name": "Profile 1 - Low",
+                "desc": "For systems with low sensitivity data and low impact",
+            },
+            "fr": {
+                "name": "Profil 1 - Faible",
+                "desc": "Pour les systèmes ayant des données à faible sensibilité",
+            },
+        },
+        {
+            "number": 2,
+            "en": {
+                "name": "Profile 2 - Moderate",
+                "desc": "For systems with moderate sensitivity data",
+            },
+            "fr": {
+                "name": "Profil 2 - Modéré",
+                "desc": "Pour les systèmes ayant des données à sensibilité modérée",
+            },
+        },
+        {
+            "number": 3,
+            "en": {
+                "name": "Profile 3 - High",
+                "desc": "For systems with high sensitivity data or critical operations",
+            },
+            "fr": {
+                "name": "Profil 3 - Élevé",
+                "desc": "Pour les systèmes ayant des données à haute sensibilité",
+            },
+        },
+    ]
+
     return {
         "profiles": [
             {
-                "number": 1,
-                "name": "Profile 1 - Low",
-                "description": "For systems with low sensitivity data and low impact",
-            },
-            {
-                "number": 2,
-                "name": "Profile 2 - Moderate",
-                "description": "For systems with moderate sensitivity data",
-            },
-            {
-                "number": 3,
-                "name": "Profile 3 - High",
-                "description": "For systems with high sensitivity data or critical operations",
-            },
+                "number": p["number"],
+                "name": p.get(lang, p["en"])["name"],
+                "description": p.get(lang, p["en"])["desc"],
+            }
+            for p in profiles
         ]
     }
 
@@ -434,7 +568,8 @@ async def rerun_assessment(
         "assessment_id": assessment_id,
         "status": "running",
         "message": "Assessment rerun started. Previous results will be preserved in history.",
-        "previous_runs": len(assessment_data.get("run_history", [])) + (1 if assessment_data.get("results") else 0),
+        "previous_runs": len(assessment_data.get("run_history", []))
+        + (1 if assessment_data.get("results") else 0),
     }
 
 
@@ -497,7 +632,7 @@ async def get_historical_run(assessment_id: str, run_id: int):
 
 
 @app.get("/api/v1/assessment/{assessment_id}/download/word")
-async def download_word_report(assessment_id: str):
+async def download_word_report(assessment_id: str, lang: str = "en"):
     """Download assessment report as Word document."""
     assessment_data = await storage.get_assessment(assessment_id)
     if not assessment_data:
@@ -509,12 +644,17 @@ async def download_word_report(assessment_id: str):
             detail="Assessment not completed. Run the assessment first.",
         )
 
+    results = assessment_data["results"]
+    if lang != "en":
+        results = await localizer.translate_results(results, lang)
+
     # Generate Word document
     doc_buffer = word_generator.generate_assessment_report(
         assessment=assessment_data,
-        results=assessment_data["results"],
+        results=results,
         project_name=assessment_data.get("project_name", "Unknown"),
         client_id=assessment_data.get("client_id", "Unknown"),
+        lang=lang,
     )
 
     filename = f"ITSG33_Assessment_{assessment_data.get('project_name', 'Report').replace(' ', '_')}_{assessment_data['assessment_id'][:8]}.docx"
@@ -527,7 +667,7 @@ async def download_word_report(assessment_id: str):
 
 
 @app.get("/api/v1/assessment/{assessment_id}/download/poam")
-async def download_poam(assessment_id: str):
+async def download_poam(assessment_id: str, lang: str = "en"):
     """Download Plan of Action and Milestones (POA&M) as Word document."""
     assessment_data = await storage.get_assessment(assessment_id)
     if not assessment_data:
@@ -539,12 +679,17 @@ async def download_poam(assessment_id: str):
             detail="Assessment not completed. Run the assessment first.",
         )
 
+    results = assessment_data["results"]
+    if lang != "en":
+        results = await localizer.translate_results(results, lang)
+
     # Generate POAM document
     doc_buffer = word_generator.generate_poam(
         assessment=assessment_data,
-        results=assessment_data["results"],
+        results=results,
         project_name=assessment_data.get("project_name", "Unknown"),
         client_id=assessment_data.get("client_id", "Unknown"),
+        lang=lang,
     )
 
     filename = f"POAM_{assessment_data.get('project_name', 'Report').replace(' ', '_')}_{assessment_data['assessment_id'][:8]}.docx"
@@ -558,11 +703,13 @@ async def download_poam(assessment_id: str):
 
 class MarkNotApplicableRequest(BaseModel):
     """Request model for marking a control as not applicable."""
+
     reason: str
 
 
 class RejectEvidenceRequest(BaseModel):
     """Request model for rejecting evidence as insufficient."""
+
     reason: str
 
 
@@ -581,7 +728,9 @@ async def mark_control_not_applicable(
         raise HTTPException(status_code=404, detail="Assessment not found")
 
     if not assessment_data.get("results"):
-        raise HTTPException(status_code=400, detail="Assessment not completed. Run the assessment first.")
+        raise HTTPException(
+            status_code=400, detail="Assessment not completed. Run the assessment first."
+        )
 
     results = assessment_data["results"]
     coverage = results.get("phases", {}).get("coverage", {})
@@ -676,7 +825,9 @@ async def reject_control_evidence(
         raise HTTPException(status_code=404, detail="Assessment not found")
 
     if not assessment_data.get("results"):
-        raise HTTPException(status_code=400, detail="Assessment not completed. Run the assessment first.")
+        raise HTTPException(
+            status_code=400, detail="Assessment not completed. Run the assessment first."
+        )
 
     results = assessment_data["results"]
     coverage = results.get("phases", {}).get("coverage", {})
@@ -699,7 +850,9 @@ async def reject_control_evidence(
             break
 
     if not control_found:
-        raise HTTPException(status_code=404, detail=f"Control {control_id} not found in controls with evidence")
+        raise HTTPException(
+            status_code=404, detail=f"Control {control_id} not found in controls with evidence"
+        )
 
     # Remove from source list
     coverage[source_list] = [c for c in coverage[source_list] if c.get("control_id") != control_id]
@@ -777,7 +930,10 @@ async def restore_control(assessment_id: str, control_id: str):
             break
 
     if not control_found:
-        raise HTTPException(status_code=404, detail=f"Control {control_id} not found in not applicable or rejected evidence")
+        raise HTTPException(
+            status_code=404,
+            detail=f"Control {control_id} not found in not applicable or rejected evidence",
+        )
 
     # Remove from source list
     coverage[source_list] = [c for c in coverage[source_list] if c.get("control_id") != control_id]
@@ -855,7 +1011,9 @@ async def get_evidence_quality_report(assessment_id: str):
         raise HTTPException(status_code=404, detail="Assessment not found")
 
     if not assessment_data.get("results"):
-        raise HTTPException(status_code=400, detail="Assessment not completed. Run the assessment first.")
+        raise HTTPException(
+            status_code=400, detail="Assessment not completed. Run the assessment first."
+        )
 
     results = assessment_data["results"]
     coverage = results.get("phases", {}).get("coverage", {})
@@ -869,7 +1027,7 @@ async def get_evidence_quality_report(assessment_id: str):
         4: "Code Enforcement",
         5: "Screenshot",
         6: "Video Walkthrough",
-        7: "Narrative"
+        7: "Narrative",
     }
 
     # Aggregate evidence by strength tier
@@ -896,27 +1054,26 @@ async def get_evidence_quality_report(assessment_id: str):
                 else:
                     human_curated_count += 1
 
-                evidence_details.append({
-                    "control_id": ctrl.get("control_id"),
-                    "document": ev.get("document"),
-                    "strength_tier": tier,
-                    "strength_label": strength_labels.get(tier, "Unknown"),
-                    "coverage": ev.get("evidence", {}).get("coverage", "MENTIONS"),
-                    "is_machine_verifiable": tier <= 4,
-                })
+                evidence_details.append(
+                    {
+                        "control_id": ctrl.get("control_id"),
+                        "document": ev.get("document"),
+                        "strength_tier": tier,
+                        "strength_label": strength_labels.get(tier, "Unknown"),
+                        "coverage": ev.get("evidence", {}).get("coverage", "MENTIONS"),
+                        "is_machine_verifiable": tier <= 4,
+                    }
+                )
 
     total_evidence = machine_verifiable_count + human_curated_count
-    machine_verifiable_ratio = round(
-        machine_verifiable_count / max(total_evidence, 1) * 100, 1
-    )
+    machine_verifiable_ratio = round(machine_verifiable_count / max(total_evidence, 1) * 100, 1)
 
     return {
         "assessment_id": assessment_id,
         "quality_score": summary.get("quality_score", 0),
         "coverage_percentage": summary.get("coverage_percentage", 0),
         "strength_distribution": {
-            strength_labels[tier]: count
-            for tier, count in strength_distribution.items()
+            strength_labels[tier]: count for tier, count in strength_distribution.items()
         },
         "strength_distribution_raw": strength_distribution,
         "total_evidence_items": total_evidence,
@@ -929,4 +1086,5 @@ async def get_evidence_quality_report(assessment_id: str):
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)
