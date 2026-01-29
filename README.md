@@ -59,6 +59,7 @@ uv pip install -e ".[dev]"
 # Copy environment file and add your API key
 cp .env.example .env
 # Edit .env and add your GEMINI_API_KEY
+# Set INITIAL_ADMIN_EMAIL and INITIAL_ADMIN_PASSWORD for the first admin user
 ```
 
 ### Initialize Knowledge Base

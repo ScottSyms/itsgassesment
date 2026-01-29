@@ -61,6 +61,60 @@
         <button @click="setLang('fr')" class="hover:text-blue-300 transition-all uppercase tracking-widest" :class="lang === 'fr' ? 'font-bold text-blue-400' : 'text-gray-400'">Français</button>
     </div>
 
+    <!-- Auth Loading Overlay -->
+    <div x-show="auth.loading" x-cloak class="fixed inset-0 z-50 bg-white/90 flex items-center justify-center">
+        <div class="text-sm text-gray-500">
+            <i class="fas fa-spinner fa-spin mr-2"></i><span x-text="t('auth.loading')">Checking session...</span>
+        </div>
+    </div>
+
+    <!-- Login Overlay -->
+    <div x-show="!auth.loading && !auth.user" x-cloak class="fixed inset-0 z-40 bg-gray-900/70 flex items-center justify-center">
+        <div class="bg-white rounded-xl shadow-xl p-8 w-full max-w-md">
+            <h2 class="text-xl font-semibold text-gray-900 mb-2" x-text="t('auth.login_title')">Sign in</h2>
+            <p class="text-sm text-gray-500 mb-6" x-text="t('auth.login_subtitle')">Use your internal account to continue.</p>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" x-text="t('auth.email')">Email</label>
+                    <input type="email" x-model="loginForm.email" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" x-text="t('auth.password')">Password</label>
+                    <input type="password" x-model="loginForm.password" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div x-show="auth.error" class="text-sm text-red-600" x-text="auth.error"></div>
+                <button @click="login()" class="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    <span x-text="t('auth.sign_in')">Sign in</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Force Password Reset Modal -->
+    <div x-show="auth.user && auth.user.force_password_reset" x-cloak class="fixed inset-0 z-50 bg-gray-900/70 flex items-center justify-center">
+        <div class="bg-white rounded-xl shadow-xl p-8 w-full max-w-md">
+            <h2 class="text-xl font-semibold text-gray-900 mb-2" x-text="t('auth.reset_title')">Update Password</h2>
+            <p class="text-sm text-gray-500 mb-6" x-text="t('auth.reset_subtitle')">You must change your temporary password to continue.</p>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" x-text="t('auth.current_password')">Current password</label>
+                    <input type="password" x-model="passwordForm.current" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" x-text="t('auth.new_password')">New password</label>
+                    <input type="password" x-model="passwordForm.next" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" x-text="t('auth.confirm_password')">Confirm new password</label>
+                    <input type="password" x-model="passwordForm.confirm" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <button @click="changePassword()" class="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    <span x-text="t('auth.update_password')">Update password</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Navigation -->
     <nav class="gradient-bg text-white shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -79,12 +133,15 @@
                         <i class="fas fa-circle text-green-400 text-[0.5rem] mr-2 pulse-dot"></i>
                         <span x-text="t('app.system_operational')">System Operational</span>
                     </span>
+                    <button x-show="auth.user" @click="logout()" class="text-sm text-blue-200 hover:text-white border border-white/20 px-3 py-1 rounded-full">
+                        <i class="fas fa-sign-out-alt mr-1"></i><span x-text="t('auth.sign_out')">Sign out</span>
+                    </button>
                 </div>
             </div>
         </div>
     </nav>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-show="auth.user" x-cloak>
         <!-- Tabs -->
         <div class="border-b border-gray-200 mb-8">
             <nav class="-mb-px flex space-x-8">
@@ -566,6 +623,33 @@
             </div>
         </div>
 
+        <!-- Help Tab -->
+        <div x-show="currentTab === 'help'" x-cloak>
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-6">
+                    <i class="fas fa-life-ring mr-2 text-gray-400"></i><span x-text="t('help.title')">Help and Guides</span>
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="border border-gray-200 rounded-lg p-5">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2" x-text="t('help.quickstart_title')">Quickstart</h3>
+                        <p class="text-sm text-gray-600 mb-4" x-text="t('help.quickstart_desc')">Fast loop for submitting evidence and closing gaps.</p>
+                        <a href="/guides/QUICKSTART.md" target="_blank" class="text-blue-600 text-sm font-medium hover:text-blue-800">
+                            <span x-text="t('help.open_quickstart')">Open Quickstart</span>
+                            <i class="fas fa-arrow-up-right-from-square ml-1"></i>
+                        </a>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-5">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2" x-text="t('help.user_guide_title')">User Guide</h3>
+                        <p class="text-sm text-gray-600 mb-4" x-text="t('help.user_guide_desc')">Full walkthrough for iterative evidence submissions.</p>
+                        <a href="/guides/USER_GUIDE.md" target="_blank" class="text-blue-600 text-sm font-medium hover:text-blue-800">
+                            <span x-text="t('help.open_user_guide')">Open User Guide</span>
+                            <i class="fas fa-arrow-up-right-from-square ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Assessment Detail Modal -->
         <div x-show="showModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" @keydown.escape.window="showModal = false">
             <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center">
@@ -950,10 +1034,28 @@
                         'app.name': 'ITSG-33 Accreditation',
                         'app.subtitle': 'Security Assessment Platform',
                         'app.system_operational': 'System Operational',
+                        'auth.loading': 'Checking session...',
+                        'auth.login_title': 'Sign in',
+                        'auth.login_subtitle': 'Use your internal account to continue.',
+                        'auth.email': 'Email',
+                        'auth.password': 'Password',
+                        'auth.sign_in': 'Sign in',
+                        'auth.sign_out': 'Sign out',
+                        'auth.login_failed': 'Login failed',
+                        'auth.reset_title': 'Update Password',
+                        'auth.reset_subtitle': 'You must change your temporary password to continue.',
+                        'auth.current_password': 'Current password',
+                        'auth.new_password': 'New password',
+                        'auth.confirm_password': 'Confirm new password',
+                        'auth.update_password': 'Update password',
+                        'auth.password_mismatch': 'Passwords do not match',
+                        'auth.password_change_failed': 'Password update failed',
+                        'auth.password_changed': 'Password updated',
                         'nav.dashboard': 'Dashboard',
                         'nav.new_assessment': 'New Assessment',
                         'nav.assessments': 'Assessments',
                         'nav.controls': 'Control Families',
+                        'nav.help': 'Help',
                         'stats.total_assessments': 'Total Assessments',
                         'stats.completed': 'Completed',
                         'stats.in_progress': 'In Progress',
@@ -1027,6 +1129,13 @@
                         'controls.controls_suffix': 'Controls',
                         'controls.profiles_title': 'Security Profiles',
                         'controls.profile_label': 'Profile',
+                        'help.title': 'Help and Guides',
+                        'help.quickstart_title': 'Quickstart',
+                        'help.quickstart_desc': 'Fast loop for submitting evidence and closing gaps.',
+                        'help.open_quickstart': 'Open Quickstart',
+                        'help.user_guide_title': 'User Guide',
+                        'help.user_guide_desc': 'Full walkthrough for iterative evidence submissions.',
+                        'help.open_user_guide': 'Open User Guide',
                         'history.title': 'Assessment Run History',
                         'history.total_runs': 'Total Runs:',
                         'history.current_run': 'Current Run',
@@ -1218,10 +1327,28 @@
                         'app.name': 'Accréditation ITSG-33',
                         'app.subtitle': 'Plateforme d\'évaluation de la sécurité',
                         'app.system_operational': 'Système opérationnel',
+                        'auth.loading': 'Vérification de la session...',
+                        'auth.login_title': 'Connexion',
+                        'auth.login_subtitle': 'Utilisez votre compte interne pour continuer.',
+                        'auth.email': 'Courriel',
+                        'auth.password': 'Mot de passe',
+                        'auth.sign_in': 'Se connecter',
+                        'auth.sign_out': 'Se déconnecter',
+                        'auth.login_failed': 'Échec de connexion',
+                        'auth.reset_title': 'Mettre à jour le mot de passe',
+                        'auth.reset_subtitle': 'Vous devez changer votre mot de passe temporaire pour continuer.',
+                        'auth.current_password': 'Mot de passe actuel',
+                        'auth.new_password': 'Nouveau mot de passe',
+                        'auth.confirm_password': 'Confirmer le nouveau mot de passe',
+                        'auth.update_password': 'Mettre à jour le mot de passe',
+                        'auth.password_mismatch': 'Les mots de passe ne correspondent pas',
+                        'auth.password_change_failed': 'Échec de la mise à jour du mot de passe',
+                        'auth.password_changed': 'Mot de passe mis à jour',
                         'nav.dashboard': 'Tableau de bord',
                         'nav.new_assessment': 'Nouvelle évaluation',
                         'nav.assessments': 'Évaluations',
                         'nav.controls': 'Familles de mesures de sécurité',
+                        'nav.help': 'Aide',
                         'stats.total_assessments': 'Total des évaluations',
                         'stats.completed': 'Terminées',
                         'stats.in_progress': 'En cours',
@@ -1295,6 +1422,13 @@
                         'controls.controls_suffix': 'mesures',
                         'controls.profiles_title': 'Profils de sécurité',
                         'controls.profile_label': 'Profil',
+                        'help.title': 'Aide et guides',
+                        'help.quickstart_title': 'Démarrage rapide',
+                        'help.quickstart_desc': 'Boucle rapide pour soumettre des preuves et combler les écarts.',
+                        'help.open_quickstart': 'Ouvrir le démarrage rapide',
+                        'help.user_guide_title': 'Guide utilisateur',
+                        'help.user_guide_desc': 'Guide complet pour les soumissions itératives de preuves.',
+                        'help.open_user_guide': 'Ouvrir le guide utilisateur',
                         'history.title': 'Historique des exécutions d\'évaluation',
                         'history.total_runs': 'Nombre total d\'exécutions :',
                         'history.current_run': 'Exécution en cours',
@@ -1484,6 +1618,9 @@
                 },
                 currentTab: 'dashboard',
                 step: 1,
+                auth: { user: null, loading: true, error: '' },
+                loginForm: { email: '', password: '' },
+                passwordForm: { current: '', next: '', confirm: '' },
                 assessments: [],
                 controlFamilies: [],
                 profiles: [],
@@ -1545,9 +1682,12 @@
                         this.loadAssessments();
                     });
 
-                    await this.loadAssessments();
-                    await this.loadControlFamilies();
-                    await this.loadProfiles();
+                    await this.checkAuth();
+                    if (this.auth.user) {
+                        await this.loadAssessments();
+                        await this.loadControlFamilies();
+                        await this.loadProfiles();
+                    }
 
                     // Listen for reject-evidence events
                     window.addEventListener('reject-evidence', (e) => {
@@ -1568,10 +1708,105 @@
                 async loadAssessments() {
                     try {
                         const response = await fetch(`/api/v1/assessments?include_deleted=${this.showDeleted ? 'true' : 'false'}`);
+                        if (!(await this.ensureAuthenticated(response))) return;
                         const data = await response.json();
                         this.assessments = data.assessments || [];
                     } catch (error) {
                         console.error('Failed to load assessments:', error);
+                    }
+                },
+
+                async ensureAuthenticated(response) {
+                    if (response.status === 401) {
+                        await this.checkAuth();
+                        return false;
+                    }
+                    return true;
+                },
+
+                async checkAuth() {
+                    this.auth.loading = true;
+                    this.auth.error = '';
+                    try {
+                        const response = await fetch('/auth/me');
+                        if (!response.ok) {
+                            this.auth.user = null;
+                        } else {
+                            this.auth.user = await response.json();
+                        }
+                    } catch (error) {
+                        this.auth.user = null;
+                    } finally {
+                        this.auth.loading = false;
+                    }
+                },
+
+                async login() {
+                    this.auth.error = '';
+                    try {
+                        const response = await fetch('/auth/login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                email: this.loginForm.email,
+                                password: this.loginForm.password
+                            })
+                        });
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            this.auth.error = errorData.detail || this.t('auth.login_failed');
+                            return;
+                        }
+                        this.auth.user = await response.json();
+                        this.loginForm.email = '';
+                        this.loginForm.password = '';
+                        await this.loadAssessments();
+                        await this.loadControlFamilies();
+                        await this.loadProfiles();
+                    } catch (error) {
+                        this.auth.error = this.t('auth.login_failed');
+                    }
+                },
+
+                async logout() {
+                    try {
+                        await fetch('/auth/logout', { method: 'POST' });
+                    } catch (error) {
+                        // ignore
+                    }
+                    this.auth.user = null;
+                    this.assessments = [];
+                },
+
+                async changePassword() {
+                    const { current, next, confirm } = this.passwordForm;
+                    if (!next || next !== confirm) {
+                        this.showToast(this.t('auth.password_mismatch'), 'error');
+                        return;
+                    }
+                    try {
+                        const response = await fetch('/auth/change-password', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                current_password: current,
+                                new_password: next
+                            })
+                        });
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            this.showToast(errorData.detail || this.t('auth.password_change_failed'), 'error');
+                            return;
+                        }
+                        this.passwordForm.current = '';
+                        this.passwordForm.next = '';
+                        this.passwordForm.confirm = '';
+                        if (this.auth.user) {
+                            this.auth.user.force_password_reset = false;
+                        }
+                        this.showToast(this.t('auth.password_changed'), 'success');
+                    } catch (error) {
+                        this.showToast(this.t('auth.password_change_failed'), 'error');
                     }
                 },
 
@@ -1621,6 +1856,7 @@
                 async loadControlFamilies() {
                     try {
                         const response = await fetch(`/api/v1/controls/families?lang=${this.lang}`);
+                        if (!(await this.ensureAuthenticated(response))) return;
                         const data = await response.json();
                         this.controlFamilies = data.families || [];
                     } catch (error) {
@@ -1631,6 +1867,7 @@
                 async loadProfiles() {
                     try {
                         const response = await fetch(`/api/v1/profiles?lang=${this.lang}`);
+                        if (!(await this.ensureAuthenticated(response))) return;
                         const data = await response.json();
                         this.profiles = data.profiles || [];
                     } catch (error) {

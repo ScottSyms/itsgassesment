@@ -9,11 +9,18 @@ services:
       - "8000:8000"
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.0-flash-exp}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.0-flash}
       - UPLOAD_DIR=/app/uploads
       - OUTPUT_DIR=/app/outputs
       - DATA_DIR=/app/data
       - CHROMA_PERSIST_DIR=/app/chroma_db
+      - AUTH_PROVIDER=${AUTH_PROVIDER:-local}
+      - AUTH_DB_PATH=${AUTH_DB_PATH:-/app/data/auth.db}
+      - AUTH_SECRET=${AUTH_SECRET:-change-me}
+      - SESSION_TTL_MINUTES=${SESSION_TTL_MINUTES:-120}
+      - SESSION_IDLE_TIMEOUT_MINUTES=${SESSION_IDLE_TIMEOUT_MINUTES:-30}
+      - INITIAL_ADMIN_EMAIL=${INITIAL_ADMIN_EMAIL}
+      - INITIAL_ADMIN_PASSWORD=${INITIAL_ADMIN_PASSWORD}
       - MCP_KNOWLEDGE_BASE_URL=http://mcp-knowledge-base:8005
       - MCP_CONTROL_MAPPER_URL=http://mcp-control-mapper:8001
       - MCP_EVIDENCE_ASSESSOR_URL=http://mcp-evidence-assessor:8002

@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 
-from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks, Form
+from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -18,6 +18,7 @@ from src.coordinator.agent import ITSG33Coordinator
 from src.utils.document_parser import DocumentParser
 from src.utils.storage import StorageManager
 from src.utils.word_generator import WordReportGenerator
+from src.utils import auth
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -53,6 +54,8 @@ async def _purge_deleted_loop() -> None:
 @app.on_event("startup")
 async def schedule_purge_task() -> None:
     """Schedule background purge task on startup."""
+    auth.init_auth_db()
+    auth.bootstrap_admin()
     asyncio.create_task(_purge_deleted_loop())
 
 
@@ -64,6 +67,58 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+def _is_secure_request(request: Request) -> bool:
+    forwarded = request.headers.get("x-forwarded-proto")
+    scheme = forwarded or request.url.scheme
+    return scheme == "https"
+
+
+async def _get_authenticated_user(request: Request) -> Optional[Dict[str, Any]]:
+    session_cookie = request.cookies.get("session")
+    if not session_cookie:
+        return None
+    session_id = auth.unsign_session_id(session_cookie)
+    if not session_id:
+        return None
+    session = auth.validate_session(session_id)
+    if not session:
+        return None
+    user = auth.get_user_by_id(session["user_id"])
+    if not user or user.get("status") != "active":
+        return None
+    return user
+
+
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    path = request.url.path
+    if (
+        path.startswith("/static")
+        or path.startswith("/guides")
+        or path.startswith("/auth")
+        or path in {"/", "/health", "/docs", "/redoc", "/openapi.json"}
+    ):
+        return await call_next(request)
+
+    if not path.startswith("/api"):
+        return await call_next(request)
+
+    user = await _get_authenticated_user(request)
+    if not user:
+        return JSONResponse(status_code=401, content={"detail": "Not authenticated"})
+
+    if user.get("force_password_reset") and path not in {
+        "/auth/change-password",
+        "/auth/logout",
+        "/auth/me",
+    }:
+        return JSONResponse(status_code=403, content={"detail": "Password reset required"})
+
+    request.state.user = user
+    return await call_next(request)
+
 
 from src.utils.localizer import Localizer
 
@@ -81,6 +136,31 @@ def _ensure_assessment_active(assessment: Optional[Dict[str, Any]]) -> Dict[str,
         raise HTTPException(status_code=404, detail="Assessment not found")
     if assessment.get("deleted"):
         raise HTTPException(status_code=410, detail="Assessment has been deleted")
+    return assessment
+
+
+def _get_request_user(request: Request) -> Dict[str, Any]:
+    user = getattr(request.state, "user", None)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return user
+
+
+def _require_roles(request: Request, roles: List[str]) -> Dict[str, Any]:
+    user = _get_request_user(request)
+    if not auth.user_has_role(user, roles):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    return user
+
+
+async def _ensure_assessment_access(assessment_id: str, request: Request) -> Dict[str, Any]:
+    assessment = _ensure_assessment_active(await storage.get_assessment(assessment_id))
+    user = _get_request_user(request)
+    if auth.user_has_role(user, ["admin", "assessor"]):
+        return assessment
+    shared_ids = auth.get_shared_assessment_ids(user["id"])
+    if assessment_id not in shared_ids:
+        raise HTTPException(status_code=403, detail="Access denied")
     return assessment
 
 
@@ -117,6 +197,48 @@ class DocumentMetadataUpdate(BaseModel):
     """Document metadata update model."""
 
     significance_note: Optional[str] = None
+
+
+class LoginRequest(BaseModel):
+    """Login request model."""
+
+    email: str
+    password: str
+
+
+class ChangePasswordRequest(BaseModel):
+    """Password change request model."""
+
+    current_password: str
+    new_password: str
+
+
+class ResetPasswordRequest(BaseModel):
+    """Admin password reset request model."""
+
+    user_email: str
+    temporary_password: str
+
+
+class CreateUserRequest(BaseModel):
+    """Create user request model."""
+
+    email: str
+    password: str
+    roles: List[str]
+
+
+class UpdateUserRolesRequest(BaseModel):
+    """Update user roles request model."""
+
+    roles: List[str]
+
+
+class ShareAssessmentRequest(BaseModel):
+    """Assessment sharing request model."""
+
+    user_id: str
+    role_scope: str
 
 
 # Endpoints
@@ -167,16 +289,172 @@ async def system_status():
     }
 
 
+@app.post("/auth/login")
+async def login(payload: LoginRequest, request: Request):
+    """Authenticate a user and create a session."""
+    user = auth.get_user_by_email(payload.email)
+    if not user or not auth.verify_password(user["password_hash"], payload.password):
+        auth.log_audit(None, "login_failed", payload.email, {"email": payload.email})
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    if user.get("status") != "active":
+        raise HTTPException(status_code=403, detail="User account disabled")
+
+    session_id = auth.create_session(
+        user_id=user["id"],
+        ip=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
+    )
+    signed = auth.sign_session_id(session_id)
+    auth.update_last_login(user["id"])
+    auth.log_audit(user["id"], "login", None, {})
+
+    response = JSONResponse(
+        {
+            "id": user["id"],
+            "email": user["email"],
+            "roles": user.get("roles", []),
+            "force_password_reset": bool(user.get("force_password_reset")),
+        }
+    )
+    response.set_cookie(
+        "session",
+        signed,
+        httponly=True,
+        samesite="lax",
+        secure=_is_secure_request(request),
+        max_age=auth.SESSION_TTL_MINUTES * 60,
+    )
+    return response
+
+
+@app.post("/auth/logout")
+async def logout(request: Request):
+    """Destroy the current session."""
+    session_cookie = request.cookies.get("session")
+    if session_cookie:
+        session_id = auth.unsign_session_id(session_cookie)
+        if session_id:
+            auth.delete_session(session_id)
+    response = JSONResponse({"status": "logged_out"})
+    response.delete_cookie("session")
+    return response
+
+
+@app.get("/auth/me")
+async def me(request: Request):
+    """Return the current user profile."""
+    user = await _get_authenticated_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return {
+        "id": user["id"],
+        "email": user["email"],
+        "roles": user.get("roles", []),
+        "force_password_reset": bool(user.get("force_password_reset")),
+    }
+
+
+@app.post("/auth/change-password")
+async def change_password(payload: ChangePasswordRequest, request: Request):
+    """Change password for the current user."""
+    user = await _get_authenticated_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    if not auth.verify_password(user["password_hash"], payload.current_password):
+        raise HTTPException(status_code=400, detail="Current password invalid")
+
+    try:
+        auth.set_user_password(user["id"], payload.new_password, force_reset=False)
+        auth.set_user_force_reset(user["id"], False)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    auth.log_audit(user["id"], "password_changed", None, {})
+    return {"status": "ok"}
+
+
+@app.post("/auth/reset-password")
+async def reset_password(payload: ResetPasswordRequest, request: Request):
+    """Admin sets a temporary password for a user."""
+    _require_roles(request, ["admin"])
+    user = auth.get_user_by_email(payload.user_email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    try:
+        auth.set_user_password(user["id"], payload.temporary_password, force_reset=True)
+        auth.set_user_force_reset(user["id"], True)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    auth.log_audit(request.state.user["id"], "password_reset", user["id"], {})
+    return {"status": "ok"}
+
+
+@app.get("/auth/users")
+async def list_users(request: Request):
+    """List users (admin only)."""
+    _require_roles(request, ["admin"])
+    users = auth.list_users()
+    return {
+        "users": [
+            {
+                "id": u["id"],
+                "email": u["email"],
+                "roles": u.get("roles", []),
+                "status": u.get("status"),
+                "force_password_reset": bool(u.get("force_password_reset")),
+            }
+            for u in users
+        ]
+    }
+
+
+@app.post("/auth/users")
+async def create_user(payload: CreateUserRequest, request: Request):
+    """Create a user (admin only)."""
+    _require_roles(request, ["admin"])
+    if not payload.roles:
+        raise HTTPException(status_code=400, detail="At least one role is required")
+    try:
+        user = auth.create_user(payload.email, payload.password, payload.roles)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    auth.log_audit(request.state.user["id"], "user_created", user["id"], {"roles": payload.roles})
+    return {
+        "id": user["id"],
+        "email": user["email"],
+        "roles": user.get("roles", []),
+    }
+
+
+@app.post("/auth/users/{user_id}/roles")
+async def update_user_roles(user_id: str, payload: UpdateUserRolesRequest, request: Request):
+    """Update user roles (admin only)."""
+    _require_roles(request, ["admin"])
+    if not payload.roles:
+        raise HTTPException(status_code=400, detail="At least one role is required")
+    user = auth.get_user_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    auth.set_user_roles(user_id, payload.roles)
+    auth.log_audit(
+        request.state.user["id"], "user_roles_updated", user_id, {"roles": payload.roles}
+    )
+    return {"status": "ok"}
+
+
 @app.post("/api/v1/assessment/create", response_model=AssessmentResponse)
-async def create_assessment(request: AssessmentRequest):
+async def create_assessment(payload: AssessmentRequest, request: Request):
     """Create new ITSG-33 assessment."""
+    _require_roles(request, ["admin", "assessor"])
     assessment_id = str(uuid.uuid4())
 
     await storage.create_assessment(
         assessment_id=assessment_id,
-        client_id=request.client_id,
-        project_name=request.project_name,
-        conops=request.conops,
+        client_id=payload.client_id,
+        project_name=payload.project_name,
+        conops=payload.conops,
     )
 
     return AssessmentResponse(
@@ -190,12 +468,14 @@ async def create_assessment(request: AssessmentRequest):
 async def upload_documents(
     assessment_id: str,
     background_tasks: BackgroundTasks,
+    request: Request,
     files: List[UploadFile] = File(...),
     metadata: Optional[str] = Form(None),
 ):
     """Upload documents for assessment."""
-    # Verify assessment exists and is not deleted
-    assessment = _ensure_assessment_active(await storage.get_assessment(assessment_id))
+    _require_roles(request, ["admin", "assessor", "client"])
+    # Verify assessment exists, is not deleted, and user has access
+    assessment = await _ensure_assessment_access(assessment_id, request)
 
     uploaded_files = []
     new_documents = []
@@ -344,9 +624,11 @@ async def update_document_metadata(
     assessment_id: str,
     file_id: str,
     payload: DocumentMetadataUpdate,
+    request: Request,
 ):
     """Update metadata for a single uploaded document."""
-    _ensure_assessment_active(await storage.get_assessment(assessment_id))
+    _require_roles(request, ["admin", "assessor", "client"])
+    await _ensure_assessment_access(assessment_id, request)
     updated = await storage.update_document_metadata(
         assessment_id, file_id, payload.significance_note
     )
@@ -375,10 +657,12 @@ async def reassess_with_documents(assessment_id: str, new_documents: List[Dict[s
 @app.post("/api/v1/assessment/{assessment_id}/conops")
 async def upload_conops(
     assessment_id: str,
+    request: Request,
     conops: UploadFile = File(...),
 ):
     """Upload CONOPS document for assessment."""
-    assessment = _ensure_assessment_active(await storage.get_assessment(assessment_id))
+    _require_roles(request, ["admin", "assessor"])
+    assessment = await _ensure_assessment_access(assessment_id, request)
 
     # Save and parse CONOPS
     file_path = await storage.save_upload(assessment_id, conops)
@@ -474,9 +758,11 @@ async def run_assessment_task(assessment_id: str):
 async def run_assessment(
     assessment_id: str,
     background_tasks: BackgroundTasks,
+    request: Request,
 ):
     """Execute ITSG-33 assessment."""
-    assessment_data = _ensure_assessment_active(await storage.get_assessment(assessment_id))
+    _require_roles(request, ["admin", "assessor"])
+    assessment_data = await _ensure_assessment_access(assessment_id, request)
 
     # Check if documents uploaded
     documents = await storage.get_documents(assessment_id)
@@ -497,9 +783,9 @@ async def run_assessment(
 
 
 @app.get("/api/v1/assessment/{assessment_id}/status", response_model=StatusResponse)
-async def get_assessment_status(assessment_id: str):
+async def get_assessment_status(assessment_id: str, request: Request):
     """Get assessment status."""
-    _ensure_assessment_active(await storage.get_assessment(assessment_id))
+    await _ensure_assessment_access(assessment_id, request)
     status = await storage.get_status(assessment_id)
 
     if not status:
@@ -509,9 +795,9 @@ async def get_assessment_status(assessment_id: str):
 
 
 @app.get("/api/v1/assessment/{assessment_id}/report")
-async def get_assessment_report(assessment_id: str):
+async def get_assessment_report(assessment_id: str, request: Request):
     """Get assessment report."""
-    _ensure_assessment_active(await storage.get_assessment(assessment_id))
+    await _ensure_assessment_access(assessment_id, request)
     report = await storage.get_report(assessment_id)
 
     if not report:
@@ -521,9 +807,9 @@ async def get_assessment_report(assessment_id: str):
 
 
 @app.get("/api/v1/assessment/{assessment_id}/results")
-async def get_assessment_results(assessment_id: str):
+async def get_assessment_results(assessment_id: str, request: Request):
     """Get full assessment results."""
-    assessment = _ensure_assessment_active(await storage.get_assessment(assessment_id))
+    assessment = await _ensure_assessment_access(assessment_id, request)
 
     if not assessment.get("results"):
         raise HTTPException(
@@ -535,19 +821,27 @@ async def get_assessment_results(assessment_id: str):
 
 
 @app.get("/api/v1/assessments")
-async def list_assessments(include_deleted: bool = False):
+async def list_assessments(request: Request, include_deleted: bool = False):
     """List all assessments."""
-    assessments = (
-        await storage.list_assessments_with_deleted()
-        if include_deleted
-        else await storage.list_assessments()
-    )
+    user = _get_request_user(request)
+    if auth.user_has_role(user, ["admin", "assessor"]):
+        assessments = (
+            await storage.list_assessments_with_deleted()
+            if include_deleted
+            else await storage.list_assessments()
+        )
+    else:
+        shared_ids = auth.get_shared_assessment_ids(user["id"])
+        assessments = [
+            a for a in await storage.list_assessments() if a["assessment_id"] in shared_ids
+        ]
     return {"assessments": assessments, "total": len(assessments)}
 
 
 @app.delete("/api/v1/assessment/{assessment_id}")
-async def delete_assessment(assessment_id: str, reason: Optional[str] = None):
+async def delete_assessment(assessment_id: str, request: Request, reason: Optional[str] = None):
     """Soft delete an assessment."""
+    _require_roles(request, ["admin"])
     assessment = await storage.soft_delete_assessment(assessment_id, reason=reason)
 
     if not assessment:
@@ -562,8 +856,9 @@ async def delete_assessment(assessment_id: str, reason: Optional[str] = None):
 
 
 @app.post("/api/v1/assessment/{assessment_id}/restore")
-async def restore_assessment(assessment_id: str):
+async def restore_assessment(assessment_id: str, request: Request):
     """Restore a soft-deleted assessment."""
+    _require_roles(request, ["admin"])
     assessment = await storage.restore_assessment(assessment_id)
 
     if not assessment:
@@ -573,14 +868,53 @@ async def restore_assessment(assessment_id: str):
 
 
 @app.delete("/api/v1/assessment/{assessment_id}/purge")
-async def purge_assessment(assessment_id: str):
+async def purge_assessment(assessment_id: str, request: Request):
     """Permanently delete an assessment and all files."""
+    _require_roles(request, ["admin"])
     assessment = await storage.get_assessment(assessment_id)
     if not assessment:
         raise HTTPException(status_code=404, detail="Assessment not found")
 
     await storage.purge_assessment(assessment_id)
     return {"assessment_id": assessment_id, "status": "purged"}
+
+
+@app.post("/api/v1/assessment/{assessment_id}/share")
+async def share_assessment(assessment_id: str, payload: ShareAssessmentRequest, request: Request):
+    """Share an assessment with a user."""
+    _require_roles(request, ["admin", "assessor"])
+    _ensure_assessment_active(await storage.get_assessment(assessment_id))
+
+    user = auth.get_user_by_id(payload.user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if payload.role_scope not in {"client", "viewer"}:
+        raise HTTPException(status_code=400, detail="Invalid role scope")
+
+    auth.share_assessment(assessment_id, payload.user_id, payload.role_scope)
+    auth.log_audit(
+        request.state.user["id"],
+        "assessment_shared",
+        assessment_id,
+        {
+            "user_id": payload.user_id,
+            "role_scope": payload.role_scope,
+        },
+    )
+    return {"status": "ok"}
+
+
+@app.delete("/api/v1/assessment/{assessment_id}/share/{user_id}")
+async def unshare_assessment(assessment_id: str, user_id: str, request: Request):
+    """Remove access for a user from an assessment."""
+    _require_roles(request, ["admin", "assessor"])
+    _ensure_assessment_active(await storage.get_assessment(assessment_id))
+    auth.unshare_assessment(assessment_id, user_id)
+    auth.log_audit(
+        request.state.user["id"], "assessment_unshared", assessment_id, {"user_id": user_id}
+    )
+    return {"status": "ok"}
 
 
 @app.get("/api/v1/controls/families")
@@ -688,9 +1022,11 @@ async def get_profiles(lang: str = "en"):
 async def rerun_assessment(
     assessment_id: str,
     background_tasks: BackgroundTasks,
+    request: Request,
 ):
     """Rerun a completed assessment with any new documents."""
-    assessment_data = _ensure_assessment_active(await storage.get_assessment(assessment_id))
+    _require_roles(request, ["admin", "assessor"])
+    assessment_data = await _ensure_assessment_access(assessment_id, request)
 
     # Check if documents exist
     documents = await storage.get_documents(assessment_id)
@@ -713,9 +1049,9 @@ async def rerun_assessment(
 
 
 @app.get("/api/v1/assessment/{assessment_id}/history")
-async def get_assessment_history(assessment_id: str):
+async def get_assessment_history(assessment_id: str, request: Request):
     """Get assessment run history."""
-    assessment_data = _ensure_assessment_active(await storage.get_assessment(assessment_id))
+    assessment_data = await _ensure_assessment_access(assessment_id, request)
 
     history = assessment_data.get("run_history", [])
     current_run = None
@@ -759,9 +1095,9 @@ async def get_assessment_history(assessment_id: str):
 
 
 @app.get("/api/v1/assessment/{assessment_id}/history/{run_id}")
-async def get_historical_run(assessment_id: str, run_id: int):
+async def get_historical_run(assessment_id: str, run_id: int, request: Request):
     """Get a specific historical run's results."""
-    _ensure_assessment_active(await storage.get_assessment(assessment_id))
+    await _ensure_assessment_access(assessment_id, request)
     run = await storage.get_historical_run(assessment_id, run_id)
     if not run:
         raise HTTPException(status_code=404, detail="Historical run not found")
@@ -770,9 +1106,9 @@ async def get_historical_run(assessment_id: str, run_id: int):
 
 
 @app.get("/api/v1/assessment/{assessment_id}/download/word")
-async def download_word_report(assessment_id: str, lang: str = "en"):
+async def download_word_report(assessment_id: str, request: Request, lang: str = "en"):
     """Download assessment report as Word document."""
-    assessment_data = _ensure_assessment_active(await storage.get_assessment(assessment_id))
+    assessment_data = await _ensure_assessment_access(assessment_id, request)
 
     if not assessment_data.get("results"):
         raise HTTPException(
@@ -803,9 +1139,9 @@ async def download_word_report(assessment_id: str, lang: str = "en"):
 
 
 @app.get("/api/v1/assessment/{assessment_id}/download/poam")
-async def download_poam(assessment_id: str, lang: str = "en"):
+async def download_poam(assessment_id: str, request: Request, lang: str = "en"):
     """Download Plan of Action and Milestones (POA&M) as Word document."""
-    assessment_data = _ensure_assessment_active(await storage.get_assessment(assessment_id))
+    assessment_data = await _ensure_assessment_access(assessment_id, request)
 
     if not assessment_data.get("results"):
         raise HTTPException(
@@ -851,13 +1187,15 @@ class RejectEvidenceRequest(BaseModel):
 async def mark_control_not_applicable(
     assessment_id: str,
     control_id: str,
-    request: MarkNotApplicableRequest,
+    payload: MarkNotApplicableRequest,
+    request: Request,
 ):
     """Mark a control as not applicable to this solution (manual override)."""
-    if not request.reason or not request.reason.strip():
+    _require_roles(request, ["admin", "assessor"])
+    if not payload.reason or not payload.reason.strip():
         raise HTTPException(status_code=400, detail="Reason is required")
 
-    assessment_data = _ensure_assessment_active(await storage.get_assessment(assessment_id))
+    assessment_data = await _ensure_assessment_access(assessment_id, request)
 
     if not assessment_data.get("results"):
         raise HTTPException(
@@ -896,7 +1234,7 @@ async def mark_control_not_applicable(
     control_found.pop("rejected_at", None)
 
     # Add to not_applicable with reason - mark as manual override
-    control_found["not_applicable_reason"] = request.reason.strip()
+    control_found["not_applicable_reason"] = payload.reason.strip()
     control_found["marked_not_applicable_at"] = datetime.utcnow().isoformat()
     control_found["original_status"] = source_list
     control_found["auto_determined"] = False  # Manual override
@@ -946,13 +1284,15 @@ async def mark_control_not_applicable(
 async def reject_control_evidence(
     assessment_id: str,
     control_id: str,
-    request: RejectEvidenceRequest,
+    payload: RejectEvidenceRequest,
+    request: Request,
 ):
     """Reject evidence for a control as insufficient (control remains applicable)."""
-    if not request.reason or not request.reason.strip():
+    _require_roles(request, ["admin", "assessor"])
+    if not payload.reason or not payload.reason.strip():
         raise HTTPException(status_code=400, detail="Reason is required")
 
-    assessment_data = _ensure_assessment_active(await storage.get_assessment(assessment_id))
+    assessment_data = await _ensure_assessment_access(assessment_id, request)
 
     if not assessment_data.get("results"):
         raise HTTPException(
@@ -988,7 +1328,7 @@ async def reject_control_evidence(
     coverage[source_list] = [c for c in coverage[source_list] if c.get("control_id") != control_id]
 
     # Add to rejected_evidence with rejection info
-    control_found["rejection_reason"] = request.reason.strip()
+    control_found["rejection_reason"] = payload.reason.strip()
     control_found["rejected_from"] = source_list
     control_found["rejected_at"] = datetime.utcnow().isoformat()
     coverage["rejected_evidence"].append(control_found)
@@ -1034,9 +1374,10 @@ async def reject_control_evidence(
 
 
 @app.post("/api/v1/assessment/{assessment_id}/control/{control_id}/restore")
-async def restore_control(assessment_id: str, control_id: str):
+async def restore_control(assessment_id: str, control_id: str, request: Request):
     """Restore a control from not_applicable or rejected_evidence back to its original status."""
-    assessment_data = _ensure_assessment_active(await storage.get_assessment(assessment_id))
+    _require_roles(request, ["admin", "assessor"])
+    assessment_data = await _ensure_assessment_access(assessment_id, request)
 
     if not assessment_data.get("results"):
         raise HTTPException(status_code=400, detail="Assessment not completed.")
@@ -1132,9 +1473,9 @@ async def restore_control(assessment_id: str, control_id: str):
 
 
 @app.get("/api/v1/assessment/{assessment_id}/quality-report")
-async def get_evidence_quality_report(assessment_id: str):
+async def get_evidence_quality_report(assessment_id: str, request: Request):
     """Get detailed evidence quality analysis with strength distribution."""
-    assessment_data = _ensure_assessment_active(await storage.get_assessment(assessment_id))
+    assessment_data = await _ensure_assessment_access(assessment_id, request)
 
     if not assessment_data.get("results"):
         raise HTTPException(
