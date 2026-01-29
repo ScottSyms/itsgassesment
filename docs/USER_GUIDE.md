@@ -5,6 +5,11 @@ This guide shows how to use the system in real client workflows where evidence i
 ## What this system does
 The platform analyzes your CONOPS and evidence, maps applicable ITSG-33 controls, and highlights missing or partial evidence. The main value is in the iterative loop: submit evidence, rerun, and watch coverage improve.
 
+## Authentication and roles
+- Sign in at http://localhost:8000 using the admin account created from `INITIAL_ADMIN_EMAIL` and `INITIAL_ADMIN_PASSWORD` on first startup.
+- Roles: admin (full access), assessor (run assessments), client (upload and view shared assessments), viewer (read-only for shared assessments).
+- Passwords must be at least 12 characters and not common words.
+
 ## Core workflow (repeatable loop)
 1. Create an assessment
 2. Upload evidence with Significance Notes
@@ -22,6 +27,23 @@ Repeat until your missing controls drop to zero or are explicitly marked not app
 4. (Optional) Upload a CONOPS file
 
 The CONOPS helps the AI categorize the system and choose the right ITSG-33 profile.
+
+## Share assessments
+Admins and assessors can grant access to a client or viewer via the API:
+
+```
+POST /api/v1/assessment/{assessment_id}/share
+{
+  "user_id": "<user-id>",
+  "role_scope": "client"
+}
+```
+
+To remove access:
+
+```
+DELETE /api/v1/assessment/{assessment_id}/share/{user_id}
+```
 
 ## Upload evidence
 Supported formats include:

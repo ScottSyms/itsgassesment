@@ -76,6 +76,12 @@ uv run python scripts/setup_knowledge_base.py
 uv run uvicorn src.main:app --reload --port 8000
 ```
 
+### Authentication
+
+- On first startup, a local admin account is created from `INITIAL_ADMIN_EMAIL` and `INITIAL_ADMIN_PASSWORD`.
+- Sign in at http://localhost:8000 to access the UI and API.
+- Roles: admin (full access), assessor (run assessments), client (upload and view shared assessments), viewer (read-only for shared assessments).
+
 ### Run an Assessment (CLI)
 
 ```bash
@@ -100,12 +106,21 @@ uv run python scripts/run_assessment.py \
 |----------|--------|-------------|
 | `/` | GET | System information |
 | `/health` | GET | Health check |
+| `/auth/login` | POST | Create session |
+| `/auth/logout` | POST | Destroy session |
+| `/auth/me` | GET | Current user |
+| `/auth/change-password` | POST | Change current password |
+| `/auth/users` | GET | List users (admin) |
+| `/auth/users` | POST | Create user (admin) |
+| `/auth/users/{user_id}/roles` | POST | Update user roles (admin) |
 | `/api/v1/assessment/create` | POST | Create new assessment |
 | `/api/v1/assessment/{id}/upload` | POST | Upload documents |
 | `/api/v1/assessment/{id}/run` | POST | Start assessment |
 | `/api/v1/assessment/{id}/status` | GET | Get assessment status |
 | `/api/v1/assessment/{id}/results` | GET | Get assessment results |
 | `/api/v1/assessment/{id}/report` | GET | Get assessment report |
+| `/api/v1/assessment/{id}/share` | POST | Share assessment (admin/assessor) |
+| `/api/v1/assessment/{id}/share/{user_id}` | DELETE | Remove shared access (admin/assessor) |
 | `/api/v1/assessments` | GET | List all assessments |
 | `/api/v1/controls/families` | GET | List control families |
 | `/api/v1/profiles` | GET | List ITSG-33 profiles |
@@ -184,10 +199,17 @@ itsg33-accreditation/
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `GEMINI_API_KEY` | Google Gemini API key | Required |
-| `GEMINI_MODEL` | Gemini model to use | `gemini-2.0-flash-exp` |
+| `GEMINI_MODEL` | Gemini model to use | `gemini-2.0-flash` |
 | `UPLOAD_DIR` | Document upload directory | `./uploads` |
 | `OUTPUT_DIR` | Report output directory | `./outputs` |
 | `CHROMA_PERSIST_DIR` | ChromaDB storage | `./chroma_db` |
+| `AUTH_PROVIDER` | Auth provider (local only) | `local` |
+| `AUTH_DB_PATH` | Auth database path | `./data/auth.db` |
+| `AUTH_SECRET` | Session signing secret (set in production) | `change-me` |
+| `SESSION_TTL_MINUTES` | Session lifetime | `120` |
+| `SESSION_IDLE_TIMEOUT_MINUTES` | Session idle timeout | `30` |
+| `INITIAL_ADMIN_EMAIL` | Bootstrap admin email (first run) | `admin@example.com` |
+| `INITIAL_ADMIN_PASSWORD` | Bootstrap admin password (first run) | `change-me-strong` |
 
 ## License
 

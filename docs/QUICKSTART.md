@@ -12,6 +12,11 @@ This is the short version. Use it when you just want to run a cycle of evidence 
 
 Repeat until missing controls drop to zero.
 
+## 0) Sign in
+- Set `INITIAL_ADMIN_EMAIL` and `INITIAL_ADMIN_PASSWORD` in `.env` before first startup
+- Open the dashboard at http://localhost:8000
+- Sign in with the admin account
+
 ## 1) Create an assessment
 - Open the dashboard at http://localhost:8000
 - Click New Assessment
