@@ -87,6 +87,12 @@ uv run python scripts/run_assessment.py \
     --wait
 ```
 
+## Documentation
+
+- Quickstart: docs/QUICKSTART.md
+- User Guide: docs/USER_GUIDE.md
+- In-app (served): http://localhost:8000/guides/QUICKSTART.md and http://localhost:8000/guides/USER_GUIDE.md
+
 ## API Endpoints
 
 | Endpoint | Method | Description |

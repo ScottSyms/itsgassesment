@@ -364,10 +364,10 @@ Return as JSON:
     async def _analyze_single_document(
         self, doc: Dict[str, Any], required_controls: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
-        """Analyze a single document or video for control evidence."""
+        """Analyze a single document, video, or code file for control evidence."""
         user_control_hints = doc.get("user_control_hints") or []
         user_explanation = doc.get("user_explanation") or doc.get("significance_note")
-        declared_type = doc.get("declared_type") or doc.get("document_type")
+        declared_type = doc.get("declared_type") or doc.get("document_type") or doc.get("type")
 
         hint_lines = []
         if user_control_hints:
@@ -379,6 +379,30 @@ Return as JSON:
             hint_lines.append(
                 "TRUST THIS NOTE: The user has identified the above as the primary significance of this file. Use it as your main lead for control mapping."
             )
+
+        # Specialized instructions for IaC and Source Code
+        special_instructions = ""
+        if declared_type == "iac":
+            special_instructions = """
+            Persona: Security Cloud Infrastructure Auditor.
+            Task: Analyze this Infrastructure-as-Code (Terraform, Helm, K8s).
+            Focus: Identify resource definitions enforcing security, such as:
+            - IAM roles and policies (AC-3, AC-6)
+            - Encryption-at-rest settings (SC-28)
+            - Network Security Groups / Firewalls (SC-7)
+            - Secret management integration (IA-2, SC-28)
+            - Container security context (SI-4)
+            """
+        elif declared_type == "code":
+            special_instructions = """
+            Persona: Secure Application Code Auditor.
+            Task: Analyze this software source code.
+            Focus: Identify implementation logic for security controls, such as:
+            - Authentication/Authorization middleware (AC-3, IA-2)
+            - Data validation and sanitization (SI-10)
+            - Cryptographic library usage (SC-13)
+            - Error handling and logging logic (AU-2, SI-11)
+            """
 
         hint_block = "\n".join(hint_lines) if hint_lines else "None provided"
 
@@ -400,8 +424,10 @@ Return as JSON:
  USER-SUBMITTED HINTS & SIGNIFICANCE:
  {hint_block}
 
+ {special_instructions}
+
  CONTENT SUMMARY:
- {doc.get("content", "")[:12000]}
+ {doc.get("content", doc.get("full_text", ""))[:12000]}
 
  EVIDENCE STRENGTH CLASSIFICATION (classify each piece of evidence by type):
  1. SYSTEM_GENERATED - Logs, audit records, config exports, IAM policy dumps, compliance script output
@@ -429,15 +455,15 @@ Return as JSON:
 
  Return as JSON:
  {{
-     "document_type": "type of evidence (policy, log, video_frames, etc.)",
+     "document_type": "{declared_type or "type of evidence"}",
      "document_purpose": "what this evidence demonstrates",
      "controls_addressed": {{
          "CONTROL-ID": {{
              "coverage": "FULL|PARTIAL|MENTIONS",
              "evidence_strength_tier": 1-7,
-             "evidence_type_category": "SYSTEM_GENERATED|...",
+             "evidence_type_category": "SYSTEM_GENERATED|INFRASTRUCTURE_AS_CODE|AUTOMATED_TEST|CODE_ENFORCEMENT|...",
              "evidence_summary": "what evidence this source provides",
-             "relevant_excerpt": "key quote, log line, or visual description"
+             "relevant_excerpt": "key code snippet, config block, or visual description"
          }}
      }},
      "key_security_topics": ["list of security topics covered"]
@@ -445,7 +471,7 @@ Return as JSON:
  """
 
         # Prepare multimodal content for Gemini
-        gemini_content = [prompt]
+        gemini_content: List[Any] = [prompt]
 
         # Add keyframes if it's a video
         if doc.get("type") == "video" and "keyframes" in doc:

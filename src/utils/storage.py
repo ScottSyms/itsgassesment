@@ -3,6 +3,7 @@
 import os
 import json
 import uuid
+import shutil
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 from datetime import datetime
@@ -43,8 +44,12 @@ class StorageManager:
             "updated_at": datetime.utcnow().isoformat(),
             "documents": [],
             "diagrams": [],
+            "videos": [],
             "results": None,
             "run_history": [],  # Track all assessment runs
+            "deleted": False,
+            "deleted_at": None,
+            "delete_reason": None,
         }
 
         self._assessments[assessment_id] = assessment
@@ -69,6 +74,9 @@ class StorageManager:
             async with aiofiles.open(metadata_path, "r") as f:
                 content = await f.read()
                 assessment = json.loads(content)
+                assessment.setdefault("deleted", False)
+                assessment.setdefault("deleted_at", None)
+                assessment.setdefault("delete_reason", None)
                 self._assessments[assessment_id] = assessment
                 return assessment
 
@@ -145,6 +153,41 @@ class StorageManager:
         if assessment:
             return assessment.get("videos", [])
         return []
+
+    async def add_documents(self, assessment_id: str, documents: List[Dict[str, Any]]) -> None:
+        """Add document records to an assessment."""
+        assessment = await self.get_assessment(assessment_id)
+        if not assessment:
+            return
+
+        if "documents" not in assessment:
+            assessment["documents"] = []
+
+        assessment["documents"].extend(documents)
+        assessment["updated_at"] = datetime.utcnow().isoformat()
+        await self._save_assessment_metadata(assessment_id, assessment)
+
+    async def update_document_metadata(
+        self, assessment_id: str, file_id: str, significance_note: Optional[str]
+    ) -> Optional[Dict[str, Any]]:
+        """Update significance note for a single document."""
+        assessment = await self.get_assessment(assessment_id)
+        if not assessment:
+            return None
+
+        collections = ["documents", "diagrams", "videos"]
+        for collection in collections:
+            items = assessment.get(collection, [])
+            for item in items:
+                if item.get("file_id") == file_id:
+                    item.setdefault("user_metadata", {})
+                    item["user_metadata"]["significance_note"] = significance_note
+                    item["significance_note"] = significance_note
+                    assessment["updated_at"] = datetime.utcnow().isoformat()
+                    await self._save_assessment_metadata(assessment_id, assessment)
+                    return item
+
+        return None
 
     async def store_results(
         self, assessment_id: str, results: Dict[str, Any], preserve_history: bool = True
@@ -239,6 +282,8 @@ class StorageManager:
 
         # Check in-memory cache
         for assessment_id, assessment in self._assessments.items():
+            if assessment.get("deleted"):
+                continue
             assessments.append(
                 {
                     "assessment_id": assessment_id,
@@ -246,10 +291,53 @@ class StorageManager:
                     "client_id": assessment.get("client_id"),
                     "status": assessment.get("status"),
                     "created_at": assessment.get("created_at"),
+                    "deleted": assessment.get("deleted", False),
+                    "deleted_at": assessment.get("deleted_at"),
                 }
             )
 
         # Also check disk for any not in memory
+        if self.upload_dir.exists():
+            for item in self.upload_dir.iterdir():
+                if item.is_dir() and item.name not in self._assessments:
+                    metadata_path = item / "metadata.json"
+                    if metadata_path.exists():
+                        async with aiofiles.open(metadata_path, "r") as f:
+                            content = await f.read()
+                            assessment = json.loads(content)
+                            if assessment.get("deleted"):
+                                continue
+                            assessments.append(
+                                {
+                                    "assessment_id": item.name,
+                                    "project_name": assessment.get("project_name"),
+                                    "client_id": assessment.get("client_id"),
+                                    "status": assessment.get("status"),
+                                    "created_at": assessment.get("created_at"),
+                                    "deleted": assessment.get("deleted", False),
+                                    "deleted_at": assessment.get("deleted_at"),
+                                }
+                            )
+
+        return assessments
+
+    async def list_assessments_with_deleted(self) -> List[Dict[str, Any]]:
+        """List all assessments including deleted ones."""
+        assessments = []
+
+        for assessment_id, assessment in self._assessments.items():
+            assessments.append(
+                {
+                    "assessment_id": assessment_id,
+                    "project_name": assessment.get("project_name"),
+                    "client_id": assessment.get("client_id"),
+                    "status": assessment.get("status"),
+                    "created_at": assessment.get("created_at"),
+                    "deleted": assessment.get("deleted", False),
+                    "deleted_at": assessment.get("deleted_at"),
+                }
+            )
+
         if self.upload_dir.exists():
             for item in self.upload_dir.iterdir():
                 if item.is_dir() and item.name not in self._assessments:
@@ -265,7 +353,80 @@ class StorageManager:
                                     "client_id": assessment.get("client_id"),
                                     "status": assessment.get("status"),
                                     "created_at": assessment.get("created_at"),
+                                    "deleted": assessment.get("deleted", False),
+                                    "deleted_at": assessment.get("deleted_at"),
                                 }
                             )
 
         return assessments
+
+    async def soft_delete_assessment(
+        self, assessment_id: str, reason: Optional[str] = None
+    ) -> Optional[Dict[str, Any]]:
+        """Soft delete an assessment."""
+        assessment = await self.get_assessment(assessment_id)
+        if not assessment:
+            return None
+
+        assessment["deleted"] = True
+        assessment["deleted_at"] = datetime.utcnow().isoformat()
+        assessment["delete_reason"] = reason
+        assessment["updated_at"] = datetime.utcnow().isoformat()
+        await self._save_assessment_metadata(assessment_id, assessment)
+        return assessment
+
+    async def restore_assessment(self, assessment_id: str) -> Optional[Dict[str, Any]]:
+        """Restore a soft-deleted assessment."""
+        assessment = await self.get_assessment(assessment_id)
+        if not assessment:
+            return None
+
+        assessment["deleted"] = False
+        assessment["deleted_at"] = None
+        assessment["delete_reason"] = None
+        assessment["updated_at"] = datetime.utcnow().isoformat()
+        await self._save_assessment_metadata(assessment_id, assessment)
+        return assessment
+
+    async def purge_assessment(self, assessment_id: str) -> bool:
+        """Permanently delete an assessment and its files."""
+        # Remove from memory
+        if assessment_id in self._assessments:
+            del self._assessments[assessment_id]
+
+        # Remove uploads directory
+        assessment_dir = self.upload_dir / assessment_id
+        if assessment_dir.exists():
+            shutil.rmtree(assessment_dir, ignore_errors=True)
+
+        # Remove outputs
+        if self.output_dir.exists():
+            for output_file in self.output_dir.glob(f"{assessment_id}_results*.json"):
+                try:
+                    output_file.unlink()
+                except Exception:
+                    pass
+
+        return True
+
+    async def purge_expired_assessments(self, days: int = 30) -> List[str]:
+        """Purge assessments that have been soft-deleted longer than the given days."""
+        purged = []
+        now = datetime.utcnow()
+
+        for assessment in await self.list_assessments_with_deleted():
+            if not assessment.get("deleted"):
+                continue
+            deleted_at = assessment.get("deleted_at")
+            if not deleted_at:
+                continue
+            try:
+                deleted_time = datetime.fromisoformat(deleted_at)
+            except ValueError:
+                continue
+
+            if (now - deleted_time).days >= days:
+                await self.purge_assessment(assessment["assessment_id"])
+                purged.append(assessment["assessment_id"])
+
+        return purged

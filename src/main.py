@@ -3,6 +3,7 @@
 import os
 import json
 import uuid
+import asyncio
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 from datetime import datetime
@@ -21,6 +22,7 @@ from src.utils.word_generator import WordReportGenerator
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent
 STATIC_DIR = PROJECT_ROOT / "static"
+DOCS_DIR = PROJECT_ROOT / "docs"
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -34,6 +36,25 @@ app = FastAPI(
 # Mount static files
 if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+if DOCS_DIR.exists():
+    app.mount("/guides", StaticFiles(directory=str(DOCS_DIR)), name="guides")
+
+
+async def _purge_deleted_loop() -> None:
+    """Periodically purge soft-deleted assessments."""
+    while True:
+        try:
+            await storage.purge_expired_assessments(days=30)
+        except Exception:
+            pass
+        await asyncio.sleep(24 * 60 * 60)
+
+
+@app.on_event("startup")
+async def schedule_purge_task() -> None:
+    """Schedule background purge task on startup."""
+    asyncio.create_task(_purge_deleted_loop())
+
 
 # CORS middleware
 app.add_middleware(
@@ -52,6 +73,15 @@ doc_parser = DocumentParser()
 storage = StorageManager()
 word_generator = WordReportGenerator()
 localizer = Localizer()
+
+
+def _ensure_assessment_active(assessment: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    """Ensure assessment exists and is not deleted."""
+    if not assessment:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+    if assessment.get("deleted"):
+        raise HTTPException(status_code=410, detail="Assessment has been deleted")
+    return assessment
 
 
 # Request/Response Models
@@ -81,6 +111,12 @@ class StatusResponse(BaseModel):
     document_count: int = 0
     diagram_count: int = 0
     video_count: int = 0
+
+
+class DocumentMetadataUpdate(BaseModel):
+    """Document metadata update model."""
+
+    significance_note: Optional[str] = None
 
 
 # Endpoints
@@ -158,13 +194,12 @@ async def upload_documents(
     metadata: Optional[str] = Form(None),
 ):
     """Upload documents for assessment."""
-    # Verify assessment exists
-    assessment = await storage.get_assessment(assessment_id)
-    if not assessment:
-        raise HTTPException(status_code=404, detail="Assessment not found")
+    # Verify assessment exists and is not deleted
+    assessment = _ensure_assessment_active(await storage.get_assessment(assessment_id))
 
     uploaded_files = []
     new_documents = []
+    derived_documents = []
     metadata_map: Dict[str, Dict[str, Any]] = {}
 
     if metadata:
@@ -199,31 +234,56 @@ async def upload_documents(
             user_metadata = metadata_map.get(filename, {})
             file_path = await storage.save_upload(assessment_id, file, metadata=user_metadata)
 
+            # Locate the stored file record to get file_id
+            stored_record = None
+            refreshed = await storage.get_assessment(assessment_id)
+            if refreshed:
+                for collection in ("documents", "diagrams", "videos"):
+                    for item in refreshed.get(collection, []):
+                        if item.get("path") == str(file_path):
+                            stored_record = item
+                            break
+                    if stored_record:
+                        break
+
             # Parse document
-            parsed_content = await doc_parser.parse(file_path)
+            parsed_result = await doc_parser.parse(file_path)
 
-            file_info = {
-                "filename": file.filename,
-                "path": str(file_path),
-                "content_type": file.content_type,
-                "parsed": parsed_content is not None,
-                "type": "diagram"
-                if file.content_type and file.content_type.startswith("image/")
-                else (
-                    "video"
-                    if file.content_type and file.content_type.startswith("video/")
-                    else "document"
-                ),
-                "user_metadata": user_metadata,
-            }
+            # handle single result or multiple results (archives)
+            if isinstance(parsed_result, list):
+                parsed_list = parsed_result
+            elif parsed_result:
+                parsed_list = [parsed_result]
+            else:
+                parsed_list = []
 
-            if parsed_content:
+            for parsed_content in parsed_list:
+                is_archive_item = parsed_content.get("original_archive") is not None
+                file_id = (
+                    stored_record.get("file_id")
+                    if stored_record and not is_archive_item
+                    else str(uuid.uuid4())
+                )
+                file_info = {
+                    "filename": parsed_content.get("filename", file.filename),
+                    "content_type": file.content_type,
+                    "parsed": True,
+                    "type": parsed_content.get("type", "document"),
+                    "file_id": file_id,
+                    "user_metadata": user_metadata,
+                    "significance_note": user_metadata.get("significance_note"),
+                }
+                if not is_archive_item:
+                    file_info["path"] = str(file_path)
+
                 if "full_text" in parsed_content:
                     file_info["content"] = parsed_content["full_text"]
                 if "type" in parsed_content:
                     file_info["document_type"] = parsed_content.get("type")
                 if "keyframes" in parsed_content:
                     file_info["keyframes"] = parsed_content.get("keyframes")
+                if "original_archive" in parsed_content:
+                    file_info["source_archive"] = parsed_content.get("original_archive")
 
                 if user_metadata.get("declared_type"):
                     file_info["declared_type"] = user_metadata.get("declared_type")
@@ -233,9 +293,26 @@ async def upload_documents(
                     file_info["user_explanation"] = user_metadata.get(
                         "explanation"
                     ) or user_metadata.get("significance_note")
-                new_documents.append(file_info)
 
-            uploaded_files.append(file_info)
+                new_documents.append(file_info)
+                uploaded_files.append(file_info)
+
+                if is_archive_item:
+                    derived_documents.append(file_info)
+
+            if not parsed_list:
+                uploaded_files.append(
+                    {
+                        "filename": file.filename,
+                        "path": str(file_path),
+                        "content_type": file.content_type,
+                        "parsed": False,
+                        "type": "document",
+                        "file_id": stored_record.get("file_id") if stored_record else None,
+                        "user_metadata": user_metadata,
+                        "significance_note": user_metadata.get("significance_note"),
+                    }
+                )
         except Exception as e:
             uploaded_files.append(
                 {
@@ -249,6 +326,10 @@ async def upload_documents(
     if assessment.get("results") and new_documents and background_tasks:
         background_tasks.add_task(reassess_with_documents, assessment_id, new_documents)
 
+    # Persist derived documents from archives as individual records
+    if derived_documents:
+        await storage.add_documents(assessment_id, derived_documents)
+
     return {
         "assessment_id": assessment_id,
         "uploaded_files": uploaded_files,
@@ -258,10 +339,29 @@ async def upload_documents(
     }
 
 
+@app.patch("/api/v1/assessment/{assessment_id}/documents/{file_id}/metadata")
+async def update_document_metadata(
+    assessment_id: str,
+    file_id: str,
+    payload: DocumentMetadataUpdate,
+):
+    """Update metadata for a single uploaded document."""
+    _ensure_assessment_active(await storage.get_assessment(assessment_id))
+    updated = await storage.update_document_metadata(
+        assessment_id, file_id, payload.significance_note
+    )
+    if not updated:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    return {"status": "ok", "document": updated}
+
+
 async def reassess_with_documents(assessment_id: str, new_documents: List[Dict[str, Any]]):
     """Background task to reassess with new documents."""
     assessment_data = await storage.get_assessment(assessment_id)
     if not assessment_data or not assessment_data.get("results"):
+        return
+    if assessment_data.get("deleted"):
         return
 
     results = assessment_data["results"]
@@ -278,23 +378,24 @@ async def upload_conops(
     conops: UploadFile = File(...),
 ):
     """Upload CONOPS document for assessment."""
-    assessment = await storage.get_assessment(assessment_id)
-    if not assessment:
-        raise HTTPException(status_code=404, detail="Assessment not found")
+    assessment = _ensure_assessment_active(await storage.get_assessment(assessment_id))
 
     # Save and parse CONOPS
     file_path = await storage.save_upload(assessment_id, conops)
-    parsed_content = await doc_parser.parse(file_path)
+    parsed_result = await doc_parser.parse(file_path)
 
-    if parsed_content and "full_text" in parsed_content:
+    if isinstance(parsed_result, dict) and "full_text" in parsed_result:
         # Update assessment with CONOPS text
-        assessment["conops"] = parsed_content["full_text"]
+        assessment["conops"] = parsed_result["full_text"]
+    elif isinstance(parsed_result, list) and parsed_result:
+        # If it was an archive for some reason, use the first file's text
+        assessment["conops"] = parsed_result[0].get("full_text", "")
 
     return {
         "assessment_id": assessment_id,
         "conops_uploaded": True,
         "filename": conops.filename,
-        "parsed": parsed_content is not None,
+        "parsed": parsed_result is not None,
     }
 
 
@@ -302,6 +403,8 @@ async def run_assessment_task(assessment_id: str):
     """Background task to run assessment."""
     assessment_data = await storage.get_assessment(assessment_id)
     if not assessment_data:
+        return
+    if assessment_data.get("deleted"):
         return
 
     documents = await storage.get_documents(assessment_id)
@@ -312,26 +415,41 @@ async def run_assessment_task(assessment_id: str):
     parsed_docs = []
     for doc in documents:
         if "path" in doc:
-            parsed = await doc_parser.parse(Path(doc["path"]))
-            if parsed:
-                doc["content"] = parsed.get("full_text", "")
-                doc["document_type"] = parsed.get("type")
-        user_metadata = doc.get("user_metadata", {})
-        if user_metadata:
-            doc["declared_type"] = user_metadata.get("declared_type")
-            doc["user_control_hints"] = user_metadata.get("control_ids")
-            doc["user_explanation"] = user_metadata.get("explanation") or user_metadata.get(
-                "significance_note"
-            )
-        parsed_docs.append(doc)
+            parsed_result = await doc_parser.parse(Path(doc["path"]))
+
+            # handle single result or multiple results (archives)
+            if isinstance(parsed_result, list):
+                results_list = parsed_result
+            elif parsed_result:
+                results_list = [parsed_result]
+            else:
+                results_list = []
+
+            for res in results_list:
+                # Create a new doc record for each file in archive
+                new_doc = doc.copy()
+                new_doc["content"] = res.get("full_text", "")
+                new_doc["document_type"] = res.get("type")
+                new_doc["filename"] = res.get("filename", doc.get("filename"))
+
+                user_metadata = doc.get("user_metadata", {})
+                if user_metadata:
+                    new_doc["declared_type"] = user_metadata.get("declared_type")
+                    new_doc["user_control_hints"] = user_metadata.get("control_ids")
+                    new_doc["user_explanation"] = user_metadata.get(
+                        "explanation"
+                    ) or user_metadata.get("significance_note")
+                parsed_docs.append(new_doc)
+        else:
+            parsed_docs.append(doc)
 
     # Parse videos to get keyframes
     parsed_videos = []
     for video in videos:
         if "path" in video:
-            parsed = await doc_parser.parse(Path(video["path"]))
-            if parsed:
-                video.update(parsed)
+            parsed_result = await doc_parser.parse(Path(video["path"]))
+            if isinstance(parsed_result, dict):
+                video.update(parsed_result)
         user_metadata = video.get("user_metadata", {})
         if user_metadata:
             video["user_explanation"] = user_metadata.get("explanation") or user_metadata.get(
@@ -358,9 +476,7 @@ async def run_assessment(
     background_tasks: BackgroundTasks,
 ):
     """Execute ITSG-33 assessment."""
-    assessment_data = await storage.get_assessment(assessment_id)
-    if not assessment_data:
-        raise HTTPException(status_code=404, detail="Assessment not found")
+    assessment_data = _ensure_assessment_active(await storage.get_assessment(assessment_id))
 
     # Check if documents uploaded
     documents = await storage.get_documents(assessment_id)
@@ -383,6 +499,7 @@ async def run_assessment(
 @app.get("/api/v1/assessment/{assessment_id}/status", response_model=StatusResponse)
 async def get_assessment_status(assessment_id: str):
     """Get assessment status."""
+    _ensure_assessment_active(await storage.get_assessment(assessment_id))
     status = await storage.get_status(assessment_id)
 
     if not status:
@@ -394,6 +511,7 @@ async def get_assessment_status(assessment_id: str):
 @app.get("/api/v1/assessment/{assessment_id}/report")
 async def get_assessment_report(assessment_id: str):
     """Get assessment report."""
+    _ensure_assessment_active(await storage.get_assessment(assessment_id))
     report = await storage.get_report(assessment_id)
 
     if not report:
@@ -405,10 +523,7 @@ async def get_assessment_report(assessment_id: str):
 @app.get("/api/v1/assessment/{assessment_id}/results")
 async def get_assessment_results(assessment_id: str):
     """Get full assessment results."""
-    assessment = await storage.get_assessment(assessment_id)
-
-    if not assessment:
-        raise HTTPException(status_code=404, detail="Assessment not found")
+    assessment = _ensure_assessment_active(await storage.get_assessment(assessment_id))
 
     if not assessment.get("results"):
         raise HTTPException(
@@ -420,26 +535,52 @@ async def get_assessment_results(assessment_id: str):
 
 
 @app.get("/api/v1/assessments")
-async def list_assessments():
+async def list_assessments(include_deleted: bool = False):
     """List all assessments."""
-    assessments = await storage.list_assessments()
+    assessments = (
+        await storage.list_assessments_with_deleted()
+        if include_deleted
+        else await storage.list_assessments()
+    )
     return {"assessments": assessments, "total": len(assessments)}
 
 
 @app.delete("/api/v1/assessment/{assessment_id}")
-async def delete_assessment(assessment_id: str):
-    """Delete an assessment."""
-    assessment = await storage.get_assessment(assessment_id)
+async def delete_assessment(assessment_id: str, reason: Optional[str] = None):
+    """Soft delete an assessment."""
+    assessment = await storage.soft_delete_assessment(assessment_id, reason=reason)
 
     if not assessment:
         raise HTTPException(status_code=404, detail="Assessment not found")
 
-    # Note: In production, implement actual deletion
     return {
         "assessment_id": assessment_id,
         "status": "deleted",
-        "message": "Assessment marked for deletion",
+        "deleted_at": assessment.get("deleted_at"),
+        "message": "Assessment soft deleted",
     }
+
+
+@app.post("/api/v1/assessment/{assessment_id}/restore")
+async def restore_assessment(assessment_id: str):
+    """Restore a soft-deleted assessment."""
+    assessment = await storage.restore_assessment(assessment_id)
+
+    if not assessment:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+
+    return {"assessment_id": assessment_id, "status": "restored"}
+
+
+@app.delete("/api/v1/assessment/{assessment_id}/purge")
+async def purge_assessment(assessment_id: str):
+    """Permanently delete an assessment and all files."""
+    assessment = await storage.get_assessment(assessment_id)
+    if not assessment:
+        raise HTTPException(status_code=404, detail="Assessment not found")
+
+    await storage.purge_assessment(assessment_id)
+    return {"assessment_id": assessment_id, "status": "purged"}
 
 
 @app.get("/api/v1/controls/families")
@@ -549,9 +690,7 @@ async def rerun_assessment(
     background_tasks: BackgroundTasks,
 ):
     """Rerun a completed assessment with any new documents."""
-    assessment_data = await storage.get_assessment(assessment_id)
-    if not assessment_data:
-        raise HTTPException(status_code=404, detail="Assessment not found")
+    assessment_data = _ensure_assessment_active(await storage.get_assessment(assessment_id))
 
     # Check if documents exist
     documents = await storage.get_documents(assessment_id)
@@ -576,9 +715,7 @@ async def rerun_assessment(
 @app.get("/api/v1/assessment/{assessment_id}/history")
 async def get_assessment_history(assessment_id: str):
     """Get assessment run history."""
-    assessment_data = await storage.get_assessment(assessment_id)
-    if not assessment_data:
-        raise HTTPException(status_code=404, detail="Assessment not found")
+    assessment_data = _ensure_assessment_active(await storage.get_assessment(assessment_id))
 
     history = assessment_data.get("run_history", [])
     current_run = None
@@ -624,6 +761,7 @@ async def get_assessment_history(assessment_id: str):
 @app.get("/api/v1/assessment/{assessment_id}/history/{run_id}")
 async def get_historical_run(assessment_id: str, run_id: int):
     """Get a specific historical run's results."""
+    _ensure_assessment_active(await storage.get_assessment(assessment_id))
     run = await storage.get_historical_run(assessment_id, run_id)
     if not run:
         raise HTTPException(status_code=404, detail="Historical run not found")
@@ -634,9 +772,7 @@ async def get_historical_run(assessment_id: str, run_id: int):
 @app.get("/api/v1/assessment/{assessment_id}/download/word")
 async def download_word_report(assessment_id: str, lang: str = "en"):
     """Download assessment report as Word document."""
-    assessment_data = await storage.get_assessment(assessment_id)
-    if not assessment_data:
-        raise HTTPException(status_code=404, detail="Assessment not found")
+    assessment_data = _ensure_assessment_active(await storage.get_assessment(assessment_id))
 
     if not assessment_data.get("results"):
         raise HTTPException(
@@ -669,9 +805,7 @@ async def download_word_report(assessment_id: str, lang: str = "en"):
 @app.get("/api/v1/assessment/{assessment_id}/download/poam")
 async def download_poam(assessment_id: str, lang: str = "en"):
     """Download Plan of Action and Milestones (POA&M) as Word document."""
-    assessment_data = await storage.get_assessment(assessment_id)
-    if not assessment_data:
-        raise HTTPException(status_code=404, detail="Assessment not found")
+    assessment_data = _ensure_assessment_active(await storage.get_assessment(assessment_id))
 
     if not assessment_data.get("results"):
         raise HTTPException(
@@ -723,9 +857,7 @@ async def mark_control_not_applicable(
     if not request.reason or not request.reason.strip():
         raise HTTPException(status_code=400, detail="Reason is required")
 
-    assessment_data = await storage.get_assessment(assessment_id)
-    if not assessment_data:
-        raise HTTPException(status_code=404, detail="Assessment not found")
+    assessment_data = _ensure_assessment_active(await storage.get_assessment(assessment_id))
 
     if not assessment_data.get("results"):
         raise HTTPException(
@@ -820,9 +952,7 @@ async def reject_control_evidence(
     if not request.reason or not request.reason.strip():
         raise HTTPException(status_code=400, detail="Reason is required")
 
-    assessment_data = await storage.get_assessment(assessment_id)
-    if not assessment_data:
-        raise HTTPException(status_code=404, detail="Assessment not found")
+    assessment_data = _ensure_assessment_active(await storage.get_assessment(assessment_id))
 
     if not assessment_data.get("results"):
         raise HTTPException(
@@ -906,9 +1036,7 @@ async def reject_control_evidence(
 @app.post("/api/v1/assessment/{assessment_id}/control/{control_id}/restore")
 async def restore_control(assessment_id: str, control_id: str):
     """Restore a control from not_applicable or rejected_evidence back to its original status."""
-    assessment_data = await storage.get_assessment(assessment_id)
-    if not assessment_data:
-        raise HTTPException(status_code=404, detail="Assessment not found")
+    assessment_data = _ensure_assessment_active(await storage.get_assessment(assessment_id))
 
     if not assessment_data.get("results"):
         raise HTTPException(status_code=400, detail="Assessment not completed.")
@@ -1006,9 +1134,7 @@ async def restore_control(assessment_id: str, control_id: str):
 @app.get("/api/v1/assessment/{assessment_id}/quality-report")
 async def get_evidence_quality_report(assessment_id: str):
     """Get detailed evidence quality analysis with strength distribution."""
-    assessment_data = await storage.get_assessment(assessment_id)
-    if not assessment_data:
-        raise HTTPException(status_code=404, detail="Assessment not found")
+    assessment_data = _ensure_assessment_active(await storage.get_assessment(assessment_id))
 
     if not assessment_data.get("results"):
         raise HTTPException(
