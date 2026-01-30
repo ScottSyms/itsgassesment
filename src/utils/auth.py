@@ -398,6 +398,55 @@ def set_user_roles(user_id: str, roles: List[str]) -> None:
         conn.close()
 
 
+def set_user_status(user_id: str, status: str) -> None:
+    conn = _connect()
+    try:
+        conn.execute("UPDATE users SET status = ? WHERE id = ?", (status, user_id))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def delete_user_sessions(user_id: str) -> None:
+    conn = _connect()
+    try:
+        conn.execute("DELETE FROM sessions WHERE user_id = ?", (user_id,))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def delete_user(user_id: str) -> None:
+    conn = _connect()
+    try:
+        conn.execute("DELETE FROM sessions WHERE user_id = ?", (user_id,))
+        conn.execute("DELETE FROM user_roles WHERE user_id = ?", (user_id,))
+        conn.execute("DELETE FROM assessment_access WHERE user_id = ?", (user_id,))
+        conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def count_active_admins() -> int:
+    conn = _connect()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT COUNT(DISTINCT u.id) AS cnt
+            FROM users u
+            JOIN user_roles ur ON ur.user_id = u.id
+            JOIN roles r ON r.id = ur.role_id
+            WHERE r.name = 'admin' AND u.status = 'active'
+            """
+        )
+        row = cur.fetchone()
+        return int(row["cnt"]) if row else 0
+    finally:
+        conn.close()
+
+
 def update_last_login(user_id: str) -> None:
     conn = _connect()
     try:

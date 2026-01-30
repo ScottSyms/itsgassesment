@@ -97,12 +97,14 @@ async def auth_middleware(request: Request, call_next):
     if (
         path.startswith("/static")
         or path.startswith("/guides")
-        or path.startswith("/auth")
         or path in {"/", "/health", "/docs", "/redoc", "/openapi.json"}
     ):
         return await call_next(request)
 
-    if not path.startswith("/api"):
+    if path in {"/auth/login", "/auth/logout", "/auth/me"}:
+        return await call_next(request)
+
+    if not (path.startswith("/api") or path.startswith("/auth")):
         return await call_next(request)
 
     user = await _get_authenticated_user(request)
@@ -232,6 +234,12 @@ class UpdateUserRolesRequest(BaseModel):
     """Update user roles request model."""
 
     roles: List[str]
+
+
+class UpdateUserStatusRequest(BaseModel):
+    """Update user status request model."""
+
+    status: str
 
 
 class ShareAssessmentRequest(BaseModel):
@@ -404,6 +412,7 @@ async def list_users(request: Request):
                 "roles": u.get("roles", []),
                 "status": u.get("status"),
                 "force_password_reset": bool(u.get("force_password_reset")),
+                "last_login": u.get("last_login"),
             }
             for u in users
         ]
@@ -437,10 +446,62 @@ async def update_user_roles(user_id: str, payload: UpdateUserRolesRequest, reque
     user = auth.get_user_by_id(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    if (
+        "admin" in user.get("roles", [])
+        and "admin" not in payload.roles
+        and user.get("status") == "active"
+        and auth.count_active_admins() <= 1
+    ):
+        raise HTTPException(status_code=400, detail="Cannot remove last admin role")
     auth.set_user_roles(user_id, payload.roles)
     auth.log_audit(
         request.state.user["id"], "user_roles_updated", user_id, {"roles": payload.roles}
     )
+    return {"status": "ok"}
+
+
+@app.post("/auth/users/{user_id}/status")
+async def update_user_status(user_id: str, payload: UpdateUserStatusRequest, request: Request):
+    """Update user status (admin only)."""
+    _require_roles(request, ["admin"])
+    status = payload.status.strip().lower()
+    if status not in {"active", "disabled"}:
+        raise HTTPException(status_code=400, detail="Invalid status")
+    user = auth.get_user_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if (
+        status == "disabled"
+        and "admin" in user.get("roles", [])
+        and user.get("status") == "active"
+        and auth.count_active_admins() <= 1
+    ):
+        raise HTTPException(status_code=400, detail="Cannot disable last admin")
+    auth.set_user_status(user_id, status)
+    if status == "disabled":
+        auth.delete_user_sessions(user_id)
+    auth.log_audit(request.state.user["id"], "user_status_updated", user_id, {"status": status})
+    return {"status": "ok"}
+
+
+@app.delete("/auth/users/{user_id}")
+async def delete_user_account(user_id: str, request: Request):
+    """Delete a user (admin only)."""
+    _require_roles(request, ["admin"])
+    actor = request.state.user
+    if actor["id"] == user_id:
+        raise HTTPException(status_code=400, detail="Cannot delete current user")
+    user = auth.get_user_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if (
+        "admin" in user.get("roles", [])
+        and user.get("status") == "active"
+        and auth.count_active_admins() <= 1
+    ):
+        raise HTTPException(status_code=400, detail="Cannot delete last admin")
+    auth.delete_user(user_id)
+    auth.log_audit(actor["id"], "user_deleted", user_id, {})
     return {"status": "ok"}
 
 

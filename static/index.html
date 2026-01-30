@@ -165,6 +165,11 @@
                         class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
                     <i class="fas fa-lock mr-2"></i><span x-text="t('nav.controls')">Control Families</span>
                 </button>
+                <button x-show="isAdmin()" @click="currentTab = 'users'"
+                        :class="currentTab === 'users' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
+                    <i class="fas fa-users mr-2"></i><span x-text="t('nav.users')">Users</span>
+                </button>
                 <button @click="currentTab = 'help'"
                         :class="currentTab === 'help' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                         class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors">
@@ -623,6 +628,122 @@
             </div>
         </div>
 
+        <!-- Users Tab -->
+        <div x-show="currentTab === 'users' && isAdmin()" x-cloak>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">
+                        <i class="fas fa-user-plus mr-2 text-gray-400"></i><span x-text="t('users.create_title')">Create User</span>
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1" x-text="t('users.email')">Email</label>
+                            <input type="email" x-model="userForm.email"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1" x-text="t('users.password')">Temporary Password</label>
+                            <input type="password" x-model="userForm.password"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1" x-text="t('users.roles')">Roles</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <template x-for="role in roleOptions" :key="role">
+                                    <label class="flex items-center space-x-2 text-sm text-gray-600">
+                                        <input type="checkbox" :value="role" x-model="userForm.roles"
+                                               class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                        <span x-text="roleLabel(role)"></span>
+                                    </label>
+                                </template>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-500" x-text="t('users.password_hint')">Passwords must be at least 12 characters.</p>
+                        <button @click="createUser()"
+                                :disabled="!userForm.email || !userForm.password || userForm.roles.length === 0"
+                                :class="(!userForm.email || !userForm.password || userForm.roles.length === 0) ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'"
+                                class="w-full py-2 text-white rounded-lg font-medium transition-colors">
+                            <span x-text="t('users.create_button')">Create user</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-md p-6 lg:col-span-2">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-semibold text-gray-900">
+                            <i class="fas fa-users mr-2 text-gray-400"></i><span x-text="t('users.list_title')">Users</span>
+                        </h2>
+                        <button @click="loadUsers()" class="px-4 py-2 text-sm text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-sync-alt mr-1"></i><span x-text="t('users.refresh')">Refresh</span>
+                        </button>
+                    </div>
+
+                    <div x-show="users.length === 0" class="text-center text-gray-500 py-6">
+                        <i class="fas fa-user-slash text-3xl mb-2"></i>
+                        <p x-text="t('users.empty')">No users found.</p>
+                    </div>
+
+                    <div x-show="users.length > 0" class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead>
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" x-text="t('users.email')">Email</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" x-text="t('users.roles')">Roles</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" x-text="t('users.status')">Status</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" x-text="t('users.last_login')">Last login</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" x-text="t('users.actions')">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <template x-for="user in users" :key="user.id">
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-4 py-4 whitespace-nowrap">
+                                            <div class="text-sm font-medium text-gray-900" x-text="user.email"></div>
+                                            <div class="text-xs text-gray-400" x-text="user.id.slice(0, 8) + '...' "></div>
+                                        </td>
+                                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500" x-text="formatRoles(user.roles)"></td>
+                                        <td class="px-4 py-4 whitespace-nowrap">
+                                            <span :class="user.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'"
+                                                  class="px-2 py-1 text-xs font-medium rounded-full"
+                                                  x-text="user.status === 'active' ? t('users.active') : t('users.disabled')"></span>
+                                            <span x-show="user.force_password_reset" class="ml-2 px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700" x-text="t('users.force_reset')">Reset required</span>
+                                        </td>
+                                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500"
+                                            x-text="user.last_login ? formatDate(user.last_login) : t('users.never')"></td>
+                                        <td class="px-4 py-4 whitespace-nowrap text-sm">
+                                            <div class="flex flex-wrap gap-2">
+                                                <button @click="openRoleModal(user)"
+                                                        class="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-xs">
+                                                    <i class="fas fa-user-tag mr-1"></i><span x-text="t('users.edit_roles')">Edit roles</span>
+                                                </button>
+                                                <button @click="openResetModal(user)"
+                                                        class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors text-xs">
+                                                    <i class="fas fa-key mr-1"></i><span x-text="t('users.reset_password')">Reset password</span>
+                                                </button>
+                                                <button @click="toggleUserStatus(user)"
+                                                        :disabled="user.status === 'active' && isLastAdmin(user)"
+                                                        :class="(user.status === 'active' && isLastAdmin(user)) ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : (user.status === 'active' ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' : 'bg-green-100 text-green-700 hover:bg-green-200')"
+                                                        class="px-3 py-1 rounded-lg transition-colors text-xs">
+                                                    <i :class="user.status === 'active' ? 'fas fa-user-slash mr-1' : 'fas fa-user-check mr-1'"></i>
+                                                    <span x-text="user.status === 'active' ? t('users.disable') : t('users.enable')">Disable</span>
+                                                </button>
+                                                <button @click="deleteUser(user)"
+                                                        :disabled="user.id === auth.user.id || isLastAdmin(user)"
+                                                        :class="(user.id === auth.user.id || isLastAdmin(user)) ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-red-100 text-red-700 hover:bg-red-200'"
+                                                        class="px-3 py-1 rounded-lg transition-colors text-xs">
+                                                    <i class="fas fa-trash mr-1"></i><span x-text="t('users.delete')">Delete</span>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Help Tab -->
         <div x-show="currentTab === 'help'" x-cloak>
             <div class="bg-white rounded-xl shadow-md p-6">
@@ -645,6 +766,75 @@
                             <span x-text="t('help.open_user_guide')">Open User Guide</span>
                             <i class="fas fa-arrow-up-right-from-square ml-1"></i>
                         </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Roles Modal -->
+        <div x-show="showRoleModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" @keydown.escape.window="closeRoleModal()">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center">
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="closeRoleModal()"></div>
+                <div class="inline-block bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:align-middle sm:max-w-lg sm:w-full">
+                    <div class="px-6 py-5 border-b border-gray-200 flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900" x-text="t('users.edit_roles_title')">Edit roles</h3>
+                            <p class="text-sm text-gray-500" x-text="roleForm.email"></p>
+                        </div>
+                        <button @click="closeRoleModal()" class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="px-6 py-5">
+                        <div class="grid grid-cols-2 gap-2">
+                            <template x-for="role in roleOptions" :key="role">
+                                <label class="flex items-center space-x-2 text-sm text-gray-600">
+                                    <input type="checkbox" :value="role" x-model="roleForm.roles"
+                                           class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <span x-text="roleLabel(role)"></span>
+                                </label>
+                            </template>
+                        </div>
+                    </div>
+                    <div class="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
+                        <button @click="closeRoleModal()" class="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100">
+                            <span x-text="t('users.cancel')">Cancel</span>
+                        </button>
+                        <button @click="saveUserRoles()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            <span x-text="t('users.save_roles')">Save roles</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reset Password Modal -->
+        <div x-show="showResetModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" @keydown.escape.window="closeResetModal()">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center">
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="closeResetModal()"></div>
+                <div class="inline-block bg-white rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:align-middle sm:max-w-lg sm:w-full">
+                    <div class="px-6 py-5 border-b border-gray-200 flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900" x-text="t('users.reset_password_title')">Reset password</h3>
+                            <p class="text-sm text-gray-500" x-text="resetForm.email"></p>
+                        </div>
+                        <button @click="closeResetModal()" class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="px-6 py-5">
+                        <label class="block text-sm font-medium text-gray-700 mb-1" x-text="t('users.password')">Temporary Password</label>
+                        <input type="password" x-model="resetForm.password"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <p class="text-xs text-gray-500 mt-2" x-text="t('users.password_hint')">Passwords must be at least 12 characters.</p>
+                    </div>
+                    <div class="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
+                        <button @click="closeResetModal()" class="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100">
+                            <span x-text="t('users.cancel')">Cancel</span>
+                        </button>
+                        <button @click="resetUserPassword()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                            <span x-text="t('users.reset_password')">Reset password</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1055,7 +1245,55 @@
                         'nav.new_assessment': 'New Assessment',
                         'nav.assessments': 'Assessments',
                         'nav.controls': 'Control Families',
+                        'nav.users': 'Users',
                         'nav.help': 'Help',
+                        'users.create_title': 'Create User',
+                        'users.list_title': 'Users',
+                        'users.refresh': 'Refresh',
+                        'users.empty': 'No users found.',
+                        'users.email': 'Email',
+                        'users.password': 'Temporary Password',
+                        'users.roles': 'Roles',
+                        'users.actions': 'Actions',
+                        'users.status': 'Status',
+                        'users.active': 'Active',
+                        'users.disabled': 'Disabled',
+                        'users.force_reset': 'Reset required',
+                        'users.last_login': 'Last login',
+                        'users.never': 'Never',
+                        'users.create_button': 'Create user',
+                        'users.edit_roles': 'Edit roles',
+                        'users.edit_roles_title': 'Edit roles',
+                        'users.reset_password': 'Reset password',
+                        'users.reset_password_title': 'Reset password',
+                        'users.save_roles': 'Save roles',
+                        'users.cancel': 'Cancel',
+                        'users.disable': 'Disable',
+                        'users.enable': 'Enable',
+                        'users.delete': 'Delete',
+                        'users.password_hint': 'Passwords must be at least 12 characters.',
+                        'users.none': 'None',
+                        'role.admin': 'Admin',
+                        'role.assessor': 'Assessor',
+                        'role.client': 'Client',
+                        'role.viewer': 'Viewer',
+                        'confirm.disable_user': 'Disable this user? They will be signed out.',
+                        'confirm.enable_user': 'Enable this user?',
+                        'confirm.delete_user': 'Delete this user? This cannot be undone.',
+                        'toast.user_created': 'User created',
+                        'toast.user_create_failed': 'User creation failed',
+                        'toast.user_roles_updated': 'Roles updated',
+                        'toast.user_roles_update_failed': 'Role update failed',
+                        'toast.user_password_reset': 'Password reset',
+                        'toast.user_password_reset_failed': 'Password reset failed',
+                        'toast.user_disabled': 'User disabled',
+                        'toast.user_enabled': 'User enabled',
+                        'toast.user_status_failed': 'Status update failed',
+                        'toast.user_deleted': 'User deleted',
+                        'toast.user_delete_failed': 'User delete failed',
+                        'toast.user_role_required': 'Select at least one role',
+                        'toast.user_fields_required': 'Email and password are required',
+                        'toast.user_password_required': 'Temporary password is required',
                         'stats.total_assessments': 'Total Assessments',
                         'stats.completed': 'Completed',
                         'stats.in_progress': 'In Progress',
@@ -1348,7 +1586,55 @@
                         'nav.new_assessment': 'Nouvelle évaluation',
                         'nav.assessments': 'Évaluations',
                         'nav.controls': 'Familles de mesures de sécurité',
+                        'nav.users': 'Utilisateurs',
                         'nav.help': 'Aide',
+                        'users.create_title': 'Créer un utilisateur',
+                        'users.list_title': 'Utilisateurs',
+                        'users.refresh': 'Actualiser',
+                        'users.empty': 'Aucun utilisateur trouvé.',
+                        'users.email': 'Courriel',
+                        'users.password': 'Mot de passe temporaire',
+                        'users.roles': 'Rôles',
+                        'users.actions': 'Actions',
+                        'users.status': 'Statut',
+                        'users.active': 'Actif',
+                        'users.disabled': 'Désactivé',
+                        'users.force_reset': 'Réinitialisation requise',
+                        'users.last_login': 'Dernière connexion',
+                        'users.never': 'Jamais',
+                        'users.create_button': 'Créer l\'utilisateur',
+                        'users.edit_roles': 'Modifier les rôles',
+                        'users.edit_roles_title': 'Modifier les rôles',
+                        'users.reset_password': 'Réinitialiser le mot de passe',
+                        'users.reset_password_title': 'Réinitialiser le mot de passe',
+                        'users.save_roles': 'Enregistrer les rôles',
+                        'users.cancel': 'Annuler',
+                        'users.disable': 'Désactiver',
+                        'users.enable': 'Activer',
+                        'users.delete': 'Supprimer',
+                        'users.password_hint': 'Les mots de passe doivent comporter au moins 12 caractères.',
+                        'users.none': 'Aucun',
+                        'role.admin': 'Admin',
+                        'role.assessor': 'Évaluateur',
+                        'role.client': 'Client',
+                        'role.viewer': 'Observateur',
+                        'confirm.disable_user': 'Désactiver cet utilisateur ? Il sera déconnecté.',
+                        'confirm.enable_user': 'Activer cet utilisateur ?',
+                        'confirm.delete_user': 'Supprimer cet utilisateur ? Cette action est irréversible.',
+                        'toast.user_created': 'Utilisateur créé',
+                        'toast.user_create_failed': 'Échec de la création de l\'utilisateur',
+                        'toast.user_roles_updated': 'Rôles mis à jour',
+                        'toast.user_roles_update_failed': 'Échec de la mise à jour des rôles',
+                        'toast.user_password_reset': 'Mot de passe réinitialisé',
+                        'toast.user_password_reset_failed': 'Échec de la réinitialisation du mot de passe',
+                        'toast.user_disabled': 'Utilisateur désactivé',
+                        'toast.user_enabled': 'Utilisateur activé',
+                        'toast.user_status_failed': 'Échec de la mise à jour du statut',
+                        'toast.user_deleted': 'Utilisateur supprimé',
+                        'toast.user_delete_failed': 'Échec de la suppression de l\'utilisateur',
+                        'toast.user_role_required': 'Sélectionnez au moins un rôle',
+                        'toast.user_fields_required': 'Le courriel et le mot de passe sont requis',
+                        'toast.user_password_required': 'Le mot de passe temporaire est requis',
                         'stats.total_assessments': 'Total des évaluations',
                         'stats.completed': 'Terminées',
                         'stats.in_progress': 'En cours',
@@ -1621,6 +1907,13 @@
                 auth: { user: null, loading: true, error: '' },
                 loginForm: { email: '', password: '' },
                 passwordForm: { current: '', next: '', confirm: '' },
+                users: [],
+                roleOptions: ['admin', 'assessor', 'client', 'viewer'],
+                userForm: { email: '', password: '', roles: ['client'] },
+                showRoleModal: false,
+                roleForm: { id: '', email: '', roles: [] },
+                showResetModal: false,
+                resetForm: { id: '', email: '', password: '' },
                 assessments: [],
                 controlFamilies: [],
                 profiles: [],
@@ -1687,6 +1980,9 @@
                         await this.loadAssessments();
                         await this.loadControlFamilies();
                         await this.loadProfiles();
+                        if (this.isAdmin()) {
+                            await this.loadUsers();
+                        }
                     }
 
                     // Listen for reject-evidence events
@@ -1734,6 +2030,9 @@
                         } else {
                             this.auth.user = await response.json();
                         }
+                        if (!this.isAdmin() && this.currentTab === 'users') {
+                            this.currentTab = 'dashboard';
+                        }
                     } catch (error) {
                         this.auth.user = null;
                     } finally {
@@ -1763,6 +2062,9 @@
                         await this.loadAssessments();
                         await this.loadControlFamilies();
                         await this.loadProfiles();
+                        if (this.isAdmin()) {
+                            await this.loadUsers();
+                        }
                     } catch (error) {
                         this.auth.error = this.t('auth.login_failed');
                     }
@@ -1776,6 +2078,9 @@
                     }
                     this.auth.user = null;
                     this.assessments = [];
+                    this.users = [];
+                    this.showRoleModal = false;
+                    this.showResetModal = false;
                 },
 
                 async changePassword() {
@@ -1872,6 +2177,199 @@
                         this.profiles = data.profiles || [];
                     } catch (error) {
                         console.error('Failed to load profiles:', error);
+                    }
+                },
+
+                isAdmin() {
+                    return !!(this.auth.user && (this.auth.user.roles || []).includes('admin'));
+                },
+
+                activeAdminCount() {
+                    return this.users.filter((user) => user.status === 'active' && (user.roles || []).includes('admin')).length;
+                },
+
+                isLastAdmin(user) {
+                    if (!user) return false;
+                    return user.status === 'active' && (user.roles || []).includes('admin') && this.activeAdminCount() <= 1;
+                },
+
+                roleLabel(role) {
+                    const labels = {
+                        admin: this.t('role.admin'),
+                        assessor: this.t('role.assessor'),
+                        client: this.t('role.client'),
+                        viewer: this.t('role.viewer')
+                    };
+                    return labels[role] || role;
+                },
+
+                formatRoles(roles) {
+                    if (!roles || roles.length === 0) {
+                        return this.t('users.none');
+                    }
+                    return roles.map((role) => this.roleLabel(role)).join(', ');
+                },
+
+                async loadUsers() {
+                    if (!this.isAdmin()) return;
+                    try {
+                        const response = await fetch('/auth/users');
+                        if (!(await this.ensureAuthenticated(response))) return;
+                        const data = await response.json();
+                        this.users = data.users || [];
+                    } catch (error) {
+                        console.error('Failed to load users:', error);
+                    }
+                },
+
+                async createUser() {
+                    if (!this.userForm.email || !this.userForm.password) {
+                        this.showToast(this.t('toast.user_fields_required'), 'error');
+                        return;
+                    }
+                    if (!this.userForm.roles || this.userForm.roles.length === 0) {
+                        this.showToast(this.t('toast.user_role_required'), 'error');
+                        return;
+                    }
+                    try {
+                        const response = await fetch('/auth/users', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                email: this.userForm.email,
+                                password: this.userForm.password,
+                                roles: this.userForm.roles
+                            })
+                        });
+                        if (!(await this.ensureAuthenticated(response))) return;
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            this.showToast(errorData.detail || this.t('toast.user_create_failed'), 'error');
+                            return;
+                        }
+                        this.showToast(this.t('toast.user_created'), 'success');
+                        this.userForm = { email: '', password: '', roles: ['client'] };
+                        await this.loadUsers();
+                    } catch (error) {
+                        this.showToast(this.t('toast.user_create_failed'), 'error');
+                    }
+                },
+
+                openRoleModal(user) {
+                    this.roleForm = { id: user.id, email: user.email, roles: [...(user.roles || [])] };
+                    this.showRoleModal = true;
+                },
+
+                closeRoleModal() {
+                    this.showRoleModal = false;
+                    this.roleForm = { id: '', email: '', roles: [] };
+                },
+
+                async saveUserRoles() {
+                    if (!this.roleForm.roles || this.roleForm.roles.length === 0) {
+                        this.showToast(this.t('toast.user_role_required'), 'error');
+                        return;
+                    }
+                    try {
+                        const response = await fetch(`/auth/users/${this.roleForm.id}/roles`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ roles: this.roleForm.roles })
+                        });
+                        if (!(await this.ensureAuthenticated(response))) return;
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            this.showToast(errorData.detail || this.t('toast.user_roles_update_failed'), 'error');
+                            return;
+                        }
+                        this.showToast(this.t('toast.user_roles_updated'), 'success');
+                        this.closeRoleModal();
+                        await this.loadUsers();
+                    } catch (error) {
+                        this.showToast(this.t('toast.user_roles_update_failed'), 'error');
+                    }
+                },
+
+                openResetModal(user) {
+                    this.resetForm = { id: user.id, email: user.email, password: '' };
+                    this.showResetModal = true;
+                },
+
+                closeResetModal() {
+                    this.showResetModal = false;
+                    this.resetForm = { id: '', email: '', password: '' };
+                },
+
+                async resetUserPassword() {
+                    if (!this.resetForm.password) {
+                        this.showToast(this.t('toast.user_password_required'), 'error');
+                        return;
+                    }
+                    try {
+                        const response = await fetch('/auth/reset-password', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                user_email: this.resetForm.email,
+                                temporary_password: this.resetForm.password
+                            })
+                        });
+                        if (!(await this.ensureAuthenticated(response))) return;
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            this.showToast(errorData.detail || this.t('toast.user_password_reset_failed'), 'error');
+                            return;
+                        }
+                        this.showToast(this.t('toast.user_password_reset'), 'success');
+                        this.closeResetModal();
+                        await this.loadUsers();
+                    } catch (error) {
+                        this.showToast(this.t('toast.user_password_reset_failed'), 'error');
+                    }
+                },
+
+                async toggleUserStatus(user) {
+                    const targetStatus = user.status === 'active' ? 'disabled' : 'active';
+                    const confirmKey = targetStatus === 'disabled' ? 'confirm.disable_user' : 'confirm.enable_user';
+                    const confirmed = confirm(this.t(confirmKey));
+                    if (!confirmed) return;
+                    try {
+                        const response = await fetch(`/auth/users/${user.id}/status`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ status: targetStatus })
+                        });
+                        if (!(await this.ensureAuthenticated(response))) return;
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            this.showToast(errorData.detail || this.t('toast.user_status_failed'), 'error');
+                            return;
+                        }
+                        this.showToast(
+                            targetStatus === 'disabled' ? this.t('toast.user_disabled') : this.t('toast.user_enabled'),
+                            'success'
+                        );
+                        await this.loadUsers();
+                    } catch (error) {
+                        this.showToast(this.t('toast.user_status_failed'), 'error');
+                    }
+                },
+
+                async deleteUser(user) {
+                    const confirmed = confirm(this.t('confirm.delete_user'));
+                    if (!confirmed) return;
+                    try {
+                        const response = await fetch(`/auth/users/${user.id}`, { method: 'DELETE' });
+                        if (!(await this.ensureAuthenticated(response))) return;
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            this.showToast(errorData.detail || this.t('toast.user_delete_failed'), 'error');
+                            return;
+                        }
+                        this.showToast(this.t('toast.user_deleted'), 'success');
+                        await this.loadUsers();
+                    } catch (error) {
+                        this.showToast(this.t('toast.user_delete_failed'), 'error');
                     }
                 },
 
